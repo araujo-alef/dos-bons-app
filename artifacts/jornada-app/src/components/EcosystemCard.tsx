@@ -1,7 +1,7 @@
 import { Link } from 'wouter';
 import communityIconImg from '@assets/image_1786601214929.png';
 import mentoriasIconImg from '@assets/image_1786601521796.png';
-import aiImg from '@/assets/ai-conversations.png';
+import iaIconImg from '@assets/image_1786601743895.png';
 
 interface EcosystemCardProps {
   product: {
@@ -12,15 +12,14 @@ interface EcosystemCardProps {
 }
 
 export function EcosystemCard({ product }: EcosystemCardProps) {
-  const isComunidade = product.id === 'comunidade';
-  const isMentorias = product.id === 'mentorias';
-
-  const images: Record<string, string> = {
-    'ia-conversas': aiImg,
+  const iconMap: Record<string, string> = {
+    'comunidade': communityIconImg,
+    'mentorias': mentoriasIconImg,
+    'ia-conversas': iaIconImg,
   };
 
-  const isIconCard = isComunidade || isMentorias;
-  const iconImg = isComunidade ? communityIconImg : mentoriasIconImg;
+  const isIconCard = product.id in iconMap;
+  const iconImg = iconMap[product.id];
 
   const content = isIconCard ? (
     /* ── Icon cards (Comunidade, Mentorias) — object on dark bg ── */

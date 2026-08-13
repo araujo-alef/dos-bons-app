@@ -1,0 +1,211 @@
+Quero fazer uma alteração visual pontual na Home.
+
+Vou anexar junto deste prompt um **novo SVG para o card “IA de Conversas”**.
+
+Quero substituir a imagem atualmente usada nesse card pelo novo SVG anexado, preservando toda a estrutura, proporção, navegação e comportamento já existentes.
+
+## Objetivo
+
+O card **IA de Conversas** deve passar a usar o novo símbolo gráfico como elemento principal, seguindo a mesma linguagem visual que já estamos adotando nos cards **Comunidade** e **Mentorias**:
+
+* fundo escuro;
+* símbolo central;
+* roxo/lilás da marca;
+* glow muito sutil;
+* bastante espaço negativo;
+* visual minimalista e premium.
+
+Não quero redesenhar o card inteiro.
+
+A tarefa é principalmente substituir o asset e adaptar sua apresentação.
+
+## 1. Substituir o asset atual
+
+No card:
+
+**IA de Conversas**
+
+remover completamente a imagem/arte atualmente utilizada.
+
+Usar no lugar dela o **SVG anexado neste prompt**.
+
+Não alterar os assets de:
+
+* Cachorro dos Bons;
+* Comunidade;
+* Mentorias.
+
+## 2. Seguir exatamente a mesma lógica visual dos outros SVGs
+
+O card IA de Conversas deve ficar visualmente consistente com os cards Comunidade e Mentorias já atualizados.
+
+Todos devem compartilhar:
+
+* escala aproximada do SVG;
+* posicionamento;
+* espaço negativo;
+* tratamento do fundo;
+* intensidade do glow;
+* posição do título;
+* posição do CTA.
+
+Quero que os três cards pareçam claramente parte do mesmo design system.
+
+## 3. Não usar o SVG como background
+
+O SVG deve funcionar como um **objeto gráfico dentro do card**.
+
+Não usar como imagem full-bleed.
+
+Estrutura desejada:
+
+```text
+┌─────────────────────┐
+│                     │
+│                     │
+│       [ SVG ]       │
+│                     │
+│                     │
+│ IA de Conversas     │
+│ Conhecer →          │
+└─────────────────────┘
+```
+
+## 4. Escala do SVG
+
+Usar como referência o tamanho aplicado nos cards Comunidade e Mentorias.
+
+O símbolo deve:
+
+* ser facilmente reconhecível;
+* ter presença;
+* não encostar nas bordas;
+* não ocupar espaço demais;
+* preservar bastante área negativa.
+
+Como referência, pode ocupar aproximadamente `45%–60%` da largura interna disponível.
+
+Preservar sempre o aspect ratio original.
+
+## 5. Posicionamento
+
+Posicionar o SVG:
+
+* centralizado horizontalmente;
+* aproximadamente na metade superior do card;
+* com bom respiro ao redor.
+
+Não transformar o SVG em um pequeno ícone perto do título.
+
+Ele deve continuar funcionando como o principal elemento visual do card.
+
+## 6. Fundo
+
+Manter o mesmo fundo utilizado nos cards Comunidade e Mentorias.
+
+Preferencialmente reaproveitar exatamente o mesmo token/componente de background.
+
+Pode ser algo próximo de:
+
+`#08070B`
+
+ou equivalente já existente.
+
+Não adicionar:
+
+* nova imagem abstrata;
+* textura;
+* ilustração;
+* fundo independente.
+
+O próprio SVG deve carregar a identidade visual.
+
+## 7. Glow
+
+O SVG já possui iluminação roxa própria.
+
+Não adicionar um segundo glow forte via CSS.
+
+Se houver necessidade de integração com o card, usar apenas reforço muito discreto.
+
+Quero consistência com Comunidade e Mentorias.
+
+## 8. Conteúdo inferior
+
+Manter:
+
+**IA de Conversas**
+
+e o comportamento atual do card.
+
+Se o produto ainda estiver no estado futuro, preservar também:
+
+`EM BREVE`
+
+e o CTA existente, como:
+
+`Conhecer →`
+
+Não alterar nesta tarefa as regras de produto disponível ou não disponível.
+
+## 9. Status “EM BREVE”
+
+O badge/status `EM BREVE` deve continuar discreto.
+
+Não deixá-lo competir com o SVG.
+
+O principal elemento visual continua sendo o símbolo de conversa/IA.
+
+## 10. Consistência da grade
+
+O card IA de Conversas deve continuar com:
+
+* mesma largura;
+* mesma altura;
+* mesmo border-radius;
+* mesmo padding;
+* mesmo alinhamento;
+
+dos outros cards.
+
+Não alterar a geometria da Home.
+
+## 11. Hover/interações
+
+Preservar as interações já existentes.
+
+Caso Comunidade e Mentorias tenham alguma microinteração aplicada aos SVGs, repetir a mesma no card IA.
+
+Não criar um comportamento exclusivo.
+
+Se houver aumento de luminosidade no hover, usar intensidade muito baixa.
+
+## 12. Responsividade
+
+O novo SVG deve redimensionar proporcionalmente em:
+
+* mobile;
+* tablet;
+* desktop.
+
+Evitar dimensões fixas que criem inconsistência entre os cards.
+
+## 13. Não alterar o restante da Home
+
+Não mexer nesta tarefa em:
+
+* header;
+* branding Lábia de Cachorro;
+* card Cachorro dos Bons;
+* card Comunidade;
+* card Mentorias;
+* grid;
+* espaçamentos gerais;
+* rotas;
+* Jornada;
+* capítulos;
+* regras de navegação.
+
+A tarefa é exclusivamente:
+
+**substituir a arte atual do card IA de Conversas pelo novo SVG anexado e integrá-lo seguindo exatamente a mesma linguagem visual minimalista dos cards Comunidade e Mentorias.**
