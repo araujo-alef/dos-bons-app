@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Hub da Jornada"
+description = "Hub digital editorial de um influencer de desenvolvimento pessoal. O produto principal é uma Jornada interativa (livro digital em capítulos progressivos) com experiência de leitura premium, dark e editorial. Inclui também seção de ecossistema com produtos secundários (Comunidade, Mentorias, IA de Conversas). Toda a UI é mockada — sem backend, sem autenticação."
+version = "1.0.0"
+id = "artifacts/jornada-app"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22685
+
+[services.development]
+run = "pnpm --filter @workspace/jornada-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jornada-app", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/jornada-app/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22685"
+BASE_PATH = "/"

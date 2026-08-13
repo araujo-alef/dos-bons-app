@@ -1,0 +1,1166 @@
+Quero que você crie **uma seção completamente nova do projeto**, sem assumir que já existe qualquer estrutura visual pronta para ela.
+
+O objetivo desta implementação é criar o **frontend de um novo web app/ecossistema digital** de um influencer do nicho de desenvolvimento pessoal e relacionamentos.
+
+Neste momento, o foco é exclusivamente em **frontend, UX, layout, componentes, navegação e estados mockados**.
+
+Não implemente ainda autenticação, regras de negócio reais, persistência, banco de dados, segurança, pagamentos ou integrações externas complexas.
+
+A ideia é primeiro construir uma experiência visual e navegável muito bem resolvida para depois exportarmos o projeto e implementarmos backend e regras reais separadamente.
+
+---
+
+# 1. CONTEXTO DO PRODUTO
+
+Esse web app será o hub central do ecossistema digital do influencer.
+
+Ele possui diferentes produtos, como:
+
+* um livro/jornada digital;
+* comunidade fechada;
+* mentorias;
+* uma IA para análise e sugestão de respostas em conversas;
+* outros produtos futuros.
+
+Neste primeiro momento, porém, o produto principal é o **livro digital**, que dentro do app será tratado como uma **Jornada interativa**.
+
+Os outros produtos aparecem na Home como cards e, inicialmente, servem principalmente como entrada para outros produtos do ecossistema.
+
+O objetivo de longo prazo é que esse web app evolua para um "super app" do ecossistema.
+
+Por isso, a arquitetura visual deve permitir expansão futura sem precisar reconstruir a Home.
+
+---
+
+# 2. CONCEITO DA JORNADA
+
+Não queremos criar simplesmente um PDF ou e-book dentro do navegador.
+
+A ideia é transformar o livro em uma experiência digital mais editorial e interativa.
+
+Os capítulos serão publicados gradualmente.
+
+O modelo de publicação será aproximadamente:
+
+* novos capítulos liberados ao longo do tempo;
+* provavelmente com frequência semanal;
+* o usuário nunca deve enxergar um percentual de conclusão total do livro;
+* não existe "32% do livro concluído", pois o conteúdo continua sendo alimentado.
+
+Em vez disso, trabalhamos com estados como:
+
+* capítulo atual;
+* capítulos concluídos;
+* novo capítulo disponível;
+* próximo capítulo em breve;
+* usuário em dia com tudo que foi publicado.
+
+Todo capítulo já publicado deve permanecer acessível.
+
+O usuário NÃO precisa concluir um capítulo para acessar outro capítulo já publicado.
+
+---
+
+# 3. DIREÇÃO VISUAL
+
+O app deve ter uma linguagem:
+
+* premium;
+* editorial;
+* minimalista;
+* escura;
+* sofisticada;
+* com bastante respiro;
+* pouco parecida com dashboards tradicionais;
+* pouco parecida com plataformas de curso como Hotmart/Udemy;
+* pouco parecida com SaaS genérico.
+
+Queremos algo mais próximo de uma combinação entre:
+
+* publicação editorial premium;
+* streaming;
+* livro contemporâneo;
+* lifestyle;
+* marca pessoal sofisticada.
+
+Evite uma interface com dezenas de cards genéricos, progress bars, medalhas, badges excessivos ou gamificação visual pesada.
+
+A sensação deve ser muito mais "conteúdo premium" do que "plataforma de curso".
+
+---
+
+# 4. PALETA DE CORES
+
+Já existe uma landing page relacionada a esse produto e queremos manter consistência com ela.
+
+Use a seguinte paleta como base:
+
+Fundo principal:
+`#050505`
+
+Texto principal:
+`#FFFFFF`
+
+Cor de identidade / destaque:
+`#B266FF`
+
+Glow ambiente:
+roxo escuro baseado em algo como:
+`rgba(139, 53, 255, ...)`
+
+Verde:
+`#16A34A`
+
+Use verde com moderação, principalmente para estados positivos como:
+
+* concluído;
+* acesso liberado;
+* usuário em dia.
+
+Não use verde como cor principal de praticamente todos os botões.
+
+O lilás/roxo deve ser a principal assinatura visual do produto.
+
+Vermelho escuro:
+`#991B1B`
+
+Rosa claro para avisos específicos:
+`#FCA5A5`
+
+Texto secundário:
+branco com aproximadamente 60% a 70% de opacidade.
+
+Superfícies/cards podem usar variações extremamente escuras, próximas de:
+
+`#0C0C0E`
+`#111014`
+
+com bordas muito sutis, por exemplo:
+
+`rgba(255,255,255,0.06)`
+
+Evite exagerar em gradients e glows.
+
+O glow roxo deve existir como detalhe de identidade, não como efeito espalhado em todos os componentes.
+
+---
+
+# 5. TEMA
+
+O app deve ser exclusivamente DARK.
+
+Não criar modo claro.
+
+---
+
+# 6. TIPOGRAFIA
+
+Para interface e corpo de leitura, prefira uma sans-serif moderna e muito legível, como:
+
+* Geist;
+* Inter;
+* Manrope;
+
+ou equivalente.
+
+Para títulos editoriais importantes e títulos de capítulos, pode combinar com uma serif elegante.
+
+Direção desejada:
+
+**títulos editoriais serifados + corpo e interface sans-serif.**
+
+O resultado deve continuar contemporâneo, não clássico demais.
+
+---
+
+# 7. MOBILE FIRST
+
+Desenvolva a experiência primeiro pensando em celular.
+
+Use aproximadamente `390px` de largura como principal referência de projeto.
+
+Depois torne tudo responsivo para:
+
+* tablets;
+* notebooks;
+* desktop.
+
+A versão desktop NÃO deve simplesmente esticar os elementos do mobile até ficarem gigantes.
+
+Defina largura máxima confortável para o conteúdo.
+
+O app deverá continuar parecendo uma experiência focada em leitura e conteúdo.
+
+---
+
+# 8. ROTAS/TELAS DO PRIMEIRO PROTÓTIPO
+
+Crie inicialmente estas telas principais:
+
+1. Home
+2. Jornada
+3. Capítulo
+4. Estado/tela "Você está em dia"
+
+Não precisamos implementar agora:
+
+* autenticação;
+* banco de dados;
+* persistência;
+* sistema real de notas;
+* sistema real de destaques;
+* player avançado de áudio;
+* backend;
+* CMS;
+* segurança;
+* APIs;
+* pagamentos.
+
+Tudo deve funcionar com mocks locais.
+
+---
+
+# 9. HOME
+
+A Home deve ser bastante simples.
+
+Estrutura:
+
+1. Header
+2. Frase editorial
+3. Hero principal da Jornada
+4. Seção "Explore o ecossistema"
+5. Fim da página
+
+Não criar footer neste momento.
+
+Não criar bottom navigation.
+
+---
+
+# 10. HEADER DA HOME
+
+O header deve conter apenas:
+
+* logo;
+* nome geral do ecossistema.
+
+Esses elementos são puramente visuais.
+
+Não precisam ser clicáveis.
+
+Não adicionar:
+
+* avatar;
+* menu hambúrguer;
+* notificações;
+* configurações;
+* ícones desnecessários.
+
+Queremos um header bastante limpo.
+
+---
+
+# 11. FRASE DE ENTRADA DA HOME
+
+Logo abaixo do header, utilizar uma frase editorial curta.
+
+Usar inicialmente:
+
+**"O próximo passo começa aqui."**
+
+Ela deve ter presença, mas não competir com o hero.
+
+---
+
+# 12. HERO PRINCIPAL DA JORNADA
+
+Esse é o elemento mais importante da Home.
+
+Ele deve dominar visualmente a página, mas sem ocupar a tela inteira.
+
+Queremos que seja possível enxergar pelo menos o começo de "Explore o ecossistema" ainda próximo da primeira dobra da página.
+
+No mobile, usar proporção aproximada de:
+
+`16:9`
+
+Não transformar em um card vertical gigante.
+
+---
+
+# 13. IMAGEM DO HERO
+
+Por enquanto, como ainda não forneceremos os assets reais:
+
+* use placeholder visual elegante;
+* deixe o componente preparado para receber futuramente uma arte real do livro;
+* não use imagens genéricas bregas de banco de imagens.
+
+A imagem deverá aparecer inteira dentro do hero.
+
+Evite recortar agressivamente com `cover`.
+
+O layout deve aceitar áreas escuras ao redor da arte se necessário para preservar a composição original.
+
+A imagem pode receber:
+
+* overlay preto suave;
+* somente o necessário para garantir leitura do texto.
+
+Não aplicar efeitos exagerados.
+
+---
+
+# 14. CONTEÚDO DO HERO
+
+O texto fica:
+
+* alinhado à esquerda;
+* aproximadamente centralizado verticalmente.
+
+O título do capítulo atual deve ser o principal elemento textual.
+
+Não mostrar o nome da Jornada dentro do hero.
+
+O hero deve trabalhar com:
+
+* label de estado;
+* título do capítulo;
+* quantidade de capítulos concluídos;
+* CTA;
+* eventualmente selo de novo capítulo disponível.
+
+Não mostrar:
+
+* progresso percentual;
+* barra de progresso;
+* tempo estimado;
+* percentual total da Jornada.
+
+---
+
+# 15. CTA DO HERO
+
+Usar um CTA editorial, não um botão pesado.
+
+Texto:
+
+**Continuar jornada →**
+
+Pode parecer um link de ação sofisticado.
+
+Não usar um grande botão sólido.
+
+---
+
+# 16. ESTADOS DO HERO
+
+Crie dados mockados e estrutura preparada para os seguintes estados.
+
+### Estado 1 — usuário ainda não começou
+
+Label:
+
+`COMECE SUA JORNADA`
+
+Título:
+
+usar título mock do primeiro capítulo.
+
+CTA:
+
+`Continuar jornada →`
+
+---
+
+### Estado 2 — capítulo em andamento
+
+Label:
+
+`CONTINUE DE ONDE PAROU`
+
+Título:
+
+título do capítulo atual.
+
+Informação secundária:
+
+exemplo:
+
+`6 capítulos concluídos`
+
+CTA:
+
+`Continuar jornada →`
+
+---
+
+### Estado 3 — existe capítulo novo, mas o usuário ainda não terminou o anterior
+
+O capítulo anterior continua sendo o foco principal.
+
+Exemplo:
+
+badge pequeno no topo:
+
+`NOVO CAPÍTULO DISPONÍVEL`
+
+Depois:
+
+`CONTINUE DE ONDE PAROU`
+
+Título do capítulo em andamento.
+
+`6 capítulos concluídos`
+
+`Continuar jornada →`
+
+Não substituir o capítulo atual pelo novo capítulo.
+
+Não criar um CTA separado para o capítulo novo.
+
+---
+
+### Estado 4 — usuário terminou tudo que foi publicado
+
+Label:
+
+`VOCÊ ESTÁ EM DIA`
+
+Título editorial:
+
+**A próxima etapa está chegando**
+
+Informação:
+
+`7 capítulos concluídos`
+
+CTA:
+
+`Continuar jornada →`
+
+Manter o mesmo hero e a mesma identidade visual.
+
+Não criar uma explosão de confete ou gamificação exagerada.
+
+---
+
+# 17. COMPORTAMENTO DO HERO
+
+O hero inteiro deve ser clicável.
+
+Ao clicar, SEMPRE levar para:
+
+`/jornada`
+
+Não abrir diretamente o capítulo.
+
+A Jornada funciona como a central de navegação dos capítulos.
+
+---
+
+# 18. EXPLORE O ECOSSISTEMA
+
+Abaixo do hero, criar a seção:
+
+**Explore o ecossistema**
+
+A seção mostra os outros produtos.
+
+Neste primeiro MVP, considerar:
+
+* Comunidade;
+* Mentorias;
+* IA de Conversas.
+
+Estruturar o componente para receber outros produtos futuramente.
+
+---
+
+# 19. CARDS DO ECOSSISTEMA
+
+Diferente do livro, nenhum outro produto deve possuir um grande hero.
+
+Os produtos secundários aparecem:
+
+* dois cards por linha no mobile;
+* todos com a mesma proporção;
+* grid consistente;
+* visual muito baseado em imagem/arte.
+
+Cada card deve ter:
+
+* imagem/arte ocupando praticamente todo o card;
+* overlay preto suave;
+* nome do produto sobre a imagem;
+* CTA discreto;
+* card inteiro clicável.
+
+CTA padrão:
+
+`Conhecer →`
+
+Os cards devem lembrar pôsteres editoriais, e não cards de dashboard ou e-commerce.
+
+Evitar grandes áreas de texto.
+
+---
+
+# 20. PRODUTOS DISPONÍVEIS E "EM BREVE"
+
+Arquitetar dois estados.
+
+### Produto disponível
+
+* imagem;
+* nome;
+* `Conhecer →`;
+* ao clicar, futuramente abrirá URL externa.
+
+Por enquanto, pode usar uma URL mock ou comportamento demonstrativo.
+
+---
+
+### Produto não lançado
+
+Exibir:
+
+`EM BREVE`
+
+O card continua clicável.
+
+No futuro abrirá uma página teaser interna.
+
+Essa tela teaser NÃO precisa ser implementada nesta primeira etapa.
+
+Por enquanto, pode apenas deixar a rota/comportamento preparado ou usar um placeholder simples.
+
+---
+
+# 21. TELA JORNADA
+
+Criar rota:
+
+`/jornada`
+
+Essa tela é a central de acesso aos capítulos.
+
+Não deve parecer uma lista tradicional de curso.
+
+Queremos uma experiência visual/editorial.
+
+---
+
+# 22. TOPO DA JORNADA
+
+Incluir:
+
+* botão voltar;
+* título `Sua Jornada`;
+* pequeno resumo.
+
+Exemplo:
+
+`6 capítulos concluídos`
+
+`Capítulo atual: Conexão e presença`
+
+Não mostrar:
+
+* percentual;
+* quantidade total definitiva;
+* tempo restante;
+* countdown.
+
+---
+
+# 23. CAPÍTULO EM ANDAMENTO DESTACADO
+
+Se houver capítulo em andamento, ele deve aparecer em um card maior/destacado no topo.
+
+Exemplo:
+
+`EM ANDAMENTO`
+
+`CAPÍTULO 06`
+
+`Conexão e presença`
+
+`Continuar →`
+
+Esse destaque deve aparecer antes da lista geral.
+
+---
+
+# 24. QUANDO NÃO HÁ CAPÍTULO EM ANDAMENTO
+
+Se o usuário estiver em dia, o destaque superior vira:
+
+`PRÓXIMO CAPÍTULO`
+
+`EM BREVE`
+
+Não mostrar:
+
+* título;
+* data;
+* horário;
+* countdown.
+
+Queremos preservar mistério.
+
+---
+
+# 25. LISTA DE CAPÍTULOS
+
+Abaixo do destaque, criar os cards editoriais dos capítulos.
+
+Todo capítulo publicado deve continuar acessível.
+
+Todos devem compartilhar a mesma linguagem visual.
+
+Não precisamos de uma arte diferente para cada capítulo.
+
+Utilize uma base consistente.
+
+Estados necessários:
+
+### Concluído
+
+`✓ CONCLUÍDO`
+
+### Em andamento
+
+`EM ANDAMENTO`
+
+### Novo
+
+`NOVO`
+
+### Futuro
+
+`PRÓXIMO CAPÍTULO`
+`EM BREVE`
+
+Mostrar:
+
+* todos os capítulos publicados;
+* apenas UM próximo capítulo futuro.
+
+Não mostrar a lista inteira de capítulos que ainda não foram publicados.
+
+---
+
+# 26. LIBERDADE DE NAVEGAÇÃO
+
+Todos os capítulos já publicados podem ser abertos livremente.
+
+Não existe desbloqueio sequencial.
+
+Não bloquear capítulo 6 só porque o capítulo 5 não foi concluído.
+
+---
+
+# 27. DESTAQUES E ANOTAÇÕES
+
+Na tela Jornada, deixar previsto um link:
+
+**Meus destaques e anotações →**
+
+Não precisa implementar a tela nesta primeira versão.
+
+Mas deixe a UI e arquitetura preparadas para essa futura funcionalidade.
+
+---
+
+# 28. TELA DE CAPÍTULO
+
+Criar rota, por exemplo:
+
+`/jornada/capitulo/:id`
+
+A experiência de leitura deve ser completamente diferente de uma página de curso.
+
+Queremos leitura editorial.
+
+---
+
+# 29. TOPO DO CAPÍTULO
+
+Mostrar:
+
+* voltar;
+* número do capítulo;
+* título do capítulo.
+
+Exemplo:
+
+`CAPÍTULO 06`
+
+**Conexão e presença**
+
+Não mostrar:
+
+* progresso;
+* barra;
+* tempo de leitura;
+* porcentagem.
+
+---
+
+# 30. LEITURA
+
+A leitura acontece por scroll livre.
+
+Não usar:
+
+* slides;
+* telas que obrigam a apertar "Próximo";
+* paginação artificial.
+
+O conteúdo é dividido em blocos médios com bastante respiro.
+
+Os blocos precisam parecer parte de uma leitura contínua.
+
+---
+
+# 31. TIPOS DE CONTEÚDO DE UM CAPÍTULO
+
+Crie componentes reutilizáveis para suportar:
+
+### Texto
+
+Parágrafos do conteúdo principal.
+
+### Imagem
+
+Imagem dentro do fluxo.
+
+As imagens podem ocupar toda a largura disponível do conteúdo quando necessário.
+
+### Reflexão
+
+Bloco editorial para pergunta/reflexão.
+
+Exemplo:
+
+`REFLEXÃO`
+
+"Quando você percebe que está buscando aprovação?"
+
+Não precisa permitir salvar resposta nesta versão.
+
+Pode existir placeholder visual de futura interação.
+
+### Prática / exercício
+
+Exemplo:
+
+`PRÁTICA`
+
+"Durante sua próxima interação, observe..."
+
+Não precisa funcionar ainda.
+
+### Áudio
+
+Criar um componente mock de áudio.
+
+Exemplo:
+
+`ÁUDIO`
+
+`Reflexão do autor`
+
+`03:12`
+
+Pode ter botão visual de play, mas não precisa implementar player completo se não houver mídia.
+
+### Vídeo
+
+Criar card de vídeo mock com thumbnail.
+
+Exemplo:
+
+`VÍDEO`
+
+`Veja isso na prática`
+
+Com ícone de play.
+
+---
+
+# 32. UNIFORMIDADE DOS BLOCOS
+
+Apesar de existirem tipos diferentes, queremos uma linguagem visual uniforme.
+
+Não transformar cada bloco em um componente completamente diferente e chamativo.
+
+Todos devem compartilhar:
+
+* espaçamentos;
+* tipografia;
+* bordas;
+* superfícies;
+* ritmo editorial.
+
+Reflexões, práticas, áudio e vídeo podem ter pequenas diferenças, mas devem parecer partes da mesma publicação.
+
+---
+
+# 33. DESTAQUES E ANOTAÇÕES FUTUROS
+
+A estrutura do texto deve ser preparada para futuramente suportar:
+
+* seleção de trecho;
+* destaque;
+* anotação.
+
+Não implementar essa funcionalidade agora.
+
+Mas evite estruturas que tornem isso difícil depois.
+
+---
+
+# 34. RETOMADA DE LEITURA
+
+No produto real, capítulos ainda não concluídos deverão permitir retomar exatamente do ponto de scroll em que o usuário parou.
+
+Não precisa implementar persistência real agora.
+
+Mas organize a arquitetura para que seja possível guardar futuramente:
+
+* chapterId;
+* posição de scroll;
+* status.
+
+Capítulos já concluídos, quando reabertos, começarão do início.
+
+---
+
+# 35. FINAL DO CAPÍTULO
+
+No final da leitura, mostrar:
+
+`Fim do capítulo`
+
+e um CTA principal:
+
+**Concluir capítulo**
+
+Neste protótipo, o botão deve funcionar usando estado mock/local para demonstrar o fluxo.
+
+---
+
+# 36. TRANSIÇÃO DE CONCLUSÃO
+
+Ao clicar em "Concluir capítulo", mostrar uma pequena tela/estado editorial de conclusão.
+
+Exemplo:
+
+`✓`
+
+`CAPÍTULO CONCLUÍDO`
+
+e uma frase curta de encerramento, como:
+
+"Você não precisa dominar tudo agora. Só precisa continuar."
+
+Essa experiência deve ser elegante e breve.
+
+---
+
+# 37. SE EXISTIR OUTRO CAPÍTULO PUBLICADO
+
+Após a conclusão:
+
+* se houver outro capítulo publicado disponível;
+* abrir automaticamente o próximo capítulo.
+
+Não voltar primeiro para a Jornada.
+
+---
+
+# 38. SE FOR O ÚLTIMO CAPÍTULO DISPONÍVEL
+
+Se o usuário concluir o último capítulo que foi publicado, levar para uma tela especial.
+
+Criar rota ou estado equivalente:
+
+`/jornada/em-dia`
+
+---
+
+# 39. TELA "VOCÊ ESTÁ EM DIA"
+
+Visual bastante limpo e editorial.
+
+Conteúdo sugerido:
+
+`✓`
+
+**VOCÊ ESTÁ EM DIA**
+
+Texto:
+
+"Tudo que foi liberado até aqui já faz parte da sua jornada."
+
+"A próxima etapa está chegando."
+
+CTA:
+
+**Revisitar capítulos →**
+
+Ao clicar:
+
+voltar para:
+
+`/jornada`
+
+---
+
+# 40. MOCKS
+
+Crie dados locais realistas para demonstrar o fluxo.
+
+Pode criar algo como 7 capítulos:
+
+1. Fundamentos
+2. Mentalidade
+3. Presença
+4. Comunicação
+5. Confiança
+6. Conexão e presença
+7. A arte da conexão
+
+E um oitavo item futuro:
+
+`Próximo capítulo`
+`Em breve`
+
+Esses nomes são apenas mocks.
+
+Crie conteúdo fictício curto o suficiente para prototipar, mas longo o suficiente para conseguirmos avaliar o comportamento da página durante scroll.
+
+Não precisamos de um livro inteiro.
+
+---
+
+# 41. ESTADOS MOCKADOS
+
+Precisamos conseguir testar visualmente diferentes situações.
+
+Organize os mocks de forma simples para que seja fácil alterar algo como:
+
+* `notStarted`
+* `inProgress`
+* `newChapterAvailable`
+* `upToDate`
+
+Não é necessário criar um painel de administração.
+
+Pode existir um arquivo de mock/config onde trocamos o estado facilmente.
+
+---
+
+# 42. COMPONENTIZAÇÃO
+
+Evite criar tudo em arquivos gigantes.
+
+Separe componentes reutilizáveis, por exemplo:
+
+* AppHeader
+* JourneyHero
+* EcosystemCard
+* JourneySummary
+* FeaturedChapterCard
+* ChapterCard
+* ChapterHeader
+* TextBlock
+* ImageBlock
+* ReflectionBlock
+* PracticeBlock
+* AudioBlock
+* VideoBlock
+* ChapterCompletion
+* UpToDateState
+
+Os nomes podem variar conforme o padrão do projeto existente.
+
+---
+
+# 43. RESPONSIVIDADE
+
+Mobile é prioridade.
+
+Em desktop:
+
+* limitar largura da área de leitura;
+* preservar bastante espaço negativo;
+* não aumentar exageradamente a largura do texto;
+* cards podem se reorganizar, mas devem manter proporção e hierarquia.
+
+O corpo da leitura deve continuar confortável, mesmo em telas largas.
+
+---
+
+# 44. MICROINTERAÇÕES
+
+Pode utilizar interações discretas como:
+
+* leve mudança de opacidade;
+* pequeno movimento;
+* borda lilás muito sutil;
+* hover suave;
+* transições de estado.
+
+Não usar animações chamativas.
+
+Não exagerar em:
+
+* glassmorphism;
+* neon;
+* blur;
+* glow;
+* gradients animados.
+
+---
+
+# 45. ACESSIBILIDADE
+
+Garantir:
+
+* bom contraste;
+* texto legível;
+* áreas clicáveis confortáveis;
+* estados de foco;
+* elementos semânticos;
+* comportamento adequado em touch;
+* responsividade.
+
+---
+
+# 46. O QUE NÃO FAZER
+
+Evite especialmente:
+
+* aparência de dashboard SaaS;
+* cara de plataforma de curso;
+* progress bars em todo lugar;
+* gamificação pesada;
+* dezenas de ícones;
+* menus desnecessários;
+* bottom navigation;
+* avatar no header;
+* percentual total da Jornada;
+* lista de capítulos futuros;
+* countdown;
+* datas de lançamento;
+* bloqueio sequencial dos capítulos;
+* cards gigantes para produtos que não sejam a Jornada;
+* lorem ipsum visivelmente genérico na experiência final;
+* componentes exageradamente arredondados;
+* glow roxo em absolutamente tudo;
+* botão verde gigante para qualquer ação;
+* interface com aparência típica de template gerado por IA.
+
+---
+
+# 47. IMPORTANTE SOBRE O ESTILO
+
+O visual deve parecer deliberadamente desenhado.
+
+Prefira:
+
+* composição;
+* tipografia;
+* contraste;
+* imagem;
+* respiro;
+* hierarquia;
+
+em vez de depender de dezenas de efeitos.
+
+Cards podem ter border-radius moderado, aproximadamente entre 12px e 18px.
+
+O hero pode ficar entre aproximadamente 16px e 20px.
+
+Não usar `rounded-3xl` indiscriminadamente.
+
+---
+
+# 48. ASSETS
+
+Ainda não temos os assets reais da landing page.
+
+Portanto:
+
+* crie placeholders elegantes;
+* deixe as imagens facilmente substituíveis;
+* não amarre o layout a uma arte específica;
+* centralize URLs/imports de imagens mock;
+* futuramente substituiremos por capa do livro, fotos e artes reais.
+
+Não utilize imagens aleatórias que definam uma identidade visual diferente da nossa.
+
+---
+
+# 49. OBJETIVO DESTA ENTREGA
+
+Quero conseguir abrir o frontend e navegar pelo fluxo:
+
+Home
+
+→ Jornada
+
+→ abrir capítulo
+
+→ rolar pelo conteúdo
+
+→ visualizar texto, imagem, reflexão, prática, áudio e vídeo
+
+→ concluir capítulo
+
+→ ir automaticamente para o próximo capítulo
+
+ou:
+
+→ terminar o último publicado
+
+→ visualizar "Você está em dia"
+
+→ Revisitar capítulos
+
+→ Jornada
+
+Além disso, quero conseguir visualizar a Home em diferentes estados da Jornada.
+
+---
+
+# 50. FOCO DESTA IMPLEMENTAÇÃO
+
+Priorize nesta ordem:
+
+1. UX e hierarquia;
+2. qualidade visual;
+3. mobile-first;
+4. componentes reutilizáveis;
+5. estados mockados;
+6. navegação;
+7. responsividade;
+8. facilidade de substituição posterior dos mocks por dados reais.
+
+Não implemente backend agora.
+
+Não crie autenticação agora.
+
+Não crie banco agora.
+
+Não adicione Firebase agora.
+
+Não invente funcionalidades adicionais sem necessidade.
+
+Antes de alterar qualquer outra parte existente do projeto, preserve o que já funciona.
+
+Esta deve ser tratada como **uma nova área/seção do produto**, mantendo o restante do projeto intacto sempre que possível.
