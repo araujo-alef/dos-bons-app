@@ -2,61 +2,9 @@ import { Link } from 'wouter';
 import book3dV3 from '@/assets/book-3d-v3.png';
 import { CURRENT_CHAPTER_ID } from '@/mocks/config';
 
-/* ─── Chain SVG (generated) ────────────────────────────────────────────────
-   Horizontal and vertical ellipses are rendered in two passes so vertical
-   links appear to sit "in front of" horizontal links (classic chain look).
-   A handful of links receive a purple-tinted stroke to suggest reflection.  */
-const H_COUNT   = 16;          // horizontal link count
-const SPACING   = 18;          // px between horizontal link centers
-const CHAIN_W   = (H_COUNT - 1) * SPACING + 18; // ≈ 288px
-const CHAIN_H   = 24;
+import { ChainSVG } from '@/components/ChainSVG';
 
-function ChainSVG() {
-  // Indexes that receive a purple highlight (spread them irregularly)
-  const purpleH = new Set([2, 7, 11]);
-  const purpleV = new Set([4, 9, 13]);
-
-  return (
-    <svg
-      width={CHAIN_W}
-      height={CHAIN_H}
-      viewBox={`0 0 ${CHAIN_W} ${CHAIN_H}`}
-      fill="none"
-      aria-hidden="true"
-    >
-      {/* Pass 1: horizontal links — drawn first so vertical sit on top */}
-      {Array.from({ length: H_COUNT }, (_, i) => {
-        const cx = i * SPACING + 9;
-        const lit = purpleH.has(i);
-        return (
-          <ellipse
-            key={`h${i}`}
-            cx={cx} cy={12}
-            rx={8.5} ry={4.2}
-            stroke={lit ? '#4A2878' : '#1C1628'}
-            strokeWidth="1.3"
-            fill={lit ? '#140F20' : '#0C0A12'}
-          />
-        );
-      })}
-      {/* Pass 2: vertical links — interlocked between horizontal pairs */}
-      {Array.from({ length: H_COUNT - 1 }, (_, i) => {
-        const cx = i * SPACING + 18;
-        const lit = purpleV.has(i);
-        return (
-          <ellipse
-            key={`v${i}`}
-            cx={cx} cy={12}
-            rx={4.2} ry={9}
-            stroke={lit ? '#5A3490' : '#18142A'}
-            strokeWidth="1.3"
-            fill={lit ? '#110D1E' : '#0A0810'}
-          />
-        );
-      })}
-    </svg>
-  );
-}
+const CHAIN_W = (16 - 1) * 18 + 18; // 288px — matches ChainSVG default (16 links)
 
 /* ─── Lightning bolt SVG shapes ─────────────────────────────────────────── */
 /** Tall bolt pointing down-right */
