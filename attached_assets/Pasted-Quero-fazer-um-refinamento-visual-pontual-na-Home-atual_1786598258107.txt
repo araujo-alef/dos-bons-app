@@ -1,0 +1,386 @@
+Quero fazer um **refinamento visual pontual na Home atual**, sem reconstruir a página do zero e sem alterar a estrutura funcional que já foi implementada.
+
+Existem dois objetivos principais nesta tarefa:
+
+1. atualizar a identidade do app para **“Lábia de Cachorro”**, usando o novo ícone anexado;
+2. reorganizar o conteúdo textual do hero principal, porque atualmente os textos estão visualmente muito próximos e com sensação de “tumulto”.
+
+Quero uma Home mais limpa, premium, editorial e com uma hierarquia visual mais clara.
+
+---
+
+# 1. NOVO NOME DO APP
+
+Alterar o nome exibido no header de:
+
+`ECOSSISTEMA`
+
+para:
+
+**Lábia de Cachorro**
+
+Esse passa a ser o nome visível do app.
+
+Não usar uppercase em todo o nome.
+
+Quero algo mais sofisticado e com aparência de marca.
+
+Exemplo conceitual:
+
+`[ÍCONE]  Lábia de Cachorro`
+
+---
+
+# 2. NOVO ÍCONE
+
+Vou anexar uma imagem contendo o novo símbolo/mascote do app: um cachorro com óculos e boné, com iluminação roxa.
+
+Use essa imagem no lugar do atual ícone com a letra estilizada.
+
+O ícone deve funcionar como identidade visual do app no header.
+
+## Tratamento desejado
+
+Não quero simplesmente colocar a imagem quadrada inteira do jeito que ela foi enviada.
+
+Recorte/trate visualmente para que o cachorro fique bem integrado ao header.
+
+Preferencialmente:
+
+* usar o mascote como elemento principal;
+* remover ou esconder visualmente o excesso de fundo preto;
+* utilizar container circular ou formato equivalente apenas se realmente ficar elegante;
+* preservar o contorno/glow roxo;
+* evitar borda pesada;
+* evitar deixar o ícone grande demais.
+
+O ícone deve ser reconhecível mesmo em tamanho pequeno.
+
+---
+
+# 3. HEADER
+
+Quero o header aproximadamente assim:
+
+`[ícone cachorro]  Lábia de Cachorro`
+
+Manter:
+
+* alinhamento horizontal;
+* bastante espaço negativo;
+* aparência minimalista.
+
+Não adicionar:
+
+* menu;
+* avatar;
+* notificações;
+* botões extras.
+
+O header continua sendo apenas identidade.
+
+---
+
+# 4. PROBLEMA ATUAL DO HERO
+
+A composição visual geral do hero está boa:
+
+* capa à esquerda;
+* conteúdo à direita.
+
+Porém, no lado direito, os textos estão muito próximos uns dos outros.
+
+Atualmente temos aproximadamente:
+
+`CONTINUE DE ONDE PAROU`
+
+`Conexão e Presença`
+
+`5 capítulos concluídos`
+
+`Continuar jornada →`
+
+Esses quatro elementos estão formando praticamente um único bloco visual.
+
+Quero criar uma hierarquia muito mais clara.
+
+---
+
+# 5. NOVA ORGANIZAÇÃO DO HERO
+
+Preservar:
+
+* capa frontal do livro no lado esquerdo;
+* texto no lado direito.
+
+Mas dividir o conteúdo textual em **três níveis visuais claros**:
+
+### BLOCO 1 — CONTEXTO
+
+No topo do conteúdo:
+
+`CONTINUE DE ONDE PAROU`
+
+Esse elemento deve ser pequeno, lilás e com bastante espaçamento entre letras.
+
+Ele deve funcionar apenas como label/contexto.
+
+Não aproximá-lo demais do título.
+
+---
+
+### BLOCO 2 — CONTEÚDO PRINCIPAL
+
+Depois de um bom espaço vertical:
+
+**Conexão e Presença**
+
+Esse é o elemento textual principal.
+
+Deve ter bastante destaque e espaço ao redor.
+
+A ideia é que o usuário perceba imediatamente:
+
+> esse é o capítulo atual.
+
+Não colocar outro texto muito próximo do título.
+
+---
+
+### BLOCO 3 — STATUS + AÇÃO
+
+Mais abaixo, criar um grupo secundário:
+
+`5 capítulos concluídos`
+
+e depois:
+
+`Continuar jornada →`
+
+Esses elementos podem ficar relativamente próximos entre si, pois pertencem ao mesmo contexto funcional.
+
+Mas deixar uma distância maior entre esse grupo e o título.
+
+---
+
+# 6. HIERARQUIA VISUAL DESEJADA
+
+Quero que o olhar siga naturalmente esta ordem:
+
+1. capa do livro;
+2. título **Conexão e Presença**;
+3. label `CONTINUE DE ONDE PAROU`;
+4. CTA `Continuar jornada →`;
+5. informação `5 capítulos concluídos`.
+
+O título precisa respirar.
+
+Na versão atual, todos os elementos parecem ter peso e proximidade semelhantes.
+
+Corrigir isso.
+
+---
+
+# 7. ESPAÇAMENTO
+
+Aumentar principalmente:
+
+* espaço entre label e título;
+* espaço entre título e informações secundárias.
+
+Não quero simplesmente aumentar igualmente o `gap` de tudo.
+
+Criar grupos visuais.
+
+Algo conceitualmente próximo de:
+
+```text
+CONTINUE DE ONDE PAROU
+
+
+Conexão e Presença
+
+
+
+5 capítulos concluídos
+Continuar jornada →
+```
+
+Não interpretar literalmente essas quebras, mas seguir essa hierarquia.
+
+---
+
+# 8. CTA
+
+O CTA deve continuar sendo:
+
+**Continuar jornada →**
+
+Manter como ação editorial, sem transformar em botão sólido.
+
+Pode receber um pouco mais de contraste que o texto `5 capítulos concluídos`.
+
+Por exemplo:
+
+* CTA quase branco;
+* capítulos concluídos em cinza;
+* hover sutil em lilás.
+
+O CTA precisa parecer obviamente clicável sem virar um grande botão.
+
+---
+
+# 9. CAPÍTULOS CONCLUÍDOS
+
+Reduzir um pouco a importância visual de:
+
+`5 capítulos concluídos`
+
+Ele é informação auxiliar.
+
+Não precisa disputar atenção com o CTA.
+
+Utilizar:
+
+* tamanho menor;
+* menor opacidade;
+* peso mais leve.
+
+---
+
+# 10. TAMANHO DO TÍTULO
+
+O título atual está visualmente bom, mas ajuste tamanho e line-height se necessário para criar melhor composição.
+
+No mobile, permita quebra elegante se o título crescer.
+
+Exemplo:
+
+**Conexão e**
+**Presença**
+
+é aceitável se a largura exigir.
+
+Não reduzir demais apenas para manter tudo em uma linha.
+
+---
+
+# 11. ALINHAMENTO VERTICAL
+
+A capa e o conteúdo textual precisam parecer parte da mesma composição.
+
+Não quero que todos os textos fiquem simplesmente centralizados geometricamente.
+
+Prefira um equilíbrio óptico.
+
+A capa deve ficar centralizada verticalmente.
+
+No lado direito, organize o conteúdo com respiro suficiente para que a composição pareça deliberadamente editorial.
+
+---
+
+# 12. FUNDO DO HERO
+
+Não alterar de maneira significativa.
+
+Manter:
+
+* fundo muito escuro;
+* pequena nuance roxa;
+* borda discreta;
+* estética minimalista.
+
+Não adicionar novos glows ou efeitos apenas para preencher espaço.
+
+O ganho visual desta tarefa deve vir principalmente de:
+
+* composição;
+* espaçamento;
+* tipografia;
+* hierarquia.
+
+---
+
+# 13. CAPA DO LIVRO
+
+Manter a capa frontal atual do lado esquerdo.
+
+Não aumentar exageradamente.
+
+Ela deve ter presença, porém ainda existir espaço ao redor dela.
+
+Manter sombra/profundidade muito discreta.
+
+---
+
+# 14. RESPONSIVIDADE
+
+No mobile, manter a composição lado a lado enquanto houver espaço suficiente.
+
+Caso a largura fique pequena demais, ajuste:
+
+* largura da capa;
+* tamanho do título;
+* paddings;
+* gaps.
+
+Evite empilhar automaticamente capa e texto se não for realmente necessário.
+
+A intenção visual principal continua sendo:
+
+**capa à esquerda + conteúdo à direita.**
+
+---
+
+# 15. SEÇÃO EXPLORE
+
+Não alterar a estrutura do `Explore o ecossistema` nesta tarefa.
+
+Apenas garantir que as alterações no hero e no novo header não prejudiquem os espaçamentos existentes.
+
+---
+
+# 16. RESULTADO ESPERADO
+
+Quero que a nova Home tenha imediatamente uma identidade própria:
+
+**Lábia de Cachorro**
+
+com o mascote anexado como símbolo.
+
+E quero que o hero pareça menos carregado.
+
+A sensação desejada é:
+
+* capa forte;
+* título forte;
+* poucas informações;
+* muito espaço;
+* leitura imediata;
+* hierarquia clara;
+* visual premium/editorial.
+
+Não quero que o conteúdo do hero pareça quatro linhas de texto empilhadas com espaçamento uniforme.
+
+Quero uma composição visual pensada em grupos e níveis de importância.
+
+---
+
+# 17. IMPORTANTE
+
+Não alterar nesta tarefa:
+
+* rotas;
+* fluxo da Jornada;
+* estados mockados;
+* lógica dos capítulos;
+* cards do ecossistema;
+* regras de conclusão;
+* arquitetura funcional.
+
+Esta tarefa é exclusivamente um refinamento de:
+
+1. **branding do header**
+2. **ícone**
+3. **nome "Lábia de Cachorro"**
+4. **hierarquia e espaçamento do texto do hero**

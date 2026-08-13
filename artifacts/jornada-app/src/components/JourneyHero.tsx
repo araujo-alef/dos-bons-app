@@ -92,39 +92,46 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
           </div>
         </div>
 
-        {/* ─── RIGHT: Text content ─── */}
-        <div className="flex flex-col justify-center gap-2 flex-1 min-w-0">
-          {showNewBadge && (
-            <span
-              className="text-[9px] font-bold tracking-[0.2em] text-primary border border-primary/30 px-2 py-0.5 rounded-sm inline-block self-start mb-1"
-            >
-              NOVO CAPÍTULO
-            </span>
-          )}
+        {/* ─── RIGHT: Text content — three clear visual groups ─── */}
+        <div className="flex flex-col flex-1 min-w-0 justify-center" style={{ gap: 0 }}>
 
-          <span className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] text-primary/80 leading-none">
-            {label}
-          </span>
-
-          <h2
-            className="font-serif text-white leading-snug"
-            style={{ fontSize: 'clamp(1.1rem, 4.5vw, 1.75rem)' }}
-          >
-            {title}
-          </h2>
-
-          {subtext && (
-            <span className="text-white/45 text-xs md:text-sm leading-none">
-              {subtext}
-            </span>
-          )}
-
-          <div className="flex items-center gap-1.5 text-white/55 group-hover:text-primary/90 transition-colors duration-300 text-xs md:text-sm font-medium mt-2">
-            <span className="group-hover:underline underline-offset-4 decoration-primary/40">
-              {cta}
-            </span>
-            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+          {/* GROUP 1 — Context label (small, purple, top) */}
+          <div style={{ marginBottom: '10px' }}>
+            {showNewBadge && (
+              <span className="text-[9px] font-bold tracking-[0.2em] text-primary border border-primary/30 px-2 py-0.5 rounded-sm inline-block mb-2">
+                NOVO CAPÍTULO
+              </span>
+            )}
+            <p className="text-[9px] font-bold tracking-[0.22em] text-primary/75 leading-none m-0">
+              {label}
+            </p>
           </div>
+
+          {/* GROUP 2 — Chapter title (dominant, breathes top & bottom) */}
+          <div style={{ marginBottom: '14px' }}>
+            <h2
+              className="font-serif text-white leading-tight m-0"
+              style={{ fontSize: 'clamp(1.05rem, 4.2vw, 1.65rem)' }}
+            >
+              {title}
+            </h2>
+          </div>
+
+          {/* GROUP 3 — Status + CTA (secondary, closer together) */}
+          <div className="flex flex-col" style={{ gap: '6px' }}>
+            {subtext && (
+              <span className="text-white/35 leading-none" style={{ fontSize: '11px' }}>
+                {subtext}
+              </span>
+            )}
+            <div className="flex items-center gap-1 text-white/80 group-hover:text-primary transition-colors duration-300 font-medium" style={{ fontSize: '12px' }}>
+              <span className="group-hover:underline underline-offset-4 decoration-primary/40">
+                {cta}
+              </span>
+              <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" />
+            </div>
+          </div>
+
         </div>
       </div>
     </Link>
