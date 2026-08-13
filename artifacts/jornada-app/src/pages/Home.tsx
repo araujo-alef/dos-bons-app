@@ -56,7 +56,7 @@ export default function Home() {
             {/* Short gradient rule */}
             <div
               style={{
-                width: '140px',
+                width: '60%',
                 height: '1px',
                 background: 'linear-gradient(to right, transparent, rgba(178,102,255,0.22) 30%, rgba(178,102,255,0.22) 70%, transparent)',
                 position: 'relative',
