@@ -1,5 +1,4 @@
 import { Link } from 'wouter';
-import { ArrowRight } from 'lucide-react';
 import communityImg from '@/assets/community.png';
 import mentorshipsImg from '@/assets/mentorships.png';
 import aiImg from '@/assets/ai-conversations.png';
@@ -40,16 +39,6 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
       <div className="absolute inset-0 p-4 flex flex-col justify-end">
         <h3 className="text-white/85 font-sans text-sm font-semibold mb-1 leading-tight">{product.name}</h3>
 
-        {product.available ? (
-          <div className="flex items-center gap-1 text-white/35 text-xs font-medium transition-colors duration-300 group-hover:text-primary/80">
-            <span>Conhecer</span>
-            <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" />
-          </div>
-        ) : (
-          <div className="text-[10px] font-bold tracking-[0.18em] text-white/30 mt-0.5">
-            EM BREVE
-          </div>
-        )}
       </div>
     </div>
   );
