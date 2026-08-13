@@ -1,6 +1,6 @@
 import { Link } from 'wouter';
 import communityIconImg from '@assets/image_1786601214929.png';
-import mentorshipsImg from '@/assets/mentorships.png';
+import mentoriasIconImg from '@assets/image_1786601521796.png';
 import aiImg from '@/assets/ai-conversations.png';
 
 interface EcosystemCardProps {
@@ -13,18 +13,21 @@ interface EcosystemCardProps {
 
 export function EcosystemCard({ product }: EcosystemCardProps) {
   const isComunidade = product.id === 'comunidade';
+  const isMentorias = product.id === 'mentorias';
 
   const images: Record<string, string> = {
-    'mentorias': mentorshipsImg,
     'ia-conversas': aiImg,
   };
 
-  const content = isComunidade ? (
-    /* ── Comunidade — icon as object on dark bg ── */
+  const isIconCard = isComunidade || isMentorias;
+  const iconImg = isComunidade ? communityIconImg : mentoriasIconImg;
+
+  const content = isIconCard ? (
+    /* ── Icon cards (Comunidade, Mentorias) — object on dark bg ── */
     <div
       className="relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07]"
       style={{ background: '#08070B' }}
-      data-testid="card-product-comunidade"
+      data-testid={`card-product-${product.id}`}
     >
       {/* Faint purple ambient behind icon */}
       <div
@@ -37,14 +40,14 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
         }}
       />
 
-      {/* Community icon — centered object, screen blend removes black bg */}
+      {/* Icon — centered object, screen blend removes black bg */}
       <div
         className="absolute inset-x-0 flex items-center justify-center"
         style={{ top: '8%', height: '65%' }}
       >
         <img
-          src={communityIconImg}
-          alt="Comunidade"
+          src={iconImg}
+          alt={product.name}
           style={{
             width: '58%',
             height: '100%',

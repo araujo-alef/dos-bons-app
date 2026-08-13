@@ -1,0 +1,215 @@
+Quero fazer uma alteração visual pontual na Home.
+
+Vou anexar junto deste prompt um **novo SVG para o card “Mentorias”**.
+
+Quero substituir a imagem atualmente usada nesse card pelo novo SVG anexado, preservando toda a estrutura, proporção, navegação e comportamento já existentes.
+
+## Objetivo
+
+O card **Mentorias** deve passar a usar o novo símbolo gráfico como elemento principal, seguindo a mesma linguagem visual que já estamos adotando para o card **Comunidade**:
+
+* fundo escuro;
+* símbolo central;
+* roxo/lilás da marca;
+* glow muito sutil;
+* bastante espaço negativo;
+* visual minimalista e premium.
+
+Não quero redesenhar o card inteiro.
+
+A tarefa é principalmente substituir o asset e adaptar sua apresentação.
+
+## 1. Substituir o asset atual
+
+No card:
+
+**Mentorias**
+
+remover completamente a imagem/arte atualmente utilizada.
+
+Usar no lugar dela o **SVG de Mentoria anexado neste prompt**.
+
+Não alterar os assets de:
+
+* Cachorro dos Bons;
+* Comunidade;
+* IA de Conversas.
+
+## 2. Seguir a mesma lógica visual do card Comunidade
+
+O card Mentorias deve ficar visualmente consistente com o card Comunidade já atualizado.
+
+Isso é importante.
+
+Ambos fazem parte do mesmo sistema visual, então devem compartilhar:
+
+* escala aproximada do SVG;
+* posicionamento;
+* quantidade de espaço negativo;
+* tratamento do fundo;
+* glow;
+* posição do título;
+* posição do CTA.
+
+Evite que cada card pareça ter sido criado por um designer diferente.
+
+## 3. Não usar o SVG como background
+
+O SVG deve funcionar como um **objeto gráfico dentro do card**.
+
+Não usar como imagem full-bleed.
+
+Estrutura desejada:
+
+```text
+┌─────────────────────┐
+│                     │
+│                     │
+│       [ SVG ]       │
+│                     │
+│                     │
+│ Mentorias           │
+│ Conhecer →          │
+└─────────────────────┘
+```
+
+## 4. Escala do SVG
+
+Usar como referência o tamanho que já estiver funcionando no card Comunidade.
+
+Caso precise de uma referência independente, o SVG pode ocupar aproximadamente:
+
+`45%–60%`
+
+da largura interna disponível.
+
+Ajustar visualmente para que:
+
+* seja facilmente reconhecível;
+* tenha presença;
+* não encoste nas bordas;
+* não comprima os textos.
+
+Preservar sempre o aspect ratio original.
+
+## 5. Posicionamento
+
+Posicionar o símbolo:
+
+* centralizado horizontalmente;
+* aproximadamente na metade superior do card;
+* com bastante respiro ao redor.
+
+Não posicionar como pequeno ícone próximo ao título.
+
+Ele deve funcionar como o principal elemento visual do card.
+
+## 6. Fundo
+
+Manter um fundo muito escuro, consistente com os demais cards.
+
+Pode utilizar algo próximo de:
+
+`#08070B`
+
+ou a mesma variável/token atualmente usada no card Comunidade.
+
+O SVG já possui iluminação roxa interna.
+
+Portanto, não adicionar uma nova arte abstrata atrás dele.
+
+Se necessário, utilizar apenas um radial gradient extremamente sutil para profundidade.
+
+## 7. Glow
+
+Não duplicar excessivamente o glow existente no SVG.
+
+Se o SVG já estiver bem integrado ao fundo, não adicionar glow CSS adicional.
+
+Se for necessário, use apenas um reforço mínimo.
+
+Queremos:
+
+**luminosidade sofisticada**
+
+e não:
+
+**ícone neon.**
+
+## 8. Conteúdo do card
+
+Manter:
+
+**Mentorias**
+
+`Conhecer →`
+
+O título e CTA permanecem na área inferior.
+
+O CTA deve continuar discreto e editorial.
+
+Não adicionar:
+
+* descrição;
+* subtítulo;
+* badge;
+* métricas;
+* informações extras.
+
+## 9. Consistência de tamanho
+
+O card Mentorias deve continuar exatamente com:
+
+* mesma largura;
+* mesma altura;
+* mesmo border-radius;
+* mesmo padding estrutural;
+
+dos outros cards da grade.
+
+Não deixar o novo asset alterar a geometria do layout.
+
+## 10. Comportamento
+
+Preservar integralmente o comportamento atual do card.
+
+Não alterar:
+
+* destino;
+* navegação;
+* hover já existente;
+* comportamento responsivo.
+
+Se já houver microinteração no hover, pode manter.
+
+Opcionalmente, o SVG pode ganhar um aumento extremamente sutil de luminosidade no hover, desde que o mesmo princípio seja utilizado no card Comunidade.
+
+## 11. Responsividade
+
+O SVG deve escalar proporcionalmente em:
+
+* mobile;
+* tablet;
+* desktop.
+
+Evitar dimensões rígidas que façam o símbolo ficar enorme ou pequeno demais em diferentes resoluções.
+
+## 12. Não alterar o restante da Home
+
+Não mexer nesta tarefa em:
+
+* header;
+* logo;
+* nome “Lábia de Cachorro”;
+* card Cachorro dos Bons;
+* card Comunidade;
+* card IA de Conversas;
+* grid;
+* espaçamentos gerais da Home;
+* rotas;
+* Jornada;
+* capítulos.
+
+A tarefa é exclusivamente:
+
+**substituir a arte atual do card Mentorias pelo novo SVG anexado e integrá-lo seguindo exatamente a mesma linguagem visual minimalista do card Comunidade.**
