@@ -58,18 +58,6 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
         />
       </div>
 
-      {/* Bottom gradient */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none"
-        style={{ height: '45%', background: 'linear-gradient(to top, #08070B 45%, transparent 100%)' }}
-      />
-
-      {/* Text */}
-      <div className="absolute bottom-0 left-0 right-0 p-3.5">
-        <h3 className="text-white/90 font-sans text-sm font-semibold leading-tight">
-          {product.name}
-        </h3>
-      </div>
     </div>
   ) : (
     /* ── Other ecosystem cards — atmospheric background ── */
