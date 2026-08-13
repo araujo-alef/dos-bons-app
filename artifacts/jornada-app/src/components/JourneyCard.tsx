@@ -1,10 +1,10 @@
 import { Link } from 'wouter';
 import book3DImg from '@assets/image_1786600341057.png';
+import { CURRENT_CHAPTER_ID } from '@/mocks/config';
 
 export function JourneyCard() {
-
   return (
-    <Link href="/jornada" className="block no-underline">
+    <Link href={`/jornada/capitulo/${CURRENT_CHAPTER_ID}`} className="block no-underline">
       <div
         className="relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07]"
         style={{ background: '#08070B' }}
