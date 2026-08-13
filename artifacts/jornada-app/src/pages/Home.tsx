@@ -44,7 +44,7 @@ export default function Home() {
             />
             <div
               style={{
-                width: '60%',
+                width: '100%',
                 height: '1px',
                 background: 'linear-gradient(to right, transparent, rgba(178,102,255,0.28) 30%, rgba(178,102,255,0.28) 70%, transparent)',
                 position: 'relative',
