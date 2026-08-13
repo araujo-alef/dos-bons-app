@@ -1,0 +1,770 @@
+Quero evoluir de forma importante a experiência de leitura da Jornada.
+
+Atualmente, cada capítulo funciona como uma página vertical com scroll contínuo.
+
+Quero substituir essa experiência por um **livro virtual de verdade**, em que cada capítulo seja composto por várias páginas e o usuário possa virar essas páginas como faria em um livro físico.
+
+O objetivo é criar uma experiência:
+
+* editorial;
+* premium;
+* imersiva;
+* intuitiva;
+* responsiva;
+* com animação realista de virar página.
+
+Não quero apenas simular slides.
+
+Quero que visualmente exista a sensação de estar lendo um livro.
+
+---
+
+# 1. CONCEITO PRINCIPAL
+
+A nova hierarquia deve ser:
+
+Jornada
+
+→ Capítulo
+
+→ páginas do capítulo
+
+Exemplo:
+
+```text
+Capítulo 06
+Conexão e Presença
+
+Página 1
+Página 2
+Página 3
+Página 4
+...
+```
+
+Cada capítulo continua sendo uma unidade de conteúdo, mas internamente passa a possuir várias páginas.
+
+---
+
+# 2. NÃO USAR IMAGENS PARA REPRESENTAR AS PÁGINAS
+
+Muito importante:
+
+NÃO renderize cada página como JPG, PNG ou screenshot.
+
+O conteúdo das páginas deve continuar sendo construído com:
+
+* HTML;
+* React;
+* componentes;
+* texto real.
+
+Isso é importante para futuramente suportarmos:
+
+* seleção de texto;
+* destaques;
+* anotações;
+* acessibilidade;
+* conteúdo dinâmico;
+* diferentes tipos de bloco.
+
+O efeito de virar página deve envolver componentes HTML reais.
+
+---
+
+# 3. BIBLIOTECA PARA PAGE FLIP
+
+Avalie a stack atual do projeto.
+
+Se o projeto for React, minha preferência inicial é usar:
+
+`react-pageflip`
+
+que utiliza o StPageFlip.
+
+Instale a dependência usando o gerenciador de pacotes já adotado pelo projeto.
+
+Antes de implementar, confirme compatibilidade com a versão atual do React e com a arquitetura existente.
+
+Se houver algum impedimento técnico real, utilize uma solução equivalente, mas NÃO implemente uma animação improvisada ou frágil apenas com hacks de CSS.
+
+Quero uma solução sólida e reutilizável.
+
+---
+
+# 4. EXPERIÊNCIA NO MOBILE
+
+Mobile continua sendo prioridade.
+
+No celular, mostrar **uma página por vez**.
+
+Visualmente:
+
+```text
+┌──────────────────────────────┐
+│                              │
+│          CAPÍTULO 06         │
+│                              │
+│      Conexão e Presença      │
+│                              │
+│                              │
+│  conteúdo da página...       │
+│                              │
+│                              │
+│                              │
+│                        1     │
+└──────────────────────────────┘
+```
+
+O usuário deve conseguir avançar usando:
+
+* swipe horizontal;
+* gesto de arrastar a página;
+* toque discreto nas laterais, se necessário.
+
+O comportamento principal deve ser natural em touch.
+
+---
+
+# 5. ANIMAÇÃO DE VIRAR PÁGINA
+
+Ao avançar, quero uma animação semelhante à página física sendo virada.
+
+Não quero:
+
+* slide horizontal simples;
+* carousel;
+* fade;
+* troca seca de conteúdo.
+
+Quero sensação de:
+
+**folha dobrando e virando.**
+
+A animação deve ser elegante e relativamente rápida.
+
+Não exagerar na duração.
+
+Ela deve melhorar a experiência, não atrasar a leitura.
+
+---
+
+# 6. DESKTOP / TABLET
+
+Em telas maiores, quero aproveitar melhor a metáfora do livro.
+
+Quando houver espaço suficiente, mostrar **duas páginas abertas lado a lado**, simulando um livro aberto.
+
+Exemplo:
+
+```text
+┌───────────────────┬───────────────────┐
+│                   │                   │
+│      página 4     │      página 5     │
+│                   │                   │
+│ texto...          │ texto...          │
+│                   │                   │
+│                   │                   │
+│ 4                 │                 5 │
+└───────────────────┴───────────────────┘
+```
+
+Adicionar uma separação extremamente sutil no centro para sugerir a lombada.
+
+Não exagerar no efeito 3D.
+
+---
+
+# 7. VISUAL DAS PÁGINAS
+
+Apesar do aplicativo ser dark, quero que o livro tenha personalidade própria.
+
+Não quero páginas brancas tradicionais.
+
+Usar páginas escuras, coerentes com a identidade:
+
+base próxima de:
+
+`#0A090C`
+ou
+`#0D0B10`
+
+Texto:
+
+`#F5F5F5`
+
+Texto secundário:
+
+branco com menor opacidade.
+
+Detalhes em:
+
+`#B266FF`
+
+As páginas podem possuir:
+
+* sombra muito sutil;
+* borda discreta;
+* textura quase imperceptível;
+* diferença mínima em relação ao fundo externo.
+
+Não usar textura artificial pesada de papel.
+
+---
+
+# 8. ÁREA AO REDOR DO LIVRO
+
+A tela de leitura não precisa continuar parecendo um card comum.
+
+Quero uma composição focada totalmente no livro.
+
+Utilizar:
+
+* fundo `#050505`;
+* leve atmosfera roxa;
+* livro centralizado;
+* bastante espaço negativo quando houver tela disponível.
+
+O livro deve parecer o protagonista absoluto durante a leitura.
+
+---
+
+# 9. CABEÇALHO DA LEITURA
+
+Manter um header mínimo.
+
+Incluir somente o necessário:
+
+`←`
+
+e eventualmente:
+
+`Capítulo 06`
+
+Não quero um header grande competindo com o livro.
+
+O título completo pode existir na primeira página do capítulo.
+
+---
+
+# 10. PRIMEIRA PÁGINA DO CAPÍTULO
+
+A primeira página deve funcionar como abertura editorial.
+
+Exemplo:
+
+```text
+CAPÍTULO 06
+
+
+Conexão
+e Presença
+
+
+pequeno texto introdutório
+ou elemento editorial
+```
+
+Usar bastante espaço negativo.
+
+Essa página pode ter uma composição mais especial do que as páginas comuns.
+
+---
+
+# 11. PÁGINAS DE TEXTO
+
+As páginas comuns devem priorizar legibilidade.
+
+Definir:
+
+* largura confortável;
+* tamanho de fonte adequado;
+* line-height generoso;
+* margens internas;
+* espaçamento entre parágrafos.
+
+Não tentar colocar texto demais em cada página.
+
+É melhor ter mais páginas do que uma página excessivamente densa.
+
+---
+
+# 12. PAGINAÇÃO DO CONTEÚDO
+
+Crie o modelo de dados do capítulo pensando explicitamente em páginas.
+
+Em vez de algo como:
+
+```ts
+chapter: {
+  content: [...]
+}
+```
+
+quero algo conceitualmente próximo de:
+
+```ts
+chapter: {
+  id,
+  title,
+  pages: [
+    {
+      id,
+      blocks: [...]
+    },
+    {
+      id,
+      blocks: [...]
+    }
+  ]
+}
+```
+
+Os nomes podem seguir o padrão atual do projeto.
+
+A ideia é separar claramente:
+
+**Capítulo → Página → Blocos.**
+
+---
+
+# 13. CONTEÚDO CONTINUA COMPONENTIZADO
+
+Cada página pode conter os componentes que já definimos:
+
+* texto;
+* imagem;
+* reflexão;
+* prática;
+* áudio;
+* vídeo.
+
+Não remover esse sistema.
+
+Agora esses blocos simplesmente passam a existir dentro de páginas.
+
+---
+
+# 14. PÁGINAS COM IMAGEM
+
+Uma página pode ser predominantemente visual.
+
+Exemplo:
+
+```text
+┌──────────────────────────────┐
+│                              │
+│                              │
+│         [ IMAGEM ]           │
+│                              │
+│                              │
+│  pequena legenda opcional    │
+│                              │
+└──────────────────────────────┘
+```
+
+Preservar proporção da imagem.
+
+Não cortar agressivamente.
+
+---
+
+# 15. REFLEXÕES E PRÁTICAS
+
+Continuam sendo parte natural da leitura.
+
+Por exemplo, uma página pode conter:
+
+`REFLEXÃO`
+
+**Quando você percebe que está buscando aprovação?**
+
+e algum espaço visual abaixo.
+
+Neste protótipo, ainda não precisa salvar resposta.
+
+---
+
+# 16. ÁUDIO E VÍDEO
+
+Áudio e vídeo também devem poder existir em uma página.
+
+Não colocar player enorme.
+
+Manter a linguagem editorial existente.
+
+Esses componentes continuam mockados se não houver mídia real.
+
+---
+
+# 17. NÚMERO DAS PÁGINAS
+
+Adicionar número de página de forma extremamente discreta.
+
+Por exemplo:
+
+página esquerda:
+número no canto inferior esquerdo.
+
+página direita:
+número no canto inferior direito.
+
+No mobile:
+canto inferior externo.
+
+Não mostrar algo como:
+
+`Página 4 de 18`
+
+o tempo todo.
+
+Quero preservar a sensação de livro.
+
+---
+
+# 18. NÃO MOSTRAR BARRA DE PROGRESSO
+
+Continuar sem:
+
+* progress bar;
+* percentual;
+* barra no topo;
+* tempo restante.
+
+A própria paginação já comunica avanço.
+
+---
+
+# 19. NAVEGAÇÃO POR GESTOS
+
+No mobile:
+
+* swipe para esquerda → próxima página;
+* swipe para direita → página anterior.
+
+Se a biblioteca permitir arrastar fisicamente o canto da folha, habilitar.
+
+Mas garantir que swipe simples também funcione bem.
+
+---
+
+# 20. ÁREAS DE TOQUE
+
+Criar também navegação por toque para acessibilidade/usabilidade.
+
+Exemplo:
+
+* tocar na metade direita → avançar;
+* tocar na metade esquerda → voltar.
+
+Essas áreas devem ser invisíveis.
+
+Não colocar grandes setas permanentes sobre o texto.
+
+---
+
+# 21. CONTROLES OPCIONAIS NO DESKTOP
+
+No desktop, podem aparecer pequenas setas laterais somente:
+
+* no hover;
+* ou quando o mouse estiver próximo das bordas.
+
+Extremamente discretas.
+
+---
+
+# 22. PRIMEIRA E ÚLTIMA PÁGINA
+
+A animação deve respeitar corretamente:
+
+* início do capítulo;
+* fim do capítulo.
+
+Não permitir avançar além da última página.
+
+Não permitir voltar antes da primeira.
+
+---
+
+# 23. FINAL DO CAPÍTULO
+
+O CTA:
+
+**Concluir capítulo**
+
+deve aparecer na última página.
+
+Exemplo:
+
+```text
+Fim do capítulo
+
+
+"frase de encerramento"
+
+
+Concluir capítulo →
+```
+
+Manter bastante espaço negativo.
+
+---
+
+# 24. CONCLUSÃO
+
+Preservar a lógica já existente.
+
+Ao concluir:
+
+### Se houver outro capítulo publicado
+
+mostrar a transição editorial já existente e abrir automaticamente o próximo capítulo.
+
+### Se esse for o último capítulo publicado
+
+levar para:
+
+`Você está em dia`.
+
+Não alterar essa regra.
+
+---
+
+# 25. SALVAR PÁGINA ATUAL FUTURAMENTE
+
+Precisamos mudar também o conceito de retomada.
+
+No futuro, em vez de salvar somente `scrollPosition`, será necessário armazenar algo como:
+
+* `chapterId`;
+* `pageIndex`;
+* eventualmente posição interna, se necessário.
+
+Neste protótipo, pode continuar utilizando estado local/mock.
+
+Mas organize o código para permitir persistência real depois.
+
+---
+
+# 26. RETOMADA
+
+Quando um capítulo estiver em andamento:
+
+ao reabri-lo, deve ser possível voltar diretamente para a última página lida.
+
+Capítulo concluído continua começando da primeira página quando for revisitado.
+
+---
+
+# 27. MUDANÇA DE ORIENTAÇÃO
+
+Garantir comportamento correto quando:
+
+* celular muda de orientação;
+* tablet alterna landscape/portrait;
+* janela do desktop muda de tamanho.
+
+A mudança entre uma página e duas páginas não pode quebrar o estado atual de leitura.
+
+Preservar a página lógica atual.
+
+---
+
+# 28. RESPONSIVIDADE DO CONTEÚDO
+
+Muito importante:
+
+o conteúdo de uma página não pode vazar para fora.
+
+Evitar overflow escondendo conteúdo.
+
+Se uma página tiver conteúdo demais, isso deve ser resolvido no modelo de conteúdo/mock dividindo em mais páginas.
+
+Não transformar a página em um container com scroll vertical interno, exceto se houver uma necessidade técnica muito específica.
+
+A regra padrão deve ser:
+
+**uma página cabe inteira na área do livro.**
+
+---
+
+# 29. NÃO TER SCROLL VERTICAL DURANTE A LEITURA PRINCIPAL
+
+Durante a experiência do livro:
+
+não quero que o usuário precise rolar verticalmente para ler uma página.
+
+A navegação principal deve ser a troca de páginas.
+
+A página inteira deve caber na viewport disponível.
+
+---
+
+# 30. CUIDADO COM TELAS PEQUENAS
+
+Em celulares menores, adapte:
+
+* fonte;
+* padding;
+* dimensões do livro.
+
+Mas preserve legibilidade.
+
+Não reduzir o texto a tamanhos desconfortáveis só para encaixar conteúdo.
+
+Se necessário, usar mais páginas.
+
+---
+
+# 31. ACESSIBILIDADE E REDUCED MOTION
+
+Respeitar:
+
+`prefers-reduced-motion`
+
+Se o usuário tiver redução de movimento habilitada, substituir o flip 3D por uma transição simples e curta.
+
+O conteúdo deve continuar totalmente navegável.
+
+---
+
+# 32. PERFORMANCE
+
+Não carregar dezenas de páginas pesadas desnecessariamente se isso prejudicar a experiência.
+
+Avaliar lazy loading para:
+
+* imagens;
+* vídeos;
+* mídia pesada.
+
+A troca entre páginas adjacentes precisa continuar suave.
+
+---
+
+# 33. NÃO IMPLEMENTAR PDF VIEWER
+
+Não converter o livro para PDF.
+
+Não incorporar PDF.js.
+
+Não tratar o conteúdo como documento fechado.
+
+O livro continuará sendo conteúdo estruturado do próprio aplicativo.
+
+Isso é fundamental para futuras funcionalidades.
+
+---
+
+# 34. PREPARAR PARA DESTAQUES E ANOTAÇÕES
+
+Como o conteúdo continuará sendo HTML real, preservar arquitetura que futuramente permita:
+
+* selecionar frase;
+* destacar trecho;
+* adicionar anotação.
+
+Não implementar agora.
+
+---
+
+# 35. MOCK PARA TESTE
+
+Atualizar um dos capítulos mock para conter aproximadamente 8–12 páginas.
+
+Criar variedade suficiente para validar:
+
+* página de abertura;
+* texto;
+* texto + reflexão;
+* imagem;
+* prática;
+* áudio;
+* vídeo;
+* página final.
+
+Não precisamos converter todos os capítulos mock imediatamente se isso tornar a tarefa muito grande.
+
+É preferível implementar **um capítulo extremamente bem resolvido** primeiro e depois aplicar o padrão aos demais.
+
+---
+
+# 36. PRIORIZAR PRIMEIRO UM PROTÓTIPO COMPLETO
+
+Nesta primeira evolução, implemente a nova experiência em pelo menos um capítulo completo.
+
+Quero poder validar:
+
+Home
+→ Jornada
+→ Capítulo
+→ abrir livro
+→ virar páginas
+→ voltar páginas
+→ chegar à última página
+→ concluir capítulo
+→ seguir o fluxo existente.
+
+Depois podemos migrar os demais capítulos.
+
+---
+
+# 37. NÃO ALTERAR A HOME
+
+Esta tarefa não deve alterar:
+
+* Home;
+* cards do ecossistema;
+* branding;
+* Lábia de Cachorro;
+* card da Jornada.
+
+O foco é exclusivamente na **experiência interna de leitura dos capítulos**.
+
+---
+
+# 38. NÃO ALTERAR A TELA DA JORNADA DESNECESSARIAMENTE
+
+Preservar a tela da Jornada atual.
+
+Ao tocar em um capítulo, simplesmente abrir o novo leitor em formato de livro.
+
+---
+
+# 39. RESULTADO ESPERADO
+
+Quero sair de:
+
+**capítulo = página longa com scroll**
+
+para:
+
+**capítulo = pequeno livro digital composto por páginas reais**
+
+A sensação deve ser:
+
+> abri um capítulo e agora estou folheando um livro.
+
+E não:
+
+> abri um artigo dentro de um site.
+
+A animação de virar página é parte importante dessa experiência, mas não deve prejudicar legibilidade, performance ou usabilidade.
+
+---
+
+# 40. IMPORTANTE
+
+Antes de começar, analise a implementação atual do leitor e reaproveite o máximo possível dos componentes de conteúdo existentes.
+
+Não reescreva funcionalidades desnecessariamente.
+
+Faça a mudança de arquitetura de forma organizada e componentizada, deixando preparado para futuramente conectarmos:
+
+* conteúdo real;
+* banco de dados;
+* progresso;
+* destaques;
+* anotações;
+* mídia real.
