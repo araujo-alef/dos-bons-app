@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import HTMLFlipBook from 'react-pageflip';
 import { BookPage } from './BookPage';
 import type { Chapter } from '@/mocks/data';
@@ -11,8 +12,6 @@ interface BookReaderProps {
 export function BookReader({ chapter, onComplete }: BookReaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
-
-  // savedPageRef persists across key-driven remounts so we can restore position
   const savedPageRef = useRef(0);
 
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
@@ -23,29 +22,21 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
   const pages = chapter.pages ?? [];
   const totalPages = pages.length;
 
-  // ─── Measure container, decide single vs double page ─────────────────────
+  // ─── Measure container ────────────────────────────────────────────────────
   const recalculate = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
-
-    // Use actual container width — not window.innerWidth — so layouts with
-    // max-width containers behave correctly.
     const cw = el.clientWidth;
     const ch = el.clientHeight;
-
-    // Single-page mode whenever the container is narrower than 768 px.
     const portrait = cw < 768;
 
     if (portrait) {
-      // One page fills (almost) the entire container width.
-      // Subtract a small visual breathing margin (8 px each side = 16 px total).
       const w = Math.max(240, Math.min(cw - 16, 520));
       const h = Math.max(360, Math.min(ch - 16, Math.round(w * 1.42)));
       setIsPortrait(true);
       setDims({ w, h });
     } else {
-      // Two pages side-by-side; width here is ONE page.
-      const availW = cw - 64; // 32 px margin each side
+      const availW = cw - 64;
       const w = Math.max(260, Math.min(Math.floor(availW / 2), 500));
       const h = Math.max(380, Math.min(ch - 32, Math.round(w * 1.38)));
       setIsPortrait(false);
@@ -67,22 +58,62 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
     savedPageRef.current = page;
   }, []);
 
-  // ─── Invisible tap zones (click left = prev, click right = next) ──────────
-  // We intercept the CLICK event only; the book's own touch handlers receive
-  // the raw pointer events for swipe/drag (they are attached to its canvas
-  // element and are not blocked by these divs when we use onClickCapture).
-  const flipPrev = useCallback(() => bookRef.current?.pageFlip()?.flipPrev('bottom'), []);
-  const flipNext = useCallback(() => bookRef.current?.pageFlip()?.flipNext('bottom'), []);
+  const flipPrev = useCallback(() => {
+    if (currentPage > 0) bookRef.current?.pageFlip()?.flipPrev('bottom');
+  }, [currentPage]);
+
+  const flipNext = useCallback(() => {
+    if (currentPage < totalPages - 1) bookRef.current?.pageFlip()?.flipNext('bottom');
+  }, [currentPage, totalPages]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
   if (!dims || totalPages === 0) {
     return <div ref={containerRef} className="flex-1" />;
   }
 
-  // key forces a full remount of HTMLFlipBook when the layout mode switches so
-  // StPageFlip re-initialises with the correct portrait flag and dimensions.
-  // startPage restores the reader's position after the remount.
   const bookKey = isPortrait ? 'portrait' : 'landscape';
+  const atStart = currentPage === 0;
+  const atEnd = currentPage >= totalPages - 1;
+
+  const btnBase: React.CSSProperties = {
+    position: 'absolute',
+    zIndex: 25,
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.10)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    color: 'rgba(245,245,245,0.65)',
+    transition: 'background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s',
+    padding: 0,
+  };
+
+  // Portrait: buttons sit centred horizontally just above the progress dots
+  // Landscape: buttons float at the left / right vertical centres
+  const prevBtnStyle: React.CSSProperties = isPortrait
+    ? { ...btnBase, bottom: '40px', left: 'calc(50% - 48px)' }
+    : { ...btnBase, left: '16px', top: '50%', transform: 'translateY(-50%)' };
+
+  const nextBtnStyle: React.CSSProperties = isPortrait
+    ? { ...btnBase, bottom: '40px', right: 'calc(50% - 48px)' }
+    : { ...btnBase, right: '16px', top: '50%', transform: 'translateY(-50%)' };
+
+  const disabledExtra: React.CSSProperties = { opacity: 0.2, cursor: 'default', pointerEvents: 'none' };
+
+  const onBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'rgba(178,102,255,0.12)';
+    e.currentTarget.style.borderColor = 'rgba(178,102,255,0.4)';
+    e.currentTarget.style.color = '#F5F5F5';
+  };
+  const onBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)';
+    e.currentTarget.style.color = 'rgba(245,245,245,0.65)';
+  };
 
   return (
     <div
@@ -90,7 +121,7 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
       className="flex-1 flex items-center justify-center relative"
       style={{ background: '#050505', overflow: 'hidden' }}
     >
-      {/* Ambient purple glow */}
+      {/* Ambient glow */}
       <div
         aria-hidden="true"
         style={{
@@ -102,29 +133,7 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
         }}
       />
 
-      {/* Tap-zone overlay (click only; swipe passes through to the book canvas) */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          zIndex: 30,
-          pointerEvents: 'none', // default: transparent
-        }}
-      >
-        <div
-          style={{ flex: 1, pointerEvents: 'auto', cursor: 'default' }}
-          onClick={flipPrev}
-        />
-        <div
-          style={{ flex: 1, pointerEvents: 'auto', cursor: 'default' }}
-          onClick={flipNext}
-        />
-      </div>
-
-      {/* Book — z-index above ambient glow, below tap zones.
-          disableFlipByClick keeps the book from double-firing on click. */}
+      {/* Book */}
       <div style={{ position: 'relative', zIndex: 20, lineHeight: 0 }}>
         <HTMLFlipBook
           key={bookKey}
@@ -139,11 +148,11 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
           showCover={false}
           usePortrait={isPortrait}
           flippingTime={prefersReducedMotion ? 1 : 520}
-          mobileScrollSupport={false}
-          useMouseEvents={true}
+          useMouseEvents={false}
+          mobileScrollSupport={true}
           drawShadow={!isPortrait}
           maxShadowOpacity={0.3}
-          showPageCorners={!isPortrait}
+          showPageCorners={false}
           disableFlipByClick={true}
           startPage={savedPageRef.current}
           onFlip={handleFlip}
@@ -164,13 +173,35 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
         </HTMLFlipBook>
       </div>
 
-      {/* Discrete progress dots — mobile only */}
+      {/* Prev button */}
+      <button
+        onClick={flipPrev}
+        aria-label="Página anterior"
+        style={atStart ? { ...prevBtnStyle, ...disabledExtra } : prevBtnStyle}
+        onMouseEnter={atStart ? undefined : onBtnEnter}
+        onMouseLeave={atStart ? undefined : onBtnLeave}
+      >
+        <ChevronLeft style={{ width: '18px', height: '18px' }} strokeWidth={1.8} />
+      </button>
+
+      {/* Next button */}
+      <button
+        onClick={flipNext}
+        aria-label="Próxima página"
+        style={atEnd ? { ...nextBtnStyle, ...disabledExtra } : nextBtnStyle}
+        onMouseEnter={atEnd ? undefined : onBtnEnter}
+        onMouseLeave={atEnd ? undefined : onBtnLeave}
+      >
+        <ChevronRight style={{ width: '18px', height: '18px' }} strokeWidth={1.8} />
+      </button>
+
+      {/* Progress dots — mobile only */}
       {isPortrait && totalPages > 1 && (
         <div
           aria-hidden="true"
           style={{
             position: 'absolute',
-            bottom: '8px',
+            bottom: '10px',
             left: 0,
             right: 0,
             display: 'flex',
