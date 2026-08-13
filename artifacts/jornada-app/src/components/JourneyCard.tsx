@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import book3dV2 from '@/assets/book-3d-v2.png';
+import book3dV3 from '@/assets/book-3d-v3.png';
 import { CURRENT_CHAPTER_ID } from '@/mocks/config';
 
 /* ─── Chain SVG (generated) ────────────────────────────────────────────────
@@ -271,7 +271,7 @@ export function JourneyCard() {
             }}
           >
             <img
-              src={book3dV2}
+              src={book3dV3}
               alt="Cachorro dos Bons"
               className="book-float"
               style={{
@@ -279,8 +279,8 @@ export function JourneyCard() {
                 height: '100%',
                 objectFit: 'contain',
                 objectPosition: 'center center',
-                /* screen blend removes the black photo background */
-                mixBlendMode: 'screen',
+                /* PNG has true transparency — no blend override needed */
+                mixBlendMode: 'normal',
                 willChange: 'transform',
               }}
               loading="eager"

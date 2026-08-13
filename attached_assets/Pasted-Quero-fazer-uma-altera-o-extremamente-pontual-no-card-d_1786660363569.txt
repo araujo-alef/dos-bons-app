@@ -1,0 +1,228 @@
+Quero fazer uma alteração **extremamente pontual** no card do livro **Cachorro dos Bons**.
+
+Vou anexar uma nova imagem do livro em 3D.
+
+Quero substituir **somente o asset visual atual do livro** por essa nova imagem, preservando integralmente todos os efeitos, animações e comportamentos que já foram implementados no card.
+
+O objetivo é trocar a imagem sem regressão visual.
+
+## 1. Substituir apenas a imagem
+
+Localize a imagem atualmente utilizada como livro 3D no card **Cachorro dos Bons**.
+
+Substitua pelo novo arquivo anexado.
+
+Não altere a estrutura do componente além do necessário para apontar para o novo asset.
+
+## 2. Preservar todas as animações existentes
+
+Muito importante:
+
+NÃO remover, reescrever ou simplificar as animações atuais.
+
+Preservar exatamente o que já existe, incluindo:
+
+* flutuação do livro;
+* amplitude do movimento;
+* pequena rotação;
+* duração e timing;
+* glow roxo pulsante;
+* iluminação secundária;
+* raios/descargas;
+* corrente animada;
+* sombras;
+* efeitos de hover;
+* transições;
+* `prefers-reduced-motion`.
+
+A nova imagem deve entrar **dentro da mesma estrutura animada atual**.
+
+## 3. Não aplicar animação diretamente no novo arquivo de forma diferente
+
+Se hoje existe algo conceitualmente parecido com:
+
+```jsx
+<div className="book-visual">
+  <div className="book-glow" />
+  <div className="book-light" />
+  <div className="lightning-effects" />
+  <div className="chain-effect" />
+
+  <img
+    className="book-image"
+    src={oldBookImage}
+    alt="Cachorro dos Bons"
+  />
+</div>
+```
+
+troque apenas:
+
+`oldBookImage`
+
+pela nova imagem anexada.
+
+Não reconstruir `book-visual`.
+
+## 4. Ajustar apenas escala e enquadramento se necessário
+
+A nova imagem possui um enquadramento diferente da anterior.
+
+Portanto, você pode ajustar somente propriedades relacionadas à apresentação do asset, como:
+
+* `width`;
+* `height`;
+* `max-width`;
+* `object-fit`;
+* `object-position`;
+* margens internas;
+* posicionamento relativo.
+
+Mas não alterar a mecânica da animação.
+
+## 5. Preservar proporção
+
+Não distorcer o livro.
+
+Manter:
+
+`height: auto`
+
+ou equivalente.
+
+Não esticar horizontalmente ou verticalmente.
+
+## 6. Não adicionar background novo à imagem
+
+A nova imagem deve funcionar como o objeto visual do livro.
+
+Não adicionar:
+
+* novo fundo preto;
+* container preto adicional;
+* retângulo atrás da imagem;
+* gradiente grudado na própria imagem.
+
+Toda a atmosfera deve continuar vindo dos efeitos já existentes no frontend.
+
+## 7. Conferir integração com o glow
+
+Como a nova imagem possui composição diferente, confira se o glow atual continua centralizado atrás do livro.
+
+Se necessário, reposicione **somente o glow**, minimamente, para acompanhar o novo formato.
+
+Não alterar:
+
+* intensidade;
+* cor;
+* duração;
+* animação;
+
+a menos que exista um problema visual claro de alinhamento.
+
+## 8. Conferir corrente e raios
+
+Preservar as posições e animações atuais.
+
+Apenas confirme que:
+
+* a corrente continua passando atrás/ao redor do livro corretamente;
+* os raios não ficam escondidos totalmente pela nova imagem;
+* os raios não passam sobre o texto do card.
+
+Se o novo livro ocupar um pouco mais ou menos espaço, pode fazer pequenos ajustes de `position`/`inset`.
+
+Não redesenhar os efeitos.
+
+## 9. Conferir sombra
+
+A sombra deve continuar acompanhando a flutuação atual.
+
+Se o novo livro tiver dimensões diferentes, ajuste apenas:
+
+* largura;
+* posicionamento;
+
+da sombra para ficar visualmente coerente.
+
+Não alterar o comportamento da animação.
+
+## 10. Não alterar o card
+
+Preservar integralmente:
+
+* tamanho do card;
+* aspect ratio;
+* border-radius;
+* padding;
+* background;
+* título;
+* status;
+* CTA;
+* navegação;
+* hover do card.
+
+Esta tarefa não é um redesign.
+
+## 11. Não alterar outros produtos
+
+Não mexer nos cards:
+
+* Comunidade;
+* Mentorias;
+* IA de Conversas.
+
+Não alterar o grid.
+
+## 12. Não alterar lógica funcional
+
+Não alterar:
+
+* rota da Jornada;
+* mocks;
+* estado do usuário;
+* navegação;
+* leitores;
+* capítulos;
+* conclusão.
+
+## 13. Testar mobile
+
+Depois da substituição, confira especialmente no mobile se:
+
+* o livro continua cabendo dentro do card;
+* não ocorre overflow;
+* não é cortado;
+* não encosta nas bordas;
+* a animação de flutuação permanece totalmente visível;
+* os textos inferiores continuam com espaço suficiente.
+
+## 14. Testar desktop
+
+Também conferir que a imagem não fica pequena demais em telas maiores.
+
+Pode usar sizing responsivo já existente.
+
+## 15. Critério principal
+
+O usuário deve perceber apenas:
+
+**“o livro está visualmente melhor.”**
+
+Ele NÃO deve perceber:
+
+**“as animações mudaram.”**
+
+A troca do asset precisa preservar a sensação atual do card.
+
+## 16. Resumo da tarefa
+
+Faça somente:
+
+**imagem antiga do livro → nova imagem anexada**
+
+Preservando:
+
+**estrutura + animações + glow + raios + corrente + sombra + hover + comportamento.**
+
+Faça a alteração da forma mais conservadora possível.
