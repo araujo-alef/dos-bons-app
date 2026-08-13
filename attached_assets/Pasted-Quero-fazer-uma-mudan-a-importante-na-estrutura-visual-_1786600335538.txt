@@ -1,0 +1,399 @@
+Quero fazer uma mudança importante na estrutura visual da Home atual.
+
+Hoje o livro/Jornada aparece como um hero grande separado dos demais produtos.
+
+Quero **remover esse conceito de hero principal**.
+
+A partir de agora, o livro deve entrar como **um card normal dentro do ecossistema**, ocupando meia largura da tela no mobile, assim como os outros produtos.
+
+Vou anexar junto deste prompt uma nova imagem do livro em 3D. Use essa imagem como o principal elemento visual do card do livro.
+
+O objetivo é fazer a Home parecer mais claramente um **ecossistema de produtos**, e não um app cujo único protagonista é o livro.
+
+---
+
+# 1. REMOVER O HERO ATUAL
+
+Remover da Home o hero grande atual que contém:
+
+* capa frontal grande;
+* `CONTINUE DE ONDE PAROU`;
+* `Conexão e Presença`;
+* capítulos concluídos;
+* `Continuar jornada →`.
+
+Não reaproveitar esse layout em tamanho reduzido.
+
+Quero substituir a lógica visual completamente por um card compacto.
+
+---
+
+# 2. NOVA ESTRUTURA DA HOME
+
+A estrutura principal deve ficar aproximadamente:
+
+HEADER
+
+`[mascote] Lábia de Cachorro`
+
+↓
+
+respiro
+
+↓
+
+GRID DE PRODUTOS 2 COLUNAS
+
+```text
+[ Jornada/Livro ]   [ Comunidade ]
+
+[ Mentorias      ]   [ IA de Conversas ]
+```
+
+Não deve existir mais uma separação especial entre Jornada e “restante do ecossistema”.
+
+Todos são produtos do mesmo universo.
+
+---
+
+# 3. CARD DO LIVRO / JORNADA
+
+Criar um novo card para a Jornada com **exatamente a mesma largura e proporção-base dos outros cards**.
+
+No mobile:
+
+* duas colunas;
+* card ocupando aproximadamente metade da largura disponível;
+* mesmo alinhamento;
+* mesmo border-radius;
+* mesma lógica estrutural do restante do grid.
+
+Apesar disso, o card do livro pode ter um tratamento visual ligeiramente mais refinado por usar um asset real do produto.
+
+---
+
+# 4. USAR A NOVA IMAGEM DO LIVRO 3D
+
+Vou anexar uma imagem do livro em perspectiva 3D.
+
+Use essa imagem dentro do card da Jornada.
+
+Ela deve ser o principal elemento gráfico do card.
+
+Importante:
+
+* preservar a proporção original;
+* não distorcer;
+* não cortar agressivamente;
+* deixar espaço ao redor;
+* não ocupar 100% do card;
+* preservar a sensação de objeto flutuando.
+
+A imagem já possui iluminação roxa e bastante identidade visual, então não adicionar muitos efeitos extras.
+
+---
+
+# 5. POSICIONAMENTO DO LIVRO 3D
+
+Minha preferência é posicionar o livro:
+
+* centralizado horizontalmente;
+* na metade superior do card;
+* levemente deslocado para cima se isso melhorar a composição;
+* com bastante espaço negativo ao redor.
+
+Não fazer o livro encostar nas bordas.
+
+Não transformar a imagem em background full-bleed.
+
+Quero claramente perceber que existe **um livro como objeto dentro do card**.
+
+---
+
+# 6. FUNDO DO CARD DO LIVRO
+
+Usar um fundo muito escuro e minimalista.
+
+Sugestão:
+
+base:
+`#08070B`
+
+com uma nuance roxa muito discreta.
+
+Pode haver um radial gradient atrás do livro, algo próximo de:
+
+`rgba(139,53,255,0.10)`
+
+ou ainda mais sutil.
+
+A iluminação deve ajudar a destacar o objeto, não criar um grande glow.
+
+---
+
+# 7. CONTEÚDO DO CARD
+
+Como o card agora é compacto, quero reduzir drasticamente a quantidade de informação.
+
+Não mostrar mais:
+
+* quantidade de capítulos concluídos;
+* percentual;
+* tempo de leitura;
+* descrição longa.
+
+Usar algo simples.
+
+Sugestão:
+
+`JORNADA`
+
+ou outro pequeno label opcional.
+
+Título:
+
+**Cachorro dos Bons**
+
+Informação contextual curta:
+
+`Continue de onde parou`
+
+CTA:
+
+`Continuar →`
+
+Não mostrar o título do capítulo atual se isso deixar o card carregado.
+
+Priorize simplicidade.
+
+---
+
+# 8. HIERARQUIA DO CARD
+
+A ordem deve ser:
+
+1. livro 3D;
+2. `Cachorro dos Bons`;
+3. pequeno estado/contexto;
+4. CTA.
+
+Quero bastante espaço negativo.
+
+Não comprimir os quatro elementos.
+
+---
+
+# 9. NÃO TRANSFORMAR EM MINI-HERO
+
+Muito importante:
+
+Apesar de ser o produto principal atual, esse card NÃO deve parecer um hero comprimido.
+
+Não usar:
+
+* grandes headlines;
+* muito texto;
+* múltiplos estados visíveis;
+* badge enorme;
+* fundo cheio de elementos;
+* CTA grande.
+
+A linguagem deve ser a mesma dos demais cards.
+
+---
+
+# 10. CARDS DOS OUTROS PRODUTOS
+
+Manter no mesmo grid:
+
+* Comunidade;
+* Mentorias;
+* IA de Conversas.
+
+Eles devem continuar com exatamente a mesma largura do card do livro.
+
+A Home deve transmitir:
+
+**quatro produtos dentro de um mesmo ecossistema.**
+
+Não:
+
+**um produto principal + três anexos.**
+
+---
+
+# 11. REMOVER O DIVIDER
+
+Como o livro agora faz parte do grid, não existe mais motivo para manter o divider entre ele e os outros produtos.
+
+Remover completamente:
+
+* linha;
+* divisor;
+* glow específico de separação;
+* espaço especial entre “livro” e “ecossistema”.
+
+O grid deve ser contínuo.
+
+---
+
+# 12. REMOVER “EXPLORE O ECOSSISTEMA”, SE AINDA EXISTIR
+
+Se ainda existir algum título ou label como:
+
+`EXPLORE O ECOSSISTEMA`
+
+remover.
+
+O próprio layout já comunica que estamos vendo os produtos do Lábia de Cachorro.
+
+Não precisamos explicar isso textualmente.
+
+Isso ajuda a deixar a Home mais minimalista.
+
+---
+
+# 13. NOVA HOME DEVE SER MUITO MAIS COMPACTA
+
+Atualmente existe bastante espaço vertical porque o hero ocupava grande parte do topo.
+
+Com a nova solução:
+
+* header;
+* pequeno respiro;
+* grid.
+
+A página deve ficar significativamente mais compacta.
+
+Não compensar a remoção do hero adicionando grandes espaços vazios.
+
+---
+
+# 14. ORDEM DOS CARDS
+
+Usar inicialmente:
+
+Linha 1:
+
+**Cachorro dos Bons** | **Comunidade**
+
+Linha 2:
+
+**Mentorias** | **IA de Conversas**
+
+Essa ordem deve ser facilmente configurável depois.
+
+---
+
+# 15. DIFERENCIAÇÃO SUTIL DO LIVRO
+
+Embora todos os cards tenham o mesmo tamanho, é aceitável que o card do livro tenha uma pequena diferença de refinamento.
+
+Por exemplo:
+
+* livro 3D real;
+* iluminação roxa um pouco mais presente;
+* fundo ligeiramente mais trabalhado.
+
+Mas mantenha:
+
+* mesma largura;
+* mesma altura;
+* mesmo radius;
+* mesma estrutura;
+* mesma hierarquia geral.
+
+Não criar borda roxa chamativa para marcar “produto principal”.
+
+---
+
+# 16. COMPORTAMENTO
+
+O card inteiro da Jornada deve continuar clicável.
+
+Ao clicar:
+
+abrir:
+
+`/jornada`
+
+Preservar toda a Jornada já implementada.
+
+Não alterar:
+
+* capítulos;
+* fluxo de leitura;
+* estados;
+* conclusão;
+* tela “Você está em dia”.
+
+Estamos alterando somente a representação da Jornada dentro da Home.
+
+---
+
+# 17. MOBILE FIRST
+
+No mobile, manter obrigatoriamente duas colunas.
+
+Como os cards ficarão relativamente estreitos:
+
+* cuidar do tamanho do texto;
+* permitir títulos em duas linhas quando necessário;
+* não colocar conteúdo demais;
+* preservar áreas clicáveis confortáveis.
+
+Não deixar o livro 3D tão grande que esmague o conteúdo inferior.
+
+---
+
+# 18. DESKTOP
+
+Em telas maiores, manter uma grade elegante.
+
+Não transformar o card da Jornada novamente em hero.
+
+Todos os produtos continuam seguindo uma lógica de catálogo/ecossistema.
+
+Pode aumentar o número de colunas no futuro caso existam mais produtos, mas não é necessário nesta etapa.
+
+---
+
+# 19. DIREÇÃO VISUAL
+
+Quero que a Home fique:
+
+* muito mais minimalista;
+* modular;
+* sofisticada;
+* escalável;
+* com cara de ecossistema;
+* fácil de expandir com novos produtos.
+
+Visualmente, quero sair de:
+
+`marca → HERO DO LIVRO → outros produtos`
+
+e passar para:
+
+`marca → conjunto de produtos`
+
+---
+
+# 20. IMPORTANTE
+
+Não reconstruir o projeto.
+
+Não mexer em:
+
+* rotas existentes;
+* Jornada;
+* tela de capítulos;
+* mocks internos da Jornada;
+* lógica de conclusão;
+* tela “Você está em dia”.
+
+Alterar apenas a Home e os componentes relacionados aos cards.
+
+Use a **imagem 3D anexada do livro** como asset do novo card `Cachorro dos Bons`.
+
+O resultado esperado é uma Home mais simples, mais leve e preparada para que novos produtos sejam adicionados ao ecossistema sem que o livro monopolize toda a interface.
