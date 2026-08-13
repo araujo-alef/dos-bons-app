@@ -1,0 +1,105 @@
+Quero que você faça **um ajuste pontual na Home já criada**, sem reconstruir a interface e sem alterar a estrutura geral dos componentes.
+
+O foco desta tarefa é **melhorar o fundo da Home**, porque atualmente ele está preto demais e simples demais, o que deixa a interface um pouco “flat”.
+
+A Home já está seguindo uma direção visual boa, premium e editorial, então quero **preservar tudo que já está funcionando** e mexer **somente na ambientação do background**.
+
+## Objetivo
+
+Deixar o fundo da Home mais sofisticado e com mais profundidade visual, sem perder a elegância, o contraste e a identidade dark.
+
+A ideia é sair de um fundo totalmente preto chapado e criar um **ambiente escuro com profundidade sutil em roxo**, usando gradientes e luzes bem discretas.
+
+## O que quero
+
+Manter a base escura do app, mas adicionar no fundo da Home:
+
+* um **gradiente roxo muito sutil**;
+* uma ou duas áreas de **glow/luz difusa** bem suaves;
+* sensação de profundidade e atmosfera;
+* sem competir com os cards e com o hero principal.
+
+## Direção visual desejada
+
+Quero algo com cara de:
+
+* premium;
+* editorial;
+* sofisticado;
+* escuro;
+* elegante;
+* levemente misterioso.
+
+Não quero um visual “tech neon” exagerado.
+
+## Paleta a respeitar
+
+Continue usando a paleta já definida:
+
+* fundo base: `#050505`
+* roxo/lilás de identidade: `#B266FF`
+* glow ambiente: baseado em `rgba(139, 53, 255, ...)`
+
+Você pode usar variações muito escuras de roxo/violeta no fundo, com opacidade baixa.
+
+## Como aplicar
+
+Ajuste o fundo da Home com algo nessa lógica:
+
+* manter o preto como base principal;
+* adicionar **gradientes radiais ou manchas suaves de luz roxa**;
+* criar uma sensação de iluminação sutil atrás da parte superior da Home;
+* opcionalmente colocar uma segunda luz bem discreta mais abaixo, próxima da seção “Explore o ecossistema”;
+* deixar as bordas da tela mais escuras;
+* preservar o contraste do texto e a legibilidade total.
+
+## Recomendação prática
+
+Você pode construir esse fundo usando uma combinação de:
+
+* `linear-gradient`
+* `radial-gradient`
+* camadas absolutas com blur suave
+* background decorativo com opacidade baixa
+
+## Comportamento esperado
+
+O fundo deve:
+
+* continuar parecendo quase preto à primeira vista;
+* revelar profundidade roxa conforme o olhar percorre a tela;
+* valorizar o hero principal;
+* integrar melhor os cards com o restante da página.
+
+## O que NÃO quero
+
+Evite:
+
+* fundo roxo forte demais;
+* gradiente muito evidente;
+* glow neon exagerado;
+* muitas manchas de luz espalhadas;
+* visual chamativo demais;
+* efeitos que tirem atenção do hero e dos cards;
+* qualquer mudança estrutural na Home;
+* alteração no conteúdo dos cards;
+* alteração no layout do hero;
+* alteração das proporções atuais.
+
+## Importante
+
+Não mude a arquitetura da tela.
+
+Quero apenas uma melhoria no **background da Home**, mantendo:
+
+* header;
+* frase principal;
+* hero da jornada;
+* seção “Explore o ecossistema”;
+* cards do ecossistema.
+
+Se possível, organize a solução de forma reutilizável e limpa, por exemplo com uma camada/background decorativo própria para a Home.
+
+## Resultado esperado
+
+A Home deve continuar escura, mas com um fundo mais refinado, menos chapado e mais atmosférico, com uma presença sutil de roxo que reforce a identidade visual do produto.
