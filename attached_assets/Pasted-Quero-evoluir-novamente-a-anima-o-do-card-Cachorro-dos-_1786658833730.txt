@@ -1,0 +1,534 @@
+Quero evoluir novamente a animação do card **Cachorro dos Bons**.
+
+A implementação atual criou uma flutuação, porém o movimento ficou discreto demais e quase imperceptível.
+
+Além disso, faltaram os elementos visuais extras que eu quero usar para dar mais identidade e chamar mais atenção para esse card.
+
+Nesta nova versão, quero:
+
+1. deixar a flutuação do livro mais perceptível;
+2. aumentar a amplitude e a duração do movimento;
+3. adicionar **raios/descargas roxas sutis**;
+4. adicionar uma **corrente energética/visual** relacionada à identidade da marca;
+5. manter tudo sofisticado, sem transformar o card em um efeito gamer exagerado.
+
+---
+
+# 1. AUMENTAR A FLUTUAÇÃO DO LIVRO
+
+Atualmente o livro praticamente não se move.
+
+Quero aumentar a amplitude.
+
+Usar como referência algo próximo de:
+
+```css
+translateY(8px) → translateY(-10px)
+```
+
+ou aproximadamente:
+
+`16px–20px`
+
+de deslocamento total entre o ponto mais baixo e mais alto.
+
+Isso deve deixar a flutuação perceptível mesmo em uma olhada rápida.
+
+---
+
+# 2. MOVIMENTO MAIS LONGO E ORGÂNICO
+
+Não quero apenas:
+
+baixo → cima → baixo
+
+em um ciclo muito simples.
+
+Criar um movimento mais longo e orgânico.
+
+Como referência:
+
+`8s–12s`
+
+por ciclo.
+
+Exemplo conceitual:
+
+```css
+0% {
+  transform: translateY(5px) rotate(-1deg);
+}
+
+30% {
+  transform: translateY(-8px) rotate(-0.3deg);
+}
+
+60% {
+  transform: translateY(-11px) rotate(0.5deg);
+}
+
+82% {
+  transform: translateY(-3px) rotate(0deg);
+}
+
+100% {
+  transform: translateY(5px) rotate(-1deg);
+}
+```
+
+Não precisa utilizar exatamente esses valores.
+
+O importante é evitar uma animação mecanicamente simétrica.
+
+Quero uma sensação de objeto suspenso no ar.
+
+---
+
+# 3. PEQUENA ROTAÇÃO
+
+Adicionar uma rotação muito pequena ao movimento.
+
+Algo no máximo próximo de:
+
+`-1deg` até `+0.5deg`
+
+ou equivalente.
+
+A rotação deve acompanhar a flutuação.
+
+Não quero o livro balançando de um lado para o outro.
+
+É apenas uma variação quase imperceptível de perspectiva.
+
+---
+
+# 4. GLOW MAIS PRESENTE
+
+O glow atual também pode ganhar um pouco mais de presença.
+
+Quero que a iluminação roxa respire acompanhando a flutuação.
+
+Quando o livro estiver no ponto mais alto:
+
+* glow ligeiramente mais amplo;
+* intensidade maior.
+
+Quando estiver mais baixo:
+
+* glow um pouco menor;
+* intensidade reduzida.
+
+Pode variar algo como:
+
+`opacity: 0.35 → 0.7`
+
+e
+
+`scale: 0.9 → 1.15`
+
+Ajustar conforme o resultado visual.
+
+---
+
+# 5. ADICIONAR RAIOS / DESCARGAS ROXAS
+
+Quero adicionar pequenas descargas elétricas roxas atrás ou ao redor do livro.
+
+Mas muito importante:
+
+NÃO quero raios aparecendo o tempo todo.
+
+Eles devem surgir ocasionalmente.
+
+Por exemplo:
+
+* pequena descarga a cada alguns segundos;
+* duração entre `200ms–600ms`;
+* posições diferentes;
+* opacidade variável.
+
+A ideia é criar pequenos flashes de energia.
+
+Não quero uma tempestade elétrica contínua.
+
+---
+
+# 6. ESTILO DOS RAIOS
+
+Os raios devem utilizar:
+
+`#B266FF`
+
+e eventualmente:
+
+`#D6B2FF`
+
+com brilho muito sutil.
+
+Podem ser criados utilizando:
+
+* SVG;
+* pseudo-elements;
+* paths animados;
+* CSS;
+* ou solução equivalente.
+
+Prefira SVG se isso permitir melhor controle visual.
+
+Os raios podem aparecer:
+
+* atrás do livro;
+* nas laterais;
+* eventualmente próximos à base.
+
+Nunca sobre o texto do card.
+
+---
+
+# 7. NÃO USAR RAIOS GENÉRICOS GRANDES
+
+Evitar raios enormes atravessando o card inteiro.
+
+Quero descargas curtas.
+
+Exemplo conceitual:
+
+```text
+      ⚡
+   [ LIVRO ]
+         ⚡
+```
+
+e não:
+
+```text
+⚡⚡⚡⚡⚡⚡
+[ LIVRO ]
+⚡⚡⚡⚡⚡⚡
+```
+
+O efeito precisa parecer premium.
+
+---
+
+# 8. ADICIONAR CORRENTE VISUAL
+
+Quero também incorporar uma corrente como elemento visual animado.
+
+A marca e a landing page já utilizam o conceito de corrente/coleira, então isso tem conexão direta com a identidade do produto.
+
+Não quero uma corrente enorme passando por cima do livro.
+
+Quero algo mais sutil.
+
+Sugestão:
+
+uma corrente parcialmente visível passando atrás ou abaixo do livro.
+
+---
+
+# 9. POSICIONAMENTO DA CORRENTE
+
+Uma opção interessante:
+
+* corrente entrando pelo lado esquerdo inferior;
+* passando atrás do livro;
+* reaparecendo parcialmente do lado direito.
+
+Algo conceitualmente:
+
+```text
+────⛓⛓⛓────
+      \
+     [LIVRO]
+      /
+────⛓⛓⛓────
+```
+
+Mas não precisa atravessar o card inteiro.
+
+Pode aparecer apenas parcialmente.
+
+---
+
+# 10. CORRENTE COM MOVIMENTO LENTO
+
+A corrente pode ter movimento muito discreto.
+
+Por exemplo:
+
+* deslocamento horizontal de `4px–8px`;
+* pequena oscilação vertical;
+* duração `8s–12s`.
+
+Isso deve ser significativamente mais lento que os raios.
+
+O objetivo é criar profundidade, como se a corrente estivesse suspensa no mesmo ambiente do livro.
+
+---
+
+# 11. ILUMINAÇÃO DA CORRENTE
+
+A corrente deve ser predominantemente:
+
+* preta;
+* grafite;
+* roxo escuro.
+
+Alguns pontos podem receber reflexos:
+
+`#B266FF`
+
+Quando houver uma descarga elétrica próxima, pode ocorrer um pequeno flash sobre parte da corrente.
+
+Isso criaria uma conexão visual interessante entre:
+
+**livro + energia + corrente.**
+
+---
+
+# 12. CAMADAS RECOMENDADAS
+
+Quero uma composição conceitualmente parecida com:
+
+```text
+background card
+
+↓
+
+glow roxo difuso
+
+↓
+
+raios distantes
+
+↓
+
+corrente traseira
+
+↓
+
+sombra
+
+↓
+
+livro 3D
+
+↓
+
+pequenas descargas frontais ocasionais
+
+↓
+
+textos
+```
+
+Usar `z-index` claramente organizado.
+
+---
+
+# 13. NÃO ATRAPALHAR A LEITURA
+
+Todos esses efeitos devem ficar restritos principalmente à área visual do livro.
+
+Não colocar:
+
+* raio atrás do título;
+* corrente atrás do CTA;
+* flashes passando sobre os textos.
+
+O conteúdo textual do card deve permanecer sempre legível.
+
+---
+
+# 14. TIMING DOS EFEITOS
+
+Muito importante:
+
+não sincronizar tudo.
+
+Evitar:
+
+* livro sobe;
+* raio aparece;
+* glow aumenta;
+* corrente se move;
+
+tudo exatamente no mesmo momento.
+
+Isso parece uma animação programada.
+
+Quero timings diferentes.
+
+Exemplo:
+
+* livro: `10s`;
+* glow: `6.5s`;
+* corrente: `11s`;
+* raio A: `7s`;
+* raio B: `9.5s`.
+
+Pode usar `animation-delay` diferentes.
+
+A sensação deve ser mais orgânica.
+
+---
+
+# 15. RAIOS NÃO DEVEM TER LOOP ÓBVIO
+
+Os flashes devem parecer relativamente aleatórios.
+
+Se possível, criar múltiplas descargas com:
+
+* durations diferentes;
+* delays diferentes;
+* períodos grandes de invisibilidade.
+
+Exemplo:
+
+```css
+opacity: 0
+```
+
+durante a maior parte do ciclo,
+
+e apenas pequenas janelas com:
+
+```css
+opacity: 0.7
+```
+
+ou equivalente.
+
+---
+
+# 16. HOVER NO DESKTOP
+
+Quando o usuário passa o mouse sobre o card:
+
+aumentar discretamente a energia.
+
+Exemplo:
+
+* glow +15%;
+* livro sobe mais `2px`;
+* possibilidade de um pequeno flash elétrico;
+* corrente ganha ligeiramente mais contraste.
+
+Não acelerar todas as animações.
+
+Não fazer zoom grande.
+
+---
+
+# 17. MOBILE
+
+No celular, manter os efeitos automáticos.
+
+Porém:
+
+* reduzir quantidade de raios se necessário para performance;
+* preservar boa taxa de frames;
+* não gerar consumo excessivo.
+
+O livro e o glow são prioritários.
+
+Raios e corrente são complementares.
+
+---
+
+# 18. PERFORMANCE
+
+Priorizar animações baseadas em:
+
+* `transform`;
+* `opacity`.
+
+Para raios SVG, evitar filtros muito pesados.
+
+Evitar dezenas de elementos DOM animando simultaneamente.
+
+Queremos um efeito sofisticado, não um benchmark gráfico.
+
+---
+
+# 19. PREFERS-REDUCED-MOTION
+
+Respeitar:
+
+`prefers-reduced-motion: reduce`
+
+Nesse estado:
+
+* livro permanece estático;
+* corrente permanece estática;
+* remover flashes elétricos;
+* manter apenas glow roxo estático.
+
+---
+
+# 20. NÃO ALTERAR O LAYOUT DO CARD
+
+Não alterar:
+
+* tamanho;
+* largura;
+* altura;
+* grid;
+* texto;
+* CTA;
+* posição do card.
+
+Toda a animação deve acontecer dentro do espaço já existente.
+
+---
+
+# 21. NÃO ALTERAR OS OUTROS CARDS
+
+Comunidade, Mentorias e IA de Conversas continuam como estão.
+
+O card do livro pode ter uma animação mais rica porque ele representa o produto principal atualmente disponível.
+
+Mesmo assim, manter coerência com o restante do design.
+
+---
+
+# 22. SENSAÇÃO QUE QUERO
+
+Hoje:
+
+**livro quase parado com uma leve flutuação.**
+
+Quero evoluir para:
+
+**livro flutuando claramente em um ambiente escuro, com energia roxa viva, pequenas descargas e elementos de corrente aparecendo ao redor.**
+
+Mas ainda dentro de uma estética:
+
+* premium;
+* dark;
+* editorial;
+* sofisticada.
+
+Não quero:
+
+* efeito videogame exagerado;
+* raio azul;
+* explosões;
+* partículas demais;
+* animação frenética.
+
+---
+
+# 23. CRITÉRIO DE SUCESSO
+
+Ao olhar rapidamente para a Home, o card do livro deve ser o primeiro a chamar atenção.
+
+Depois de alguns segundos, o usuário percebe:
+
+* livro flutuando;
+* glow respirando;
+* corrente se movimentando lentamente;
+* pequenas descargas roxas ocasionais.
+
+A animação deve fazer o produto parecer **energizado/vivo**, sem parecer propaganda animada.

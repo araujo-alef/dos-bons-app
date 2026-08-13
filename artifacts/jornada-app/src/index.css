@@ -260,42 +260,109 @@
    No width/height/top/left changes → no layout shift.
    --------------------------------------------------------------------------- */
 
-/* Book floats up–down with a tiny lean, like a suspended object */
+/* ── Book float: organic 4-stop curve, ~18px total range ─────────────────── */
 @keyframes book-float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-5px) rotate(-0.3deg); }
+  0%   { transform: translateY(5px)   rotate(-0.8deg); }
+  30%  { transform: translateY(-7px)  rotate(-0.2deg); }
+  60%  { transform: translateY(-10px) rotate(0.4deg);  }
+  82%  { transform: translateY(-2px)  rotate(0deg);    }
+  100% { transform: translateY(5px)   rotate(-0.8deg); }
 }
 
-/* Primary glow breathes (scale + opacity) behind the book */
+/* ── Primary glow: breathes in sync with the float cycle ─────────────────── */
 @keyframes book-glow-pulse {
-  0%, 100% { transform: translateX(-50%) scale(0.86); opacity: 0.72; }
-  50%       { transform: translateX(-50%) scale(1.08); opacity: 1; }
+  0%   { transform: translateX(-50%) scale(0.90); opacity: 0.35; }
+  55%  { transform: translateX(-50%) scale(1.15); opacity: 0.70; }
+  100% { transform: translateX(-50%) scale(0.90); opacity: 0.35; }
 }
 
-/* Secondary glow drifts slowly on a diagonal — avoids simple scale feel */
+/* ── Secondary glow: slow diagonal drift — different feel from primary ────── */
 @keyframes book-glow-drift {
-  0%   { transform: translateX(calc(-50% + 0px))  translateY(0px);  opacity: 0.60; }
-  33%  { transform: translateX(calc(-50% + 5px))  translateY(-3px); opacity: 0.80; }
-  66%  { transform: translateX(calc(-50% - 4px))  translateY(2px);  opacity: 0.48; }
-  100% { transform: translateX(calc(-50% + 0px))  translateY(0px);  opacity: 0.60; }
+  0%   { transform: translateX(calc(-50% + 0px))  translateY(0px);  opacity: 0.55; }
+  35%  { transform: translateX(calc(-50% + 6px))  translateY(-4px); opacity: 0.75; }
+  68%  { transform: translateX(calc(-50% - 5px))  translateY(3px);  opacity: 0.42; }
+  100% { transform: translateX(calc(-50% + 0px))  translateY(0px);  opacity: 0.55; }
 }
 
-/* Shadow flattens/lightens when book rises, deepens when it descends */
+/* ── Book shadow: flattens when book rises, deepens when it lands ─────────── */
 @keyframes book-shadow-pulse {
-  0%, 100% { transform: translateX(-50%) scaleX(1);    opacity: 0.52; }
-  50%       { transform: translateX(-50%) scaleX(0.88); opacity: 0.26; }
+  0%   { transform: translateX(-50%) scaleX(1.00); opacity: 0.55; }
+  30%  { transform: translateX(-50%) scaleX(0.92); opacity: 0.30; }
+  60%  { transform: translateX(-50%) scaleX(0.84); opacity: 0.22; }
+  82%  { transform: translateX(-50%) scaleX(0.95); opacity: 0.38; }
+  100% { transform: translateX(-50%) scaleX(1.00); opacity: 0.55; }
 }
 
-.book-float        { animation: book-float        6.5s ease-in-out infinite; }
-.book-glow-primary { animation: book-glow-pulse    6s   ease-in-out infinite; }
-.book-glow-secondary { animation: book-glow-drift  9s   ease-in-out infinite; }
-.book-shadow-anim  { animation: book-shadow-pulse  6.5s ease-in-out infinite; }
+/* ── Lightning bolt flashes — mostly invisible, brief energy flickers ──────
+   Each keyframe uses a small % window so the bolt is invisible for the
+   vast majority of its cycle, then bursts on for 200–500 ms.           */
+@keyframes bolt-flash-a {
+  0%    { opacity: 0; }
+  1.2%  { opacity: 0.85; }
+  2.1%  { opacity: 0.20; }
+  2.8%  { opacity: 0.70; }
+  4.5%  { opacity: 0; }
+  100%  { opacity: 0; }
+}
+@keyframes bolt-flash-b {
+  0%    { opacity: 0; }
+  0.9%  { opacity: 0.60; }
+  1.6%  { opacity: 0; }
+  2.3%  { opacity: 0.48; }
+  3.4%  { opacity: 0; }
+  100%  { opacity: 0; }
+}
+@keyframes bolt-flash-c {
+  0%    { opacity: 0; }
+  1.5%  { opacity: 0.78; }
+  2.6%  { opacity: 0.12; }
+  3.3%  { opacity: 0.60; }
+  4.8%  { opacity: 0; }
+  100%  { opacity: 0; }
+}
+@keyframes bolt-flash-d {
+  0%    { opacity: 0; }
+  0.6%  { opacity: 0.50; }
+  1.4%  { opacity: 0; }
+  2.0%  { opacity: 0.42; }
+  2.8%  { opacity: 0; }
+  100%  { opacity: 0; }
+}
+
+/* ── Chain: slow drift in both axes, like a suspended object ─────────────── */
+@keyframes chain-drift {
+  0%   { transform: translateX(0px)  translateY(0px);  }
+  25%  { transform: translateX(5px)  translateY(-2px); }
+  55%  { transform: translateX(-4px) translateY(2px);  }
+  80%  { transform: translateX(3px)  translateY(-1px); }
+  100% { transform: translateX(0px)  translateY(0px);  }
+}
+
+/* ── Class bindings ─────────────────────────────────────────────────────────
+   Timings are intentionally prime-ish and misaligned so nothing syncs up. */
+.book-float          { animation: book-float         10s   ease-in-out infinite; }
+.book-glow-primary   { animation: book-glow-pulse     6.5s  ease-in-out infinite; }
+.book-glow-secondary { animation: book-glow-drift     8s    ease-in-out infinite; }
+.book-shadow-anim    { animation: book-shadow-pulse   10s   ease-in-out infinite; }
+.bolt-a { animation: bolt-flash-a  7s    ease-in-out infinite 0.5s;  }
+.bolt-b { animation: bolt-flash-b  9.5s  ease-in-out infinite 3.2s;  }
+.bolt-c { animation: bolt-flash-c  11s   ease-in-out infinite 1.5s;  }
+.bolt-d { animation: bolt-flash-d  8.5s  ease-in-out infinite 5.3s;  }
+.chain-anim { animation: chain-drift 11s ease-in-out infinite 0.8s; }
+
+/* Hover: chain brightens slightly */
+.book-card-wrap:hover .chain-anim svg {
+  filter: brightness(1.6) drop-shadow(0 0 3px rgba(178, 102, 255, 0.4));
+  transition: filter 600ms ease;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .book-float,
   .book-glow-primary,
   .book-glow-secondary,
-  .book-shadow-anim {
+  .book-shadow-anim,
+  .bolt-a, .bolt-b, .bolt-c, .bolt-d,
+  .chain-anim {
     animation: none !important;
   }
 }
