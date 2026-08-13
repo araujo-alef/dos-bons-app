@@ -186,7 +186,7 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
       showCover={false}
       usePortrait={isPortrait}
       flippingTime={prefersReducedMotion ? 1 : 900}
-      useMouseEvents={false}
+      useMouseEvents={true}
       mobileScrollSupport={true}
       drawShadow={!isPortrait}
       maxShadowOpacity={0.3}
