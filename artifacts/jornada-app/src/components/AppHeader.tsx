@@ -2,21 +2,24 @@ import { Link } from 'wouter';
 
 export function AppHeader() {
   return (
-    <header className="flex flex-col items-center justify-center pt-6 pb-3 px-4">
+    <header className="flex flex-col items-center justify-center pt-6 pb-0 px-4">
       <Link href="/" className="no-underline text-center">
         <p
           style={{
-            color: '#F3F3F3',
-            fontSize: '22px',
-            fontWeight: 500,
-            lineHeight: 1.25,
-            letterSpacing: '-0.01em',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '21px',
+            fontWeight: 400,
+            lineHeight: 1.2,
+            letterSpacing: '0.01em',
+            color: '#F2F2F2',
             margin: 0,
+            maxWidth: '280px',
           }}
         >
           Nem todo cachorro nasceu
           <br />
-          pra usar coleira.
+          pra usar{' '}
+          <span style={{ color: '#B266FF' }}>coleira.</span>
         </p>
       </Link>
     </header>

@@ -1,0 +1,229 @@
+Quero fazer um refinamento visual **apenas na frase do topo da Home**, mantendo a corrente e o restante da estrutura exatamente como estão.
+
+Hoje a frase funciona em termos de conteúdo, mas ainda está com aparência muito genérica e pesada.
+
+Quero que ela pareça mais uma **frase-manifesto da marca** e menos uma headline comum de landing page.
+
+## Texto
+
+Manter exatamente:
+
+**Nem todo cachorro nasceu**
+**pra usar coleira.**
+
+Não alterar a frase.
+
+---
+
+# 1. Mudar a tipografia
+
+Quero abandonar a aparência de sans-serif pesada/genérica atual.
+
+Usar uma fonte com mais personalidade, preferencialmente:
+
+* condensada;
+* editorial;
+* masculina;
+* limpa;
+* sofisticada.
+
+Ela deve conversar com a identidade visual da capa do livro sem copiar literalmente a fonte agressiva do logo.
+
+Se já existir alguma fonte condensada no projeto, priorizar reutilização.
+
+Caso contrário, escolher uma opção adequada e leve.
+
+Evitar:
+
+* bold excessivo;
+* aparência de título de SaaS;
+* fonte muito arredondada;
+* aparência corporativa.
+
+---
+
+# 2. Reduzir o peso
+
+O texto atual está visualmente pesado.
+
+Usar algo próximo de:
+
+`font-weight: 400–500`
+
+Não usar `700` ou `800`.
+
+Quero presença pela tipografia e composição, não pelo peso.
+
+---
+
+# 3. Tamanho
+
+No mobile, testar aproximadamente:
+
+`20px–22px`
+
+A frase não deve dominar a Home.
+
+Ela funciona como abertura/manifesto antes dos produtos.
+
+Pode ajustar responsivamente conforme necessário.
+
+---
+
+# 4. Line-height
+
+Usar um line-height relativamente compacto:
+
+aproximadamente:
+
+`1.15–1.25`
+
+As duas linhas devem parecer claramente parte da mesma frase.
+
+Não deixar uma distância grande entre elas.
+
+---
+
+# 5. Destacar apenas “coleira.”
+
+Quero destacar apenas a palavra:
+
+**coleira.**
+
+Utilizar a cor principal da marca:
+
+`#B266FF`
+
+O restante da frase deve permanecer em branco levemente quebrado, como:
+
+`#F2F2F2`
+
+Estrutura conceitual:
+
+```text
+Nem todo cachorro nasceu
+pra usar coleira.
+              ^^^^^^^
+              lilás
+```
+
+Não aplicar roxo na linha inteira.
+
+Não usar gradient no texto.
+
+Quero um único ponto de destaque.
+
+---
+
+# 6. Hierarquia
+
+A leitura deve acontecer assim:
+
+primeiro:
+
+`Nem todo cachorro nasceu`
+
+depois:
+
+`pra usar coleira.`
+
+com “coleira.” funcionando como fechamento visual da frase.
+
+A palavra destacada não precisa ficar maior que o restante.
+
+A diferença deve vir principalmente da cor.
+
+---
+
+# 7. Largura do bloco
+
+Reduzir a largura máxima do bloco de texto para que ele não pareça uma headline enorme ocupando toda a tela.
+
+Centralizar o bloco.
+
+No mobile, deixar a frase confortável em duas linhas.
+
+Não permitir quebra em três linhas na largura padrão de aproximadamente `390px`, se possível.
+
+---
+
+# 8. Espaço para a corrente
+
+Manter a corrente logo abaixo da frase.
+
+Ajustar o espaçamento para algo próximo de:
+
+frase
+
+↓ `18px–24px`
+
+corrente
+
+A frase e a corrente devem parecer parte da mesma assinatura visual.
+
+---
+
+# 9. Não adicionar novos elementos
+
+Não adicionar:
+
+* subtítulo;
+* slogan adicional;
+* ícone;
+* aspas;
+* linha;
+* badge.
+
+Quero manter:
+
+**frase + corrente + cards.**
+
+---
+
+# 10. Não alterar a corrente
+
+Não mudar nesta tarefa:
+
+* imagem da corrente;
+* largura;
+* animação;
+* efeitos;
+* posicionamento horizontal.
+
+Apenas ajuste o espaçamento vertical se necessário para integrar melhor com a nova tipografia.
+
+---
+
+# 11. Não alterar os cards
+
+Não mexer em:
+
+* card Cachorro dos Bons;
+* Comunidade;
+* Mentorias;
+* IA de Conversas;
+* grid;
+* animações;
+* textos.
+
+---
+
+# 12. Resultado desejado
+
+Quero sair de uma sensação de:
+
+**headline genérica em bold**
+
+e chegar em algo mais próximo de:
+
+**manifesto curto de marca, editorial e sofisticado.**
+
+A frase precisa combinar com a identidade:
+
+* dark;
+* masculina;
+* premium;
+* provocativa;
+* minimalista.
+
+A palavra **“coleira.”** em lilás deve ser o único destaque cromático do texto.
