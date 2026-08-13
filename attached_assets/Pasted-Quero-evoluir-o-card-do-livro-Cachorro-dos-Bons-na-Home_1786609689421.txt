@@ -1,0 +1,378 @@
+Quero evoluir o card do livro **Cachorro dos Bons** na Home.
+
+Vou anexar junto deste prompt uma **nova imagem do livro em 3D**, mais limpa e adequada para animação.
+
+Quero substituir a imagem atual do card por essa nova imagem e criar uma animação sutil, premium e contínua ao redor dela.
+
+O objetivo é que o livro pareça um objeto vivo/flutuando dentro do card, sem transformar a interface em algo chamativo ou com aparência de GIF.
+
+## 1. Substituir a imagem atual
+
+No card do livro:
+
+**Cachorro dos Bons**
+
+substitua a imagem atual pela nova imagem 3D anexada.
+
+Preservar:
+
+* proporção original;
+* nitidez;
+* perspectiva;
+* leitura da capa.
+
+Não cortar agressivamente.
+
+Não usar como background full-bleed.
+
+O livro deve continuar sendo um objeto dentro do card.
+
+## 2. Estrutura em camadas
+
+Quero que a composição seja construída em camadas separadas:
+
+1. fundo do card;
+2. glow roxo animado;
+3. segunda luz/neblina muito sutil;
+4. sombra do livro;
+5. imagem do livro 3D;
+6. textos do card.
+
+Não tente “animar” o próprio PNG internamente.
+
+A animação deve vir principalmente das camadas CSS ao redor do livro.
+
+## 3. Glow principal animado
+
+Criar atrás do livro um glow roxo usando, por exemplo:
+
+* `radial-gradient`;
+* blur;
+* opacidade baixa.
+
+Usar como referência:
+
+`#B266FF`
+
+e roxos mais escuros derivados de:
+
+`rgba(139,53,255,...)`
+
+O glow deve pulsar lentamente.
+
+Exemplo conceitual:
+
+estado inicial:
+
+* menor;
+* opacidade moderada;
+
+estado intermediário:
+
+* ligeiramente maior;
+* um pouco mais luminoso;
+
+depois retornar suavemente.
+
+Duração sugerida:
+
+`5s–7s`
+
+com:
+
+`ease-in-out`
+
+e repetição infinita.
+
+Não quero uma pulsação evidente.
+
+A sensação deve ser de uma luz “respirando”.
+
+## 4. Segunda camada de luz
+
+Adicionar opcionalmente uma segunda camada roxa atrás do livro.
+
+Ela deve:
+
+* ser mais difusa;
+* ter opacidade ainda menor;
+* se mover levemente na horizontal ou diagonal;
+* possuir duração diferente do glow principal.
+
+Exemplo:
+
+`7s–10s`
+
+Isso ajuda a evitar que o efeito pareça uma simples animação de scale.
+
+A movimentação pode ser mínima, algo como:
+
+`translateX(-4px)` → `translateX(5px)`
+
+ou equivalente.
+
+## 5. Flutuação do livro
+
+Aplicar uma animação extremamente sutil à própria imagem do livro.
+
+Quero uma sensação de objeto suspenso.
+
+Exemplo:
+
+```css
+0%, 100% {
+  transform: translateY(0);
+}
+
+50% {
+  transform: translateY(-5px);
+}
+```
+
+Pode incluir uma rotação mínima:
+
+`rotate(-0.5deg)` → `rotate(0deg)`
+
+mas apenas se ficar natural.
+
+Duração sugerida:
+
+`6s–8s`
+
+Não usar movimento rápido.
+
+Não fazer o livro “balançar”.
+
+## 6. Sombra dinâmica
+
+Criar uma sombra difusa abaixo do livro.
+
+Quando o livro sobe levemente:
+
+* sombra pode ficar um pouco mais difusa;
+* opacidade pode reduzir minimamente.
+
+Quando volta:
+
+* sombra aproxima;
+* fica um pouco mais definida.
+
+A diferença deve ser muito pequena.
+
+Isso aumenta bastante a sensação de profundidade.
+
+## 7. Não usar fumaça pesada
+
+A imagem anterior tinha muita névoa/glow incorporados.
+
+Agora quero que a atmosfera seja controlada pelo frontend.
+
+Não adicionar:
+
+* grande fumaça roxa;
+* partículas;
+* estrelas;
+* sparks;
+* raios;
+* efeitos de energia.
+
+Apenas luz ambiente.
+
+## 8. Hover no desktop
+
+No desktop, o card pode reagir discretamente ao hover.
+
+Sugestão:
+
+* livro sobe mais `2px–3px`;
+* glow aumenta aproximadamente `10%–15%`;
+* CTA ganha leve destaque lilás.
+
+Não acelerar a animação.
+
+Não usar zoom forte.
+
+Evitar:
+
+`scale(1.1)`
+
+ou efeitos desse tipo.
+
+Se utilizar scale, mantenha algo extremamente sutil, como:
+
+`1.01–1.02`.
+
+## 9. Touch/mobile
+
+No mobile, não depender de hover.
+
+A animação ambiente deve funcionar sozinha.
+
+Não adicionar interação baseada em movimento do dedo.
+
+O card deve continuar simples de tocar.
+
+## 10. Preservar o card minimalista
+
+Não adicionar mais textos ao card.
+
+Manter a estrutura já definida, por exemplo:
+
+imagem do livro;
+
+**Cachorro dos Bons**
+
+`Continue de onde parou`
+
+`Continuar →`
+
+Se atualmente o card estiver ainda mais enxuto, preserve a estrutura existente.
+
+O foco desta tarefa é visual.
+
+## 11. Não deixar a animação competir com os outros cards
+
+O card do livro pode ter essa microanimação especial porque é o único produto representado por um objeto físico 3D.
+
+Porém, a diferença deve continuar sofisticada.
+
+Não quero que pareça um banner animado enquanto os outros cards ficam estáticos.
+
+O efeito deve ser percebido principalmente quando o usuário olha alguns segundos para o card.
+
+## 12. Performance
+
+Implementar as animações preferencialmente com:
+
+* `transform`;
+* `opacity`;
+
+para aproveitar aceleração de GPU.
+
+Evitar animações contínuas de propriedades caras como:
+
+* width;
+* height;
+* top;
+* left.
+
+Evitar filtros excessivamente pesados em múltiplas camadas.
+
+Manter boa performance em celular.
+
+## 13. Evitar layout shift
+
+A animação não pode alterar:
+
+* tamanho do card;
+* posição dos cards vizinhos;
+* grid;
+* altura da Home.
+
+Tudo deve acontecer dentro de um container fixo.
+
+Usar `overflow` e posicionamento adequados.
+
+## 14. Prefers Reduced Motion
+
+Respeitar:
+
+`prefers-reduced-motion: reduce`
+
+Nesse caso:
+
+* remover flutuação contínua;
+* remover movimento da luz;
+* manter apenas glow estático discreto.
+
+## 15. Responsividade
+
+A nova imagem precisa se adaptar aos diferentes tamanhos do card.
+
+No mobile:
+
+* manter o livro proporcional;
+* não deixar encostar nas bordas;
+* preservar espaço para os textos.
+
+No desktop/tablet:
+
+* pode aumentar proporcionalmente;
+* não extrapolar visualmente o card.
+
+## 16. Estrutura recomendada
+
+Se fizer sentido para a stack atual, estruturar algo conceitualmente semelhante a:
+
+```jsx
+<div className="book-visual">
+  <div className="book-glow-primary" />
+  <div className="book-glow-secondary" />
+  <div className="book-shadow" />
+
+  <img
+    className="book-image"
+    src={bookImage}
+    alt="Cachorro dos Bons"
+  />
+</div>
+```
+
+Os nomes podem seguir o padrão do projeto.
+
+Quero as camadas separadas porque futuramente podemos ajustar individualmente:
+
+* intensidade;
+* animação;
+* direção;
+* duração.
+
+## 17. Direção visual
+
+O resultado deve lembrar:
+
+**produto premium fotografado em ambiente escuro com iluminação viva.**
+
+Não:
+
+**imagem com efeito neon.**
+
+Quero:
+
+* profundidade;
+* elegância;
+* movimento quase imperceptível;
+* roxo como atmosfera.
+
+## 18. Não alterar o restante da Home
+
+Não mexer nesta tarefa em:
+
+* branding Lábia de Cachorro;
+* card Comunidade;
+* card Mentorias;
+* card IA de Conversas;
+* grid;
+* rotas;
+* Jornada;
+* leitor;
+* navegação.
+
+A tarefa é exclusivamente:
+
+1. substituir a imagem atual do livro pela nova imagem anexada;
+2. criar a animação ambiental do card.
+
+## 19. Critério visual de sucesso
+
+Quando a Home abrir, o usuário deve inicialmente enxergar apenas um card bonito com o livro.
+
+Depois de observar por alguns segundos, deve perceber que:
+
+* o livro flutua muito levemente;
+* a luz roxa pulsa atrás;
+* existe uma pequena sensação de profundidade.
+
+Se a animação chamar atenção antes do conteúdo, ela está forte demais.
+
+Priorize sutileza.

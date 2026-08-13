@@ -254,3 +254,48 @@
 .stf__item--hard {
   background-color: #0A090C !important;
 }
+
+/* ─── JourneyCard — book ambient animations ──────────────────────────────────
+   All animations use only transform + opacity for GPU compositing.
+   No width/height/top/left changes → no layout shift.
+   --------------------------------------------------------------------------- */
+
+/* Book floats up–down with a tiny lean, like a suspended object */
+@keyframes book-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-5px) rotate(-0.3deg); }
+}
+
+/* Primary glow breathes (scale + opacity) behind the book */
+@keyframes book-glow-pulse {
+  0%, 100% { transform: translateX(-50%) scale(0.86); opacity: 0.72; }
+  50%       { transform: translateX(-50%) scale(1.08); opacity: 1; }
+}
+
+/* Secondary glow drifts slowly on a diagonal — avoids simple scale feel */
+@keyframes book-glow-drift {
+  0%   { transform: translateX(calc(-50% + 0px))  translateY(0px);  opacity: 0.60; }
+  33%  { transform: translateX(calc(-50% + 5px))  translateY(-3px); opacity: 0.80; }
+  66%  { transform: translateX(calc(-50% - 4px))  translateY(2px);  opacity: 0.48; }
+  100% { transform: translateX(calc(-50% + 0px))  translateY(0px);  opacity: 0.60; }
+}
+
+/* Shadow flattens/lightens when book rises, deepens when it descends */
+@keyframes book-shadow-pulse {
+  0%, 100% { transform: translateX(-50%) scaleX(1);    opacity: 0.52; }
+  50%       { transform: translateX(-50%) scaleX(0.88); opacity: 0.26; }
+}
+
+.book-float        { animation: book-float        6.5s ease-in-out infinite; }
+.book-glow-primary { animation: book-glow-pulse    6s   ease-in-out infinite; }
+.book-glow-secondary { animation: book-glow-drift  9s   ease-in-out infinite; }
+.book-shadow-anim  { animation: book-shadow-pulse  6.5s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .book-float,
+  .book-glow-primary,
+  .book-glow-secondary,
+  .book-shadow-anim {
+    animation: none !important;
+  }
+}
