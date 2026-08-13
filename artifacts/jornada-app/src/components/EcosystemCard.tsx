@@ -39,36 +39,20 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
         }}
       />
 
-      {/* Icon — centered object, screen blend removes black bg */}
-      <div
-        className="absolute inset-x-0 flex items-center justify-center"
-        style={{ top: '8%', height: '65%' }}
-      >
+      {/* Icon — centered in full card */}
+      <div className="absolute inset-0 flex items-center justify-center">
         <img
           src={iconImg}
           alt={product.name}
           style={{
             width: '58%',
-            height: '100%',
+            height: '58%',
             objectFit: 'contain',
             mixBlendMode: 'screen',
             transition: 'opacity 400ms ease',
           }}
           className="opacity-90 group-hover:opacity-100"
         />
-      </div>
-
-      {/* Bottom gradient */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none"
-        style={{ height: '45%', background: 'linear-gradient(to top, #08070B 45%, transparent 100%)' }}
-      />
-
-      {/* Text */}
-      <div className="absolute bottom-0 left-0 right-0 p-3.5">
-        <h3 className="text-white/90 font-sans text-sm font-semibold leading-tight">
-          {product.name}
-        </h3>
       </div>
     </div>
   ) : (

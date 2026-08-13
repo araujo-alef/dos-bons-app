@@ -1,4 +1,4 @@
-import { Link } from 'wouter';
+import { Link } from "wouter";
 
 export function AppHeader() {
   return (
@@ -7,19 +7,18 @@ export function AppHeader() {
         <p
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '21px',
+            fontSize: "28px",
             fontWeight: 400,
             lineHeight: 1.2,
-            letterSpacing: '0.01em',
-            color: '#F2F2F2',
+            letterSpacing: "0.01em",
+            color: "#F2F2F2",
             margin: 0,
-            maxWidth: '280px',
+            maxWidth: "280px",
           }}
         >
           Nem todo cachorro nasceu
           <br />
-          pra usar{' '}
-          <span style={{ color: '#B266FF' }}>coleira.</span>
+          pra usar <span style={{ color: "#B266FF" }}>coleira.</span>
         </p>
       </Link>
     </header>

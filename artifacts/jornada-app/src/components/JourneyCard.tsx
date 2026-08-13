@@ -215,12 +215,10 @@ export function JourneyCard() {
           />
         </div>
 
-        {/* ── z-[40] Book image — floating ─────────────────────────────── */}
+        {/* ── z-[40] Book image — floating, centered in full card ──────── */}
         <div
-          className="absolute inset-x-0"
+          className="absolute inset-0"
           style={{
-            top: '4%',
-            height: '82%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -259,32 +257,7 @@ export function JourneyCard() {
           </div>
         </div>
 
-        {/* ── z-[50] Bottom gradient — text legibility ─────────────────── */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 pointer-events-none"
-          style={{
-            zIndex: 50,
-            height: '52%',
-            background:
-              'linear-gradient(to top, #08070B 40%, rgba(8,7,11,0.70) 65%, transparent 100%)',
-          }}
-        />
-
-        {/* ── z-[60] Text labels ────────────────────────────────────────── */}
-        <div
-          className="absolute bottom-0 left-0 right-0 p-3.5 flex flex-col gap-1"
-          style={{ zIndex: 60 }}
-        >
-          <span className="text-[9px] font-bold tracking-[0.2em] text-primary/70 leading-none group-hover:text-primary/90 transition-colors duration-500">
-            JORNADA
-          </span>
-          <h3 className="text-white/90 font-sans text-sm font-semibold leading-tight">
-            Cachorro dos Bons
-          </h3>
-        </div>
-
-        {/* ── z-[45] Front sparks — above book, inside book zone (not text) */}
+        {/* ── z-[45] Front sparks — above book */}
         <div
           aria-hidden="true"
           className="bolt-c absolute pointer-events-none"
