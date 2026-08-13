@@ -94,10 +94,18 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
     // breaking the animation visually.
     if (currentPageRef.current > 0) {
       currentPageRef.current -= 1;
-      // 'top' is the correct corner for a backward flip in portrait mode.
-      // 'bottom' tries to animate from the bottom-left which StPageFlip does
-      // not handle in single-page (portrait) layout.
-      bookRef.current?.pageFlip()?.flipPrev('top');
+      const pf = bookRef.current?.pageFlip?.();
+      if (!pf) return;
+      // Root cause: flipPrev internally calls flip({x:10,...}). With
+      // disableFlipByClick=true, flip() checks isPointOnCorners() — but the
+      // point x=10 converts to book-x ≈ pageWidth+10 (~380px), which is NOT
+      // a corner, so the function returns early and nothing happens.
+      // Fix: temporarily clear the flag for this synchronous call, then
+      // restore it. The disableFlipByClick check is sync; the animation is async.
+      const settings = pf.getSettings?.();
+      if (settings) settings.disableFlipByClick = false;
+      pf.flipPrev('top');
+      if (settings) settings.disableFlipByClick = true;
     }
   }, []);
 
