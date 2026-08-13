@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play } from 'lucide-react';
+import pageTexture from '@/assets/page-texture.png';
 import type { Chapter, ChapterPage, ContentBlock } from '@/mocks/data';
 
 interface BookPageProps {
@@ -29,7 +30,10 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
       <div
         ref={ref}
         style={{
-          background: '#0A090C',
+          /* The CSS fix sets background-color !important on .stf__item (which is
+             this element). We intentionally leave the background here alone so the
+             CSS provides the solid dark fallback. The actual texture is rendered by
+             the child div below, which is not affected by the parent's !important rule. */
           width: '100%',
           height: '100%',
           overflow: 'hidden',
@@ -38,16 +42,31 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
           userSelect: 'text',
         }}
       >
-        {/* Top accent line */}
+        {/* Background texture — child div is free from the !important CSS on the parent */}
         <div
+          aria-hidden="true"
           style={{
-            height: '1px',
-            background:
-              'linear-gradient(to right, transparent, rgba(178,102,255,0.22) 30%, rgba(178,102,255,0.22) 70%, transparent)',
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${pageTexture})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            zIndex: 0,
           }}
         />
 
-        {/* Main content */}
+        {/* Top accent line */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            height: '1px',
+            background:
+              'linear-gradient(to right, transparent, rgba(178,102,255,0.3) 30%, rgba(178,102,255,0.3) 70%, transparent)',
+          }}
+        />
+
+        {/* Main content — z-index 2 sits above the dark overlay (z-index 0) */}
         <div
           style={{
             position: 'absolute',
@@ -56,6 +75,7 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
             right: 0,
             bottom: '24px',
             overflow: 'hidden',
+            zIndex: 2,
             padding: `${typo.py}px ${typo.px}px 0`,
             display: 'flex',
             flexDirection: 'column',
