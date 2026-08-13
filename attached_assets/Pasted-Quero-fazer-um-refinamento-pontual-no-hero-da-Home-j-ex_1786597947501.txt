@@ -1,0 +1,265 @@
+Quero fazer um **refinamento pontual no hero da Home** já existente.
+
+A estrutura geral da Home está no caminho certo, mas quero mudar a composição visual do hero principal para deixá-lo mais limpo, mais legível e mais alinhado ao produto.
+
+## OBJETIVO
+
+Quero que o hero principal da Jornada passe a usar a **capa frontal do livro como elemento visual principal no lado esquerdo**, enquanto os **textos ficam organizados no lado direito**.
+
+A ideia é abandonar a composição atual com imagem/foto ocupando o hero inteiro e passar para uma composição mais clara, mais editorial e mais parecida com um “produto premium em destaque”.
+
+---
+
+# 1. NOVA COMPOSIÇÃO DO HERO
+
+Quero que o hero principal seja reorganizado assim:
+
+* **lado esquerdo:** capa frontal do livro;
+* **lado direito:** conteúdo textual do hero;
+* composição limpa, sofisticada e equilibrada;
+* a capa deve ter bastante presença visual, mas sem ficar enorme ou desproporcional;
+* o texto deve ter respiro e excelente legibilidade.
+
+A leitura visual precisa ficar imediata:
+
+1. produto/livro;
+2. capítulo atual;
+3. estado da jornada;
+4. CTA.
+
+---
+
+# 2. IMAGEM A SER USADA
+
+Usar **somente a capa frontal do livro** no hero.
+
+Importante:
+
+* usar apenas a **frente da capa**;
+* não usar a contracapa;
+* não usar a arte aberta com capa + lombada + verso;
+* não usar a foto do influencer como imagem principal do hero nesta nova versão.
+
+A capa deve parecer um objeto premium em destaque, não apenas uma imagem jogada no layout.
+
+Se fizer sentido, pode aplicar:
+
+* sombra sutil;
+* leve profundidade;
+* discreto destaque visual;
+* sem exageros.
+
+Não transformar isso em mockup 3D chamativo demais. Quero algo elegante e contido.
+
+---
+
+# 3. CONTEÚDO TEXTUAL DO HERO
+
+No lado direito, manter uma estrutura limpa e hierárquica.
+
+Exemplo de organização:
+
+`CONTINUE DE ONDE PAROU`
+
+**Conexão e Presença**
+
+`5 capítulos concluídos`
+
+`Continuar jornada →`
+
+Se houver estado de novo capítulo disponível, pode manter um pequeno selo discreto como:
+
+`NOVO CAPÍTULO DISPONÍVEL`
+
+Mas esse selo não deve roubar atenção do restante.
+
+---
+
+# 4. HIERARQUIA VISUAL
+
+Quero esta ordem de importância:
+
+1. título do capítulo;
+2. capa do livro;
+3. label de estado;
+4. texto secundário;
+5. CTA.
+
+O título do capítulo deve continuar sendo o elemento textual mais importante.
+
+A capa do livro é o principal asset visual.
+
+O CTA deve continuar com aparência editorial/discreta, e não como um botão gigante.
+
+---
+
+# 5. ESTILO VISUAL
+
+Manter a direção visual já definida para o app:
+
+* dark;
+* premium;
+* editorial;
+* minimalista;
+* sofisticado.
+
+A hero não deve parecer:
+
+* card promocional genérico;
+* banner publicitário;
+* landing page de venda;
+* bloco exageradamente chamativo.
+
+Ela deve parecer mais uma “vitrine premium do conteúdo atual”.
+
+---
+
+# 6. FUNDO DO HERO
+
+O fundo do hero pode continuar escuro, com atmosfera sutil.
+
+Manter:
+
+* base preta;
+* nuances roxas muito discretas;
+* profundidade leve;
+* sem excesso de glow;
+* sem competir com a capa.
+
+Como a capa terá bastante informação visual, o fundo precisa ser mais silencioso.
+
+Se houver texturas ou gradientes, eles devem ser extremamente sutis.
+
+---
+
+# 7. POSICIONAMENTO E PROPORÇÃO
+
+Quero um layout bem equilibrado.
+
+Sugestão de proporção no hero:
+
+* **lado esquerdo (capa):** aproximadamente 35% a 40%
+* **lado direito (texto):** aproximadamente 60% a 65%
+
+A capa deve ficar:
+
+* visualmente bem posicionada;
+* preferencialmente centralizada verticalmente;
+* com tamanho suficiente para ser claramente reconhecida;
+* sem encostar nas bordas.
+
+O texto deve ficar:
+
+* alinhado à esquerda;
+* bem distribuído verticalmente;
+* com boa separação entre label, título, informação secundária e CTA.
+
+---
+
+# 8. RESPONSIVIDADE
+
+Pensar em mobile first.
+
+## No mobile
+
+Quero tentar manter a lógica:
+
+* capa à esquerda;
+* texto à direita.
+
+Mesmo em tela menor, quero testar essa composição primeiro, desde que continue legível.
+
+Se necessário:
+
+* reduzir um pouco a capa;
+* ajustar o tamanho do título;
+* reorganizar espaçamentos;
+* manter o hero limpo e equilibrado.
+
+## Em telas maiores
+
+Essa composição deve respirar ainda melhor.
+
+Não deixar o conteúdo excessivamente esticado.
+
+---
+
+# 9. O QUE REMOVER DA VERSÃO ANTERIOR
+
+Nesta nova versão do hero, remover a dependência da foto do influencer como protagonista principal.
+
+Ela pode até continuar existindo no projeto como asset futuro, mas **não deve ser a imagem principal do hero nesta tarefa**.
+
+Também não quero:
+
+* imagem de fundo confusa;
+* arte abstrata competindo com a capa;
+* excesso de camadas visuais;
+* hero muito poluído.
+
+---
+
+# 10. PALETA E CORES
+
+Continuar seguindo a paleta já definida:
+
+* fundo principal: `#050505`
+* texto principal: `#FFFFFF`
+* roxo/lilás de identidade: `#B266FF`
+* glow roxo sutil: baseado em `rgba(139,53,255,...)`
+
+O roxo deve continuar aparecendo principalmente em:
+
+* labels;
+* pequenos destaques;
+* eventuais detalhes de ambiente.
+
+Não transformar o hero em um grande bloco roxo.
+
+---
+
+# 11. TIPOGRAFIA
+
+Manter a lógica já definida:
+
+* label pequena em uppercase, com presença e boa legibilidade;
+* título do capítulo com bastante destaque;
+* texto secundário mais discreto;
+* CTA limpo e elegante.
+
+A interface deve continuar sofisticada e editorial.
+
+---
+
+# 12. RESULTADO DESEJADO
+
+Quero que o hero passe a transmitir melhor a ideia de:
+
+* produto real;
+* livro premium;
+* destaque atual da jornada;
+* clareza;
+* sofisticação;
+* menos peso visual;
+* mais foco.
+
+A nova composição deve parecer mais organizada e mais intencional do que a versão anterior.
+
+---
+
+# 13. IMPORTANTE
+
+Não quero reconstruir a Home do zero.
+
+Quero apenas **refinar o hero principal**, preservando o restante da estrutura da Home sempre que possível.
+
+Mantenha:
+
+* header;
+* seção “Explore o ecossistema”;
+* grid dos produtos;
+* direção dark/premium.
+
+O foco desta tarefa é apenas:
+
+**trocar a composição do hero para capa frontal do livro à esquerda e textos à direita**, com um resultado mais minimalista, sofisticado e legível.
