@@ -65,6 +65,7 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
   }, [recalculate]);
 
   // ─── Navigation ───────────────────────────────────────────────────────────
+  // onFlip fires when a flip animation ends. Sync state here.
   const handleFlip = useCallback((e: any) => {
     const page = e.data as number;
     currentPageRef.current = page;
@@ -72,23 +73,35 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
     savedPageRef.current = page;
   }, []);
 
+  // onChangeState fires on every internal StPageFlip state transition.
+  // When state becomes 'read' the animation is complete — use this as a
+  // reliable fallback to sync page position in case onFlip didn't fire.
+  const handleChangeState = useCallback((e: any) => {
+    if (e.data === 'read') {
+      const actual = bookRef.current?.pageFlip()?.getCurrentPageIndex?.() as number | undefined;
+      if (typeof actual === 'number' && actual !== currentPageRef.current) {
+        currentPageRef.current = actual;
+        setCurrentPage(actual);
+        savedPageRef.current = actual;
+      }
+    }
+  }, []);
+
   const flipPrev = useCallback(() => {
+    // Only update the ref — NO state update here.
+    // Calling setCurrentPage() before the API flip triggers a React re-render
+    // mid-animation which causes StPageFlip to reset its internal page state,
+    // breaking the animation visually.
     if (currentPageRef.current > 0) {
-      const next = currentPageRef.current - 1;
-      currentPageRef.current = next;
-      setCurrentPage(next);
-      savedPageRef.current = next;
-      bookRef.current?.pageFlip()?.flipPrev('bottom');
+      currentPageRef.current -= 1;
+      bookRef.current?.pageFlip()?.flipPrev();
     }
   }, []);
 
   const flipNext = useCallback(() => {
     if (currentPageRef.current < totalPages - 1) {
-      const next = currentPageRef.current + 1;
-      currentPageRef.current = next;
-      setCurrentPage(next);
-      savedPageRef.current = next;
-      bookRef.current?.pageFlip()?.flipNext('bottom');
+      currentPageRef.current += 1;
+      bookRef.current?.pageFlip()?.flipNext();
     }
   }, [totalPages]);
 
@@ -178,6 +191,7 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
       disableFlipByClick={true}
       startPage={savedPageRef.current}
       onFlip={handleFlip}
+      onChangeState={handleChangeState}
       className=""
       style={{}}
     >
