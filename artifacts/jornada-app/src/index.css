@@ -246,6 +246,8 @@
   background-color: #0A090C !important;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  /* Simulates the paper edge visible when the page turns */
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.18);
 }
 
 /* The fold-shadow gradient that StPageFlip overlays during the flip */
