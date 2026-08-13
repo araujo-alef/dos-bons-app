@@ -3,33 +3,6 @@ import { JourneyHero } from '@/components/JourneyHero';
 import { EcosystemCard } from '@/components/EcosystemCard';
 import { JOURNEY_STATE, CURRENT_CHAPTER_ID, COMPLETED_CHAPTERS } from '@/mocks/config';
 import { chapters, ecosystemProducts } from '@/mocks/data';
-import chainImg from '@assets/image_1786597568841.png';
-
-function ChainDivider() {
-  return (
-    <div
-      aria-hidden="true"
-      className="relative w-full flex items-center justify-center overflow-hidden"
-      style={{ height: '40px', margin: '8px 0 24px' }}
-    >
-      <div
-        style={{
-          width: '100%',
-          height: '40px',
-          backgroundImage: `url(${chainImg})`,
-          backgroundSize: 'auto 100%',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          filter: 'invert(1) brightness(0.35) opacity(0.55)',
-          WebkitMaskImage:
-            'linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)',
-          maskImage:
-            'linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)',
-        }}
-      />
-    </div>
-  );
-}
 
 export default function Home() {
   const currentChapter = chapters.find(c => c.id === CURRENT_CHAPTER_ID);
@@ -65,9 +38,6 @@ export default function Home() {
             currentChapter={currentChapter}
             completedCount={COMPLETED_CHAPTERS.length}
           />
-
-          {/* Chain divider */}
-          <ChainDivider />
 
           {/* Ecosystem section */}
           <section className="px-6 mt-2">
