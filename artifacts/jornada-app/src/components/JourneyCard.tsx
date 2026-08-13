@@ -25,7 +25,7 @@ export function JourneyCard() {
         {/* 3D book — object floating inside the card, blended so dark bg disappears */}
         <div
           className="absolute inset-x-0"
-          style={{ top: '6%', height: '72%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ top: '5%', height: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <img
             src={book3DImg}
