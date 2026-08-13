@@ -18,6 +18,11 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<any>(null);
   const savedPageRef = useRef(0);
+  // currentPageRef is updated immediately on every programmatic flip so the
+  // guard conditions in flipPrev / flipNext never read stale state — even if
+  // the onFlip event is not fired for programmatic calls in some versions of
+  // react-pageflip / StPageFlip.
+  const currentPageRef = useRef(0);
 
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [isPortrait, setIsPortrait] = useState(true);
@@ -62,17 +67,30 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
   // ─── Navigation ───────────────────────────────────────────────────────────
   const handleFlip = useCallback((e: any) => {
     const page = e.data as number;
+    currentPageRef.current = page;
     setCurrentPage(page);
     savedPageRef.current = page;
   }, []);
 
   const flipPrev = useCallback(() => {
-    if (currentPage > 0) bookRef.current?.pageFlip()?.flipPrev('bottom');
-  }, [currentPage]);
+    if (currentPageRef.current > 0) {
+      const next = currentPageRef.current - 1;
+      currentPageRef.current = next;
+      setCurrentPage(next);
+      savedPageRef.current = next;
+      bookRef.current?.pageFlip()?.flipPrev('bottom');
+    }
+  }, []);
 
   const flipNext = useCallback(() => {
-    if (currentPage < totalPages - 1) bookRef.current?.pageFlip()?.flipNext('bottom');
-  }, [currentPage, totalPages]);
+    if (currentPageRef.current < totalPages - 1) {
+      const next = currentPageRef.current + 1;
+      currentPageRef.current = next;
+      setCurrentPage(next);
+      savedPageRef.current = next;
+      bookRef.current?.pageFlip()?.flipNext('bottom');
+    }
+  }, [totalPages]);
 
   if (!dims || totalPages === 0) {
     return <div ref={containerRef} className="flex-1" />;
