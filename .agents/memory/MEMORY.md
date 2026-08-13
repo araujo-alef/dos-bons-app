@@ -1,0 +1,1 @@
+- [react-pageflip mobile fix](react-pageflip-mobile.md) — single-page mode requires container-width breakpoint + key remount, not window.innerWidth

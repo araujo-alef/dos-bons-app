@@ -1,0 +1,478 @@
+Quero revisar a implementação do leitor em formato de livro virtual porque a responsividade no celular não ficou correta.
+
+Hoje, no mobile, o componente ainda tenta reservar espaço visual para **duas páginas abertas lado a lado**, como se estivesse em modo desktop.
+
+Isso faz o livro ficar largo demais, comprimido e mal adaptado à tela pequena.
+
+Quero corrigir isso de forma definitiva.
+
+# OBJETIVO PRINCIPAL
+
+No celular, o leitor deve funcionar obrigatoriamente em modo:
+
+**UMA PÁGINA POR VEZ**
+
+A experiência deve ser:
+
+Página 1
+
+→ swipe/flip
+
+Página 2
+
+→ swipe/flip
+
+Página 3
+
+e assim sucessivamente.
+
+Não deve existir nenhum espaço reservado para uma segunda página ao lado.
+
+A página atual deve ocupar praticamente toda a largura útil disponível do leitor.
+
+---
+
+# 1. MOBILE = SINGLE PAGE
+
+Para breakpoints de celular, configure explicitamente o page flip em modo de uma página.
+
+Não quero apenas diminuir o tamanho do componente de duas páginas.
+
+Quero realmente mudar o comportamento/layout para single-page.
+
+Em mobile:
+
+* uma única página visível;
+* largura baseada na viewport;
+* página centralizada;
+* sem página vazia ao lado;
+* sem spread de duas páginas;
+* sem espaço reservado para página esquerda/direita.
+
+Visualmente:
+
+```text
+┌──────────────────────────────┐
+│                              │
+│          CAPÍTULO 06         │
+│                              │
+│      Conexão e Presença      │
+│                              │
+│  conteúdo...                 │
+│                              │
+│                              │
+│                           1  │
+└──────────────────────────────┘
+```
+
+Ao virar:
+
+```text
+┌──────────────────────────────┐
+│                              │
+│  conteúdo da página 2...     │
+│                              │
+│                              │
+│                           2  │
+└──────────────────────────────┘
+```
+
+---
+
+# 2. DESKTOP/TABLET PODE CONTINUAR COM DUAS PÁGINAS
+
+Não remover o modo livro aberto das telas maiores.
+
+A lógica deve ser responsiva.
+
+## Mobile
+
+Uma página.
+
+## Desktop / telas suficientemente largas
+
+Duas páginas lado a lado.
+
+Exemplo desktop:
+
+```text
+┌───────────────────┬───────────────────┐
+│                   │                   │
+│     página 4      │      página 5     │
+│                   │                   │
+│                   │                   │
+└───────────────────┴───────────────────┘
+```
+
+O breakpoint exato pode ser decidido de acordo com a implementação atual, mas como referência:
+
+* abaixo de aproximadamente `768px`: single page;
+* acima disso: avaliar spread de duas páginas.
+
+Não usar simplesmente orientação landscape como único critério.
+
+Considere principalmente o espaço horizontal disponível.
+
+---
+
+# 3. REVISAR CONFIGURAÇÃO DO REACT-PAGEFLIP / STPAGEFLIP
+
+Se estiver usando `react-pageflip` / StPageFlip, revise especificamente as configurações relacionadas a:
+
+* `usePortrait`;
+* `showCover`;
+* largura;
+* altura;
+* `size`;
+* `minWidth`;
+* `maxWidth`;
+* `minHeight`;
+* `maxHeight`;
+* comportamento portrait;
+* breakpoint/layout responsivo.
+
+O objetivo é garantir que o componente entre de fato em **portrait/single-page mode** no celular.
+
+Não quero um spread de duas páginas apenas reduzido para caber.
+
+---
+
+# 4. USEPORTRAIT
+
+Caso seja compatível com a implementação atual, configure corretamente:
+
+`usePortrait`
+
+para permitir que o flipbook utilize uma única página em telas estreitas.
+
+Verifique se alguma configuração existente está impedindo o modo portrait.
+
+Se necessário, controle o modo explicitamente com base na largura disponível.
+
+---
+
+# 5. TAMANHO DO BOOK CONTAINER
+
+No mobile, o container do livro deve ocupar algo próximo de:
+
+`width: 100%`
+
+respeitando apenas o padding horizontal da tela.
+
+Por exemplo:
+
+* viewport de 390px;
+* padding lateral de aproximadamente 16px;
+* livro com aproximadamente 358px disponíveis.
+
+Não definir largura baseada em:
+
+`pageWidth * 2`
+
+no mobile.
+
+Esse é justamente o problema que quero corrigir.
+
+---
+
+# 6. A PÁGINA DEVE SER CENTRALIZADA
+
+Quando houver apenas uma página:
+
+* centralizar horizontalmente;
+* não alinhar como se ela fosse a página esquerda de um livro aberto;
+* não manter margem invisível correspondente à página direita.
+
+A página deve parecer um objeto único no centro da tela.
+
+---
+
+# 7. ALTURA RESPONSIVA
+
+Calcular a altura do livro com base na:
+
+* largura real disponível;
+* proporção da página;
+* viewport.
+
+Evitar overflow horizontal.
+
+Também evitar que o livro fique mais alto que a área útil da tela.
+
+Considere o header do leitor e margens existentes ao calcular a altura disponível.
+
+---
+
+# 8. SEM SCROLL HORIZONTAL NA PÁGINA
+
+A viewport não pode apresentar:
+
+* horizontal scrollbar;
+* overflow lateral;
+* conteúdo cortado;
+* zoom automático estranho.
+
+Garantir:
+
+`overflow-x: hidden`
+
+no container adequado se necessário, mas não usar isso apenas para esconder um layout quebrado.
+
+A geometria do flipbook precisa estar correta.
+
+---
+
+# 9. CONTEÚDO DA PÁGINA
+
+No modo mobile, como a página ficará maior individualmente, recalibre:
+
+* padding interno;
+* tamanho dos títulos;
+* tamanho do corpo;
+* line-height;
+* margens.
+
+Não reutilizar cegamente os valores destinados ao spread desktop.
+
+A página mobile precisa parecer projetada para leitura em celular.
+
+---
+
+# 10. NÃO DIMINUIR DEMAIS A FONTE
+
+Não tente fazer duas páginas caberem reduzindo a interface.
+
+A solução correta é:
+
+**uma página por vez.**
+
+Preservar tipografia confortável.
+
+---
+
+# 11. FLIP NO MOBILE
+
+Ao fazer swipe da direita para esquerda:
+
+página atual deve virar e revelar a próxima página ocupando a mesma área.
+
+Não quero a próxima página permanentemente visível ao lado.
+
+A animação pode mostrar temporariamente parte dela durante o movimento, naturalmente, mas o estado de repouso deve mostrar apenas uma página.
+
+---
+
+# 12. SWIPE
+
+Garantir boa interação touch.
+
+No celular:
+
+* swipe horizontal deve funcionar;
+* arrastar a borda/página deve funcionar se suportado;
+* evitar conflito com scroll vertical da página.
+
+Como não existe scroll vertical interno da leitura, o gesto horizontal deve ter prioridade clara.
+
+---
+
+# 13. PRIMEIRA PÁGINA
+
+A primeira página também deve aparecer centralizada sozinha.
+
+Não deixar algo como:
+
+```text
+[ espaço vazio ] [ página 1 ]
+```
+
+ou:
+
+```text
+[ página 1 ] [ espaço vazio ]
+```
+
+Ela deve ocupar o centro.
+
+---
+
+# 14. ÚLTIMA PÁGINA
+
+Mesma regra para a última página.
+
+Não deixar uma segunda metade vazia simulando um spread.
+
+---
+
+# 15. MUDANÇA DE BREAKPOINT EM TEMPO REAL
+
+Se o usuário redimensionar a janela:
+
+mobile → desktop
+
+ou:
+
+desktop → mobile
+
+o leitor deve recalcular corretamente:
+
+* tamanho;
+* quantidade de páginas visíveis;
+* página atual.
+
+Muito importante:
+
+não perder a posição lógica da leitura.
+
+Exemplo:
+
+se o usuário está na página 5 no desktop e reduz para mobile, deve continuar vendo a página 5.
+
+---
+
+# 16. ORIENTAÇÃO DO CELULAR
+
+Em portrait:
+
+**sempre uma página por vez.**
+
+Em landscape de celular:
+
+ainda prefira uma página se a largura não for suficiente para um spread confortável.
+
+Não forçar duas páginas apenas porque o aparelho entrou em landscape.
+
+---
+
+# 17. NÃO USAR CSS SCALE COMO CORREÇÃO
+
+Não resolver aplicando algo como:
+
+`transform: scale(...)`
+
+em todo o livro de duas páginas.
+
+Isso apenas encolhe o problema.
+
+A implementação deve alterar realmente:
+
+* quantidade de páginas visíveis;
+* dimensões do componente;
+* layout.
+
+---
+
+# 18. TESTAR NOS TAMANHOS MOBILE
+
+Valide pelo menos aproximadamente:
+
+`320px`
+
+`360px`
+
+`375px`
+
+`390px`
+
+`414px`
+
+`430px`
+
+Em todos eles:
+
+* apenas uma página deve ficar visível;
+* não pode haver overflow horizontal;
+* o conteúdo deve permanecer legível.
+
+---
+
+# 19. TESTAR DESKTOP SEPARADAMENTE
+
+Depois de corrigir mobile, garantir que desktop continue funcionando com duas páginas.
+
+Não quero corrigir celular quebrando a experiência de livro aberto no desktop.
+
+---
+
+# 20. ARQUITETURA RECOMENDADA
+
+Se necessário, crie um hook ou lógica responsiva reutilizável, por exemplo conceitualmente:
+
+```ts
+const isSinglePage = availableWidth < breakpoint;
+```
+
+e então configure o flipbook adequadamente.
+
+Prefira usar o tamanho real do container, não apenas `window.innerWidth`, se o leitor estiver dentro de uma área com `max-width`.
+
+Pode utilizar `ResizeObserver` se isso resultar em uma solução mais robusta.
+
+---
+
+# 21. PAGE DIMENSIONS
+
+A largura definida para o page flip deve representar a largura de **UMA página**.
+
+No mobile, o livro inteiro deve ter aproximadamente essa mesma largura.
+
+No desktop, o componente pode ocupar aproximadamente:
+
+`pageWidth * 2`
+
+mais eventuais detalhes da lombada.
+
+Evite misturar:
+
+* largura da página;
+* largura total do book.
+
+Revise cuidadosamente essa distinção na implementação atual.
+
+---
+
+# 22. PRESERVAR O DESIGN
+
+Não alterar nesta tarefa:
+
+* conteúdo dos capítulos;
+* paleta;
+* estilo das páginas;
+* componentes de reflexão;
+* prática;
+* áudio;
+* vídeo;
+* fluxo de conclusão;
+* tela Jornada;
+* Home.
+
+O foco é exclusivamente corrigir o comportamento responsivo do leitor.
+
+---
+
+# 23. RESULTADO ESPERADO
+
+No celular, quero sentir que estou segurando **uma página digital individual**.
+
+A página ocupa a tela.
+
+Eu arrasto/virou:
+
+→ ela sai;
+→ a próxima entra exatamente no lugar.
+
+Não quero a sensação de estar olhando para um livro aberto em miniatura.
+
+---
+
+# 24. CRITÉRIO DE ACEITE
+
+Considere a tarefa concluída apenas se, em uma viewport de aproximadamente `390px`:
+
+* houver somente uma página visível em repouso;
+* a página estiver centralizada;
+* não houver espaço reservado para uma segunda página;
+* não houver overflow horizontal;
+* o texto estiver em tamanho confortável;
+* swipe/flip revelar a próxima página;
+* desktop ainda continuar suportando duas páginas abertas.
