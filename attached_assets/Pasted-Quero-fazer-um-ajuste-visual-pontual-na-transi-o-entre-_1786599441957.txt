@@ -1,0 +1,187 @@
+Quero fazer um ajuste visual pontual na transição entre o hero principal e os cards do ecossistema.
+
+A Home já está estruturalmente boa. O problema agora é que a divisão entre o hero e os cards ainda está parecendo rígida demais.
+
+Hoje existe uma linha horizontal separando as áreas, mas ela está muito longa e com aparência de divisor tradicional de interface/dashboard.
+
+Quero deixar essa transição mais leve, premium e editorial.
+
+## OBJETIVO
+
+Quero que a Home pareça uma composição contínua, e não duas seções independentes separadas por uma linha.
+
+A divisão deve existir de forma sutil, usando:
+
+* espaço negativo;
+* iluminação ambiente;
+* um divider bem menor e mais discreto.
+
+## 1. REDUZIR BASTANTE A LARGURA DO DIVIDER
+
+Não quero mais uma linha ocupando quase toda a largura disponível.
+
+Reduzir o divider para algo próximo de:
+
+`25%–35%` da largura do container
+
+ou aproximadamente:
+
+`120px–180px`
+
+dependendo da largura da tela.
+
+Centralizar horizontalmente.
+
+A ideia é virar um pequeno detalhe gráfico, e não uma borda entre seções.
+
+## 2. DEIXAR A LINHA MAIS DISCRETA
+
+Usar espessura muito fina:
+
+`1px`
+
+Cor extremamente sutil, por exemplo:
+
+`rgba(178,102,255,0.18)`
+
+ou branco/roxo com opacidade muito baixa.
+
+Pode aplicar um gradiente horizontal para a linha desaparecer nas extremidades.
+
+Conceitualmente:
+
+```text
+       ─────────────
+```
+
+e não:
+
+```text
+────────────────────────────────
+```
+
+## 3. TRANSIÇÃO COM ESPAÇO NEGATIVO
+
+Criar uma distância confortável entre:
+
+* final do hero;
+* divider;
+* início dos cards.
+
+Mas sem deixar um buraco enorme.
+
+Sugestão conceitual:
+
+Hero
+
+↓ `40–48px`
+
+divider curto
+
+↓ `40–56px`
+
+cards
+
+Ajuste visualmente conforme necessário.
+
+## 4. ADICIONAR ATMOSFERA ROXA MUITO SUTIL
+
+Na região de transição entre hero e cards, adicionar uma iluminação ambiente discreta.
+
+Algo como:
+
+* radial-gradient roxo muito escuro;
+* baixa opacidade;
+* bastante blur;
+* área ampla;
+* quase imperceptível.
+
+A luz pode ficar centralizada atrás do pequeno divider.
+
+Quero apenas uma sensação de profundidade.
+
+Não quero um círculo roxo visível.
+
+## 5. NÃO CRIAR UMA NOVA SEÇÃO VISUAL
+
+Não adicionar:
+
+* título;
+* texto;
+* ícone;
+* badge;
+* label.
+
+A própria diferença de tamanho entre:
+
+* hero;
+* cards secundários
+
+já comunica a hierarquia.
+
+## 6. MANTER O ALINHAMENTO
+
+Os cards do ecossistema devem continuar alinhados visualmente com o restante do conteúdo.
+
+Não deslocar o grid lateralmente.
+
+Preservar o container horizontal atual.
+
+## 7. NÃO DEIXAR OS CARDS LONGE DEMAIS
+
+A transição deve respirar, mas ainda parecer parte do mesmo fluxo.
+
+Não quero que o usuário perceba:
+
+“acabou uma seção e começou outra”.
+
+Quero algo mais próximo de:
+
+“o conteúdo principal terminou e agora aparecem outras possibilidades”.
+
+## 8. DIREÇÃO VISUAL
+
+A sensação desejada é:
+
+* editorial;
+* minimalista;
+* sofisticada;
+* contínua;
+* silenciosa.
+
+Evitar aparência de:
+
+* dashboard;
+* tabela;
+* seção HTML tradicional;
+* `<hr>` padrão;
+* divisória rígida.
+
+## 9. NÃO ALTERAR O RESTANTE DA HOME
+
+Não mexer nesta tarefa em:
+
+* header;
+* logo;
+* nome Lábia de Cachorro;
+* hero;
+* conteúdo do hero;
+* capa do livro;
+* tamanho dos cards;
+* conteúdo dos cards;
+* rotas;
+* navegação.
+
+O foco é exclusivamente melhorar a transição entre o hero e os cards.
+
+## RESULTADO ESPERADO
+
+Quero sair de:
+
+**Hero → linha longa → cards**
+
+para algo mais próximo de:
+
+**Hero → respiro → pequeno detalhe/divider → atmosfera sutil → cards**
+
+O divider deve funcionar quase como uma pequena assinatura visual, não como uma divisão estrutural da página.

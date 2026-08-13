@@ -39,8 +39,30 @@ export default function Home() {
             completedCount={COMPLETED_CHAPTERS.length}
           />
 
-          {/* Subtle divider */}
-          <div className="mx-4 mt-10 mb-8 border-t border-white/[0.06]" />
+          {/* Transition zone — ambient glow + short centered rule */}
+          <div className="relative flex justify-center items-center" style={{ marginTop: '44px', marginBottom: '44px' }}>
+            {/* Purple ambient behind the rule */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                width: '220px',
+                height: '60px',
+                background: 'radial-gradient(ellipse at 50% 50%, rgba(139,53,255,0.13) 0%, transparent 70%)',
+                filter: 'blur(12px)',
+                pointerEvents: 'none',
+              }}
+            />
+            {/* Short gradient rule */}
+            <div
+              style={{
+                width: '140px',
+                height: '1px',
+                background: 'linear-gradient(to right, transparent, rgba(178,102,255,0.22) 30%, rgba(178,102,255,0.22) 70%, transparent)',
+                position: 'relative',
+              }}
+            />
+          </div>
 
           {/* Ecosystem section */}
           <section className="px-4">
