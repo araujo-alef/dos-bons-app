@@ -230,3 +230,25 @@
     background-color: var(--elevate-2);
   }
 }
+
+/* ─── StPageFlip / react-pageflip ────────────────────────────────────────────
+   During the 3D flip animation the library CSS-transforms each page element.
+   Without an explicit solid background on the wrapper the GPU layer is
+   transparent and text/content from adjacent pages bleeds through.
+   backface-visibility: hidden stops the reversed back-face from being painted,
+   which also prevents the see-through artefact on the turning page.
+   --------------------------------------------------------------------------- */
+.stf__parent {
+  background-color: #0A090C;
+}
+
+.stf__item {
+  background-color: #0A090C !important;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* The fold-shadow gradient that StPageFlip overlays during the flip */
+.stf__item--hard {
+  background-color: #0A090C !important;
+}
