@@ -39,12 +39,11 @@ export default function Home() {
             completedCount={COMPLETED_CHAPTERS.length}
           />
 
-          {/* Ecosystem section */}
-          <section className="px-4 mt-10">
-            <h2 className="text-white/35 text-[10px] font-bold tracking-[0.14em] mb-5">
-              EXPLORE O ECOSSISTEMA
-            </h2>
+          {/* Subtle divider */}
+          <div className="mx-4 mt-10 mb-8 border-t border-white/[0.06]" />
 
+          {/* Ecosystem section */}
+          <section className="px-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {ecosystemProducts.map((product) => (
                 <EcosystemCard key={product.id} product={product} />
