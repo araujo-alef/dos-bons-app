@@ -1,0 +1,179 @@
+Quero fazer uma alteração visual pontual na Home.
+
+Vou anexar junto deste prompt um **novo SVG para o card “Comunidade”**.
+
+Quero que você substitua a imagem abstrata atualmente usada nesse card pelo novo SVG anexado, preservando o restante da estrutura e do comportamento do card.
+
+## Objetivo
+
+O card “Comunidade” deve deixar de usar a arte abstrata atual e passar a utilizar o novo símbolo gráfico da comunidade, seguindo uma linguagem mais minimalista, moderna e coerente com a identidade visual do app.
+
+Não quero redesenhar o card inteiro.
+
+Quero principalmente trocar o asset e ajustar sua apresentação para que ele funcione bem dentro do layout já existente.
+
+## 1. Substituir o asset atual
+
+No card:
+
+**Comunidade**
+
+remover a imagem abstrata atualmente utilizada.
+
+Usar no lugar dela o **SVG anexado neste prompt**.
+
+Não alterar os cards:
+
+* Cachorro dos Bons;
+* Mentorias;
+* IA de Conversas.
+
+Esta tarefa é específica para o card Comunidade.
+
+## 2. Não usar o SVG como background full-bleed
+
+O novo SVG deve aparecer como **elemento gráfico dentro do card**, e não como uma imagem cobrindo toda a superfície.
+
+Quero preservar bastante espaço negativo.
+
+Sugestão de composição:
+
+```text
+┌─────────────────────┐
+│                     │
+│                     │
+│       [ SVG ]       │
+│                     │
+│                     │
+│ Comunidade          │
+│ Conhecer →          │
+└─────────────────────┘
+```
+
+O símbolo deve ter presença, mas o card precisa continuar minimalista.
+
+## 3. Posicionamento do SVG
+
+Posicionar o SVG aproximadamente:
+
+* centralizado horizontalmente;
+* na metade superior do card;
+* com tamanho proporcional;
+* sem encostar nas bordas;
+* sem cortar partes do desenho.
+
+Como referência, o SVG pode ocupar aproximadamente **45%–60% da largura interna disponível**, ajustando conforme o resultado visual.
+
+Não deixar o símbolo pequeno demais.
+
+Também não aumentar tanto a ponto de competir com o título.
+
+## 4. Fundo do card
+
+Como o SVG já possui roxo e glow próprios, simplificar o fundo.
+
+Usar algo muito escuro, coerente com a Home:
+
+`#08070B`
+
+ou equivalente já existente no design system.
+
+Pode existir um radial gradient extremamente discreto atrás do SVG, mas somente se ajudar a integrá-lo.
+
+Não adicionar nova imagem abstrata atrás do símbolo.
+
+Não criar textura pesada.
+
+## 5. Glow
+
+O SVG já possui detalhes luminosos.
+
+Não duplicar o efeito com um grande glow CSS.
+
+Se necessário, adicionar somente um pequeno reforço visual muito sutil.
+
+Evitar aparência neon exagerada.
+
+## 6. Conteúdo inferior
+
+Manter:
+
+**Comunidade**
+
+`Conhecer →`
+
+O conteúdo textual permanece na parte inferior do card.
+
+Manter hierarquia semelhante aos demais cards.
+
+O título deve ter boa presença.
+
+O CTA deve continuar secundário e discreto.
+
+## 7. Manter consistência do grid
+
+Muito importante:
+
+o card Comunidade deve continuar com:
+
+* exatamente a mesma largura dos outros cards;
+* exatamente a mesma altura;
+* mesmo border-radius;
+* mesmo padding estrutural;
+* mesmo alinhamento dentro do grid.
+
+A troca da imagem não pode alterar a geometria do layout.
+
+## 8. Não transformar o card em destaque
+
+Apesar do novo SVG ser mais característico, o card Comunidade continua sendo apenas um dos produtos do ecossistema.
+
+Não adicionar:
+
+* borda roxa forte;
+* badge;
+* fundo diferente dos demais;
+* tamanho maior;
+* animação chamativa.
+
+A diferenciação deve vir apenas do novo asset.
+
+## 9. Hover/interação
+
+Preservar o comportamento atual do card.
+
+Se já existir hover, pode manter.
+
+Se houver alguma interação visual, ela deve continuar discreta.
+
+Opcionalmente, no hover, o SVG pode ganhar um aumento muito pequeno de luminosidade/opacidade, sem animações exageradas.
+
+## 10. Responsividade
+
+O SVG deve redimensionar proporcionalmente em diferentes tamanhos de tela.
+
+Não usar dimensões fixas que prejudiquem:
+
+* mobile;
+* tablet;
+* desktop.
+
+Preservar sempre a proporção original do SVG.
+
+## 11. Importante
+
+Não alterar nesta tarefa:
+
+* estrutura da Home;
+* header;
+* card do livro;
+* card Mentorias;
+* card IA;
+* rotas;
+* textos;
+* lógica de navegação;
+* estados mockados.
+
+A tarefa é exclusivamente:
+
+**substituir a imagem abstrata atual do card Comunidade pelo novo SVG anexado e ajustar sua apresentação dentro do card para uma estética minimalista e premium.**

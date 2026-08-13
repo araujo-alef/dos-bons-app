@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import communityImg from '@/assets/community.png';
+import communityIconImg from '@assets/image_1786601214929.png';
 import mentorshipsImg from '@/assets/mentorships.png';
 import aiImg from '@/assets/ai-conversations.png';
 
@@ -12,33 +12,77 @@ interface EcosystemCardProps {
 }
 
 export function EcosystemCard({ product }: EcosystemCardProps) {
+  const isComunidade = product.id === 'comunidade';
+
   const images: Record<string, string> = {
-    'comunidade': communityImg,
     'mentorias': mentorshipsImg,
     'ia-conversas': aiImg,
   };
 
-  const imageSrc = images[product.id] || communityImg;
+  const content = isComunidade ? (
+    /* ── Comunidade — icon as object on dark bg ── */
+    <div
+      className="relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07]"
+      style={{ background: '#08070B' }}
+      data-testid="card-product-comunidade"
+    >
+      {/* Faint purple ambient behind icon */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(ellipse 70% 50% at 50% 40%, rgba(139,53,255,0.10) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
 
-  const content = (
-    <div 
+      {/* Community icon — centered object, screen blend removes black bg */}
+      <div
+        className="absolute inset-x-0 flex items-center justify-center"
+        style={{ top: '8%', height: '65%' }}
+      >
+        <img
+          src={communityIconImg}
+          alt="Comunidade"
+          style={{
+            width: '58%',
+            height: '100%',
+            objectFit: 'contain',
+            mixBlendMode: 'screen',
+            transition: 'opacity 400ms ease',
+          }}
+          className="opacity-90 group-hover:opacity-100"
+        />
+      </div>
+
+      {/* Bottom gradient */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none"
+        style={{ height: '45%', background: 'linear-gradient(to top, #08070B 45%, transparent 100%)' }}
+      />
+
+      {/* Text */}
+      <div className="absolute bottom-0 left-0 right-0 p-3.5">
+        <h3 className="text-white/90 font-sans text-sm font-semibold leading-tight">
+          {product.name}
+        </h3>
+      </div>
+    </div>
+  ) : (
+    /* ── Other ecosystem cards — atmospheric background ── */
+    <div
       className="relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/5"
       data-testid={`card-product-${product.id}`}
     >
-      {/* Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
-        style={{ backgroundImage: `url(${imageSrc})` }}
+        style={{ backgroundImage: `url(${images[product.id]})` }}
       />
-      
-      {/* Heavy overlay — cards are atmospheric, not hero-level */}
       <div className="absolute inset-0 bg-[#050505]/55" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
-
-      {/* Content */}
       <div className="absolute inset-0 p-4 flex flex-col justify-end">
         <h3 className="text-white/85 font-sans text-sm font-semibold mb-1 leading-tight">{product.name}</h3>
-
       </div>
     </div>
   );
