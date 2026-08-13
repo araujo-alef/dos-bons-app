@@ -23,8 +23,8 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
     // Typography scale: portrait pages are wider (full mobile width) so we
     // can afford comfortable reading sizes. Landscape pages are narrower.
     const typo = isPortrait
-      ? { body: 15, lineHeight: 1.9, px: 28, py: 28 }
-      : { body: 14, lineHeight: 1.8, px: 22, py: 22 };
+      ? { body: 19, lineHeight: 1.85, px: 28, py: 28 }
+      : { body: 17, lineHeight: 1.75, px: 22, py: 22 };
 
     return (
       <div
@@ -170,7 +170,7 @@ function CoverContent({
           style={{
             fontFamily: "'Playfair Display', serif",
             fontStyle: 'italic',
-            fontSize: isPortrait ? '15px' : '13px',
+            fontSize: isPortrait ? '18px' : '16px',
             color: 'rgba(245,245,245,0.52)',
             lineHeight: 1.75,
             margin: 0,
@@ -229,7 +229,7 @@ function ClosingContent({
         style={{
           fontFamily: "'Playfair Display', serif",
           fontStyle: 'italic',
-          fontSize: isPortrait ? '15px' : '13px',
+          fontSize: isPortrait ? '18px' : '16px',
           color: 'rgba(245,245,245,0.55)',
           lineHeight: 1.78,
           marginBottom: '32px',
@@ -392,9 +392,9 @@ function PageBlock({
             style={{
               fontFamily: "'Playfair Display', serif",
               fontStyle: 'italic',
-              fontSize: isPortrait ? '16px' : '14px',
+              fontSize: isPortrait ? '20px' : '18px',
               color: 'rgba(245,245,245,0.9)',
-              lineHeight: 1.65,
+              lineHeight: 1.6,
               textAlign: 'center',
               margin: '0 0 16px 0',
             }}
@@ -403,7 +403,7 @@ function PageBlock({
           </p>
           <p
             style={{
-              fontSize: '11px',
+              fontSize: '13px',
               color: 'rgba(255,255,255,0.18)',
               textAlign: 'center',
               fontStyle: 'italic',
@@ -446,9 +446,9 @@ function PageBlock({
           <p
             style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: isPortrait ? '16px' : '14px',
+              fontSize: isPortrait ? '20px' : '18px',
               color: 'rgba(245,245,245,0.9)',
-              lineHeight: 1.7,
+              lineHeight: 1.65,
               textAlign: 'center',
               margin: 0,
             }}
@@ -507,7 +507,7 @@ function PageBlock({
               <span
                 style={{
                   display: 'block',
-                  fontSize: isPortrait ? '14px' : '13px',
+                  fontSize: isPortrait ? '17px' : '15px',
                   color: 'rgba(245,245,245,0.9)',
                   fontWeight: 500,
                   lineHeight: 1.3,
