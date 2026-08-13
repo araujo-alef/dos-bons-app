@@ -229,32 +229,21 @@ export function JourneyCard() {
             Hover scale lives on this wrapper — separate DOM element from the
             float animation on <img> so the two transforms don't fight.
           */}
-          <div
-            className="group-hover:translate-y-[-2px] transition-transform duration-700 ease-out"
+          <img
+            src={book3dV3}
+            alt="Cachorro dos Bons"
+            className="book-float group-hover:translate-y-[-2px] transition-transform duration-700 ease-out"
             style={{
-              width: '88%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              maxWidth: '82%',
+              maxHeight: '90%',
+              width: 'auto',
+              height: 'auto',
+              display: 'block',
+              mixBlendMode: 'normal',
+              willChange: 'transform',
             }}
-          >
-            <img
-              src={book3dV3}
-              alt="Cachorro dos Bons"
-              className="book-float"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                objectPosition: 'center center',
-                /* PNG has true transparency — no blend override needed */
-                mixBlendMode: 'normal',
-                willChange: 'transform',
-              }}
-              loading="eager"
-            />
-          </div>
+            loading="eager"
+          />
         </div>
 
         {/* ── z-[45] Front sparks — above book */}
