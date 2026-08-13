@@ -1,6 +1,8 @@
-import { Link } from 'wouter';
+import { useRef } from 'react';
+import { useLocation } from 'wouter';
 import book3dV3 from '@/assets/book-3d-v3.png';
 import { CURRENT_CHAPTER_ID } from '@/mocks/config';
+import { useBookTransition } from '@/context/BookTransitionContext';
 
 import { ChainSVG } from '@/components/ChainSVG';
 
@@ -74,12 +76,33 @@ function BoltD() {
      z-[60]  text labels
    --------------------------------------------------------------------------- */
 export function JourneyCard() {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [, setLocation] = useLocation();
+  const { startTransition, isTransitioning } = useBookTransition();
+  const targetPath = `/jornada/capitulo/${CURRENT_CHAPTER_ID}`;
+
+  function handleClick() {
+    if (isTransitioning) return;
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (rect) {
+      startTransition(targetPath, rect);
+    } else {
+      // Fallback: navigate directly without animation
+      setLocation(targetPath);
+    }
+  }
+
   return (
-    <Link href={`/jornada/capitulo/${CURRENT_CHAPTER_ID}`} className="block no-underline">
       <div
-        className="book-card-wrap relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07]"
+        ref={cardRef}
+        className="book-card-wrap relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07] cursor-pointer"
         style={{ background: '#08070B' }}
         data-testid="card-product-jornada"
+        onClick={handleClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
+        aria-label="Acessar Jornada: Cachorro dos Bons"
       >
 
         {/* ── z-[10] Glow primary — breathing purple atmosphere ─────────── */}
@@ -279,6 +302,5 @@ export function JourneyCard() {
 
 
       </div>
-    </Link>
   );
 }

@@ -1,0 +1,608 @@
+Quero implementar uma nova transição visual entre a Home e a leitura da Jornada.
+
+Hoje, ao clicar no card **Cachorro dos Bons**, o usuário simplesmente navega para a Jornada/leitor.
+
+Quero transformar esse momento em uma animação cinematográfica em que o **livro 3D do card parece sair da Home, crescer, abrir e se transformar no leitor virtual**.
+
+O objetivo é criar uma sensação de continuidade física entre:
+
+**card do livro na Home**
+
+e
+
+**livro virtual / leitor de páginas**
+
+Não quero uma troca seca de tela.
+
+---
+
+# 1. OBJETIVO VISUAL
+
+Ao clicar no card do livro:
+
+1. o restante da Home perde destaque;
+2. o livro 3D do card cresce;
+3. ele se desloca até o centro da viewport;
+4. o ambiente escurece;
+5. os efeitos roxos ganham intensidade por alguns instantes;
+6. o livro inicia uma pequena animação de abertura;
+7. ocorre uma transição visual para o componente real do leitor;
+8. a primeira página / página atual do capítulo assume a tela.
+
+A sensação deve ser:
+
+**“eu cliquei no livro e entrei dentro dele.”**
+
+---
+
+# 2. NÃO RECRIAR O LIVRO INTEIRO EM CSS
+
+Muito importante:
+
+Não quero modelar um livro completo em CSS com capa, lombada, páginas e perspectiva desde o zero.
+
+Continue utilizando:
+
+* a imagem 3D do livro já existente na Home;
+* o componente real do leitor já implementado;
+* a biblioteca de page flip já existente.
+
+Use CSS/animation apenas para criar a transição entre esses dois estados.
+
+---
+
+# 3. SHARED ELEMENT TRANSITION
+
+Minha preferência é implementar o movimento inicial do livro como uma **shared element transition**.
+
+Se o projeto já possui Motion/Framer Motion, utilize `layoutId` ou mecanismo equivalente.
+
+Caso não possua, avalie adicionar `motion` / `framer-motion` somente se isso for adequado à stack atual.
+
+Outra possibilidade é utilizar a View Transition API, se estiver bem suportada pela arquitetura existente.
+
+Prefira a solução mais estável e simples de manter.
+
+A ideia é que o mesmo elemento visual do livro pareça continuar existindo enquanto muda de:
+
+* tamanho;
+* posição;
+* escala;
+* perspectiva.
+
+---
+
+# 4. ETAPA 1 — CARD → LIVRO CENTRALIZADO
+
+Estado inicial:
+
+livro pequeno dentro do card.
+
+Ao clicar:
+
+* desabilitar novas interações durante a transição;
+* iniciar fade/dim do restante da Home;
+* fazer o livro sair visualmente do card;
+* crescer;
+* mover para o centro da viewport.
+
+Referência de timing:
+
+`350ms–500ms`
+
+Usar easing suave, algo próximo de:
+
+`cubic-bezier(0.22, 1, 0.36, 1)`
+
+ou equivalente.
+
+Não fazer um zoom brusco.
+
+---
+
+# 5. FUNDO DURANTE A TRANSIÇÃO
+
+Enquanto o livro cresce:
+
+* escurecer gradualmente o restante da Home;
+* usar overlay preto;
+* manter uma leve atmosfera roxa.
+
+Ao final da primeira etapa, praticamente só o livro deve chamar atenção.
+
+Evitar flash preto instantâneo.
+
+A transição deve ser contínua.
+
+---
+
+# 6. REAÇÃO DOS EFEITOS EXISTENTES
+
+O card do livro já possui:
+
+* glow roxo;
+* flutuação;
+* raios/descargas;
+* corrente;
+* sombra.
+
+Não remover esses efeitos.
+
+Durante o clique, quero uma reação curta de energia.
+
+Exemplo:
+
+### Glow
+
+aumentar intensidade por alguns instantes.
+
+### Raios
+
+permitir 1 ou 2 flashes rápidos extras.
+
+### Corrente
+
+pode deslocar levemente ou reagir como se houvesse uma pequena tensão.
+
+### Livro
+
+interromper suavemente a animação idle/flutuação e assumir a transição principal.
+
+Esses efeitos devem ajudar a vender a transição.
+
+Não exagerar.
+
+---
+
+# 7. PARAR A ANIMAÇÃO IDLE DURANTE A TRANSIÇÃO
+
+Hoje o livro possui flutuação contínua.
+
+Quando o usuário clicar:
+
+* interromper a animação idle de forma suave;
+* assumir controle do `transform` com a transição principal.
+
+Evitar conflito entre:
+
+* `translateY` da flutuação;
+* transform da shared transition.
+
+Após entrar no leitor, a animação do card deixa de existir.
+
+---
+
+# 8. ETAPA 2 — PEQUENA ROTAÇÃO/PERSPECTIVA
+
+Quando o livro estiver grande e centralizado, adicionar uma pequena preparação para abertura.
+
+Algo como:
+
+* `rotateY`;
+* ajuste leve de perspectiva;
+* movimento de `2–5deg`.
+
+Não quero um giro de 90°.
+
+O objetivo é apenas sugerir que o objeto está prestes a abrir.
+
+Duração:
+
+aproximadamente `200–300ms`.
+
+---
+
+# 9. ETAPA 3 — ILUSÃO DE ABERTURA
+
+Não tente abrir fisicamente a capa completa do PNG.
+
+Quero uma ilusão bem feita.
+
+Uma abordagem aceitável:
+
+1. livro 3D centralizado;
+2. pequena rotação;
+3. iniciar crossfade;
+4. revelar um elemento intermediário representando a capa abrindo;
+5. o componente do leitor aparece exatamente na mesma região;
+6. livro 3D desaparece.
+
+Se for útil, pode criar uma camada simples representando a capa frontal durante poucos frames.
+
+Mas não quero construir uma modelagem 3D complexa.
+
+---
+
+# 10. CROSSFADE PARA O LEITOR
+
+A transição entre PNG e leitor deve ser cuidadosamente escondida.
+
+Não quero:
+
+`imagem desaparece`
+
+→
+
+`leitor aparece`
+
+de forma óbvia.
+
+Use sobreposição.
+
+Durante alguns milissegundos:
+
+* livro 3D ainda visível;
+* leitor começa a aparecer;
+* capa/página do leitor assume a posição;
+* PNG perde opacidade.
+
+Isso deve dar a impressão de transformação.
+
+---
+
+# 11. DESTINO NO MOBILE
+
+Muito importante:
+
+no mobile o leitor trabalha com **uma página por vez**.
+
+Portanto, a transição deve terminar em:
+
+**uma única página centralizada**
+
+e não em um spread de duas páginas.
+
+O objeto deve crescer e se transformar aproximadamente na área que será ocupada pela página.
+
+---
+
+# 12. DESTINO NO DESKTOP
+
+No desktop, o leitor pode trabalhar com duas páginas abertas.
+
+Nesse caso, a animação pode terminar inicialmente com:
+
+* livro centralizado;
+* abertura;
+* páginas se expandindo lateralmente;
+* spread final do leitor.
+
+Mas não precisa criar uma animação excessivamente complexa.
+
+Priorize primeiro a experiência mobile.
+
+---
+
+# 13. QUAL PÁGINA ABRIR
+
+Preservar a lógica existente da Jornada.
+
+Se o usuário estiver retomando leitura:
+
+abrir a página salva/atual.
+
+Se estiver iniciando um capítulo:
+
+abrir a primeira página.
+
+Não resetar o progresso por causa da animação.
+
+---
+
+# 14. ROTAS
+
+Preservar as rotas existentes.
+
+Se atualmente:
+
+Home → `/jornada`
+
+ou
+
+Home → Jornada → capítulo,
+
+não redesenhar a navegação inteira sem necessidade.
+
+A transição deve trabalhar junto da arquitetura atual.
+
+Se for necessário manter temporariamente a Home montada durante a animação antes da navegação, faça isso de forma organizada.
+
+---
+
+# 15. ESTADO DE TRANSIÇÃO
+
+Criar um estado claro, por exemplo conceitualmente:
+
+```ts
+isEnteringBook
+```
+
+Durante esse estado:
+
+* impedir múltiplos cliques;
+* bloquear interação com outros cards;
+* controlar overlay;
+* controlar animações;
+* depois executar a navegação.
+
+Evitar lógica espalhada em vários componentes.
+
+---
+
+# 16. SE USAR FRAMER MOTION / MOTION
+
+Uma estrutura conceitual pode ser:
+
+```jsx
+<motion.img
+  layoutId="cachorro-dos-bons-book"
+  src={bookImage}
+/>
+```
+
+e no destino:
+
+```jsx
+<motion.div layoutId="cachorro-dos-bons-book">
+   <BookReader />
+</motion.div>
+```
+
+Isso é apenas referência conceitual.
+
+Adapte corretamente à implementação atual.
+
+Não envolva o componente inteiro do leitor em algo que quebre o page flip.
+
+Pode ser necessário usar um wrapper visual intermediário.
+
+---
+
+# 17. DURAÇÃO TOTAL
+
+Quero uma transição perceptível, mas não lenta.
+
+Referência:
+
+### Fase 1
+
+card → centro:
+`400ms`
+
+### Fase 2
+
+preparação/rotação:
+`200ms–250ms`
+
+### Fase 3
+
+abertura/crossfade:
+`400ms–600ms`
+
+Total aproximado:
+
+`1s–1.3s`
+
+Pode chegar a aproximadamente `1.5s` se a sensação estiver boa.
+
+Não ultrapassar muito isso.
+
+---
+
+# 18. EASING
+
+Quero movimento com aceleração orgânica.
+
+Evitar `linear`.
+
+Utilizar curvas suaves.
+
+O crescimento inicial pode ser um pouco mais enérgico e desacelerar no centro.
+
+A abertura pode ser mais suave.
+
+---
+
+# 19. VOLTANDO PARA A HOME
+
+Nesta primeira etapa, não é obrigatório fazer a animação reversa completa.
+
+Ao voltar do leitor para a Home, pode usar uma transição simples.
+
+Porém, organize o código para permitir futuramente:
+
+**leitor fecha → livro diminui → volta para o card.**
+
+Não criar uma arquitetura que torne isso impossível.
+
+---
+
+# 20. EFEITOS DURANTE A ABERTURA
+
+No exato momento da transformação:
+
+* glow roxo pode atingir seu pico;
+* pequena descarga pode aparecer;
+* depois os efeitos desaparecem rapidamente.
+
+A leitura precisa começar calma.
+
+Quando o BookReader estiver totalmente ativo:
+
+* remover raios;
+* remover corrente do overlay;
+* reduzir o glow;
+* voltar para atmosfera editorial da leitura.
+
+---
+
+# 21. NÃO LEVAR OS EFEITOS PARA DENTRO DO LIVRO
+
+Os efeitos elétricos são parte da transição, não do ambiente de leitura.
+
+Depois que o leitor abrir:
+
+não quero raios piscando enquanto o usuário lê.
+
+A leitura continua:
+
+* limpa;
+* dark;
+* premium;
+* editorial.
+
+---
+
+# 22. NÃO ALTERAR O PAGE FLIP
+
+Não reescrever a implementação do page flip nessa tarefa.
+
+O leitor já existe.
+
+A animação deve terminar entregando o controle ao leitor atual.
+
+Não alterar:
+
+* gestos;
+* paginação;
+* single-page mobile;
+* double-page desktop;
+* conteúdo dos capítulos.
+
+---
+
+# 23. PERFORMANCE
+
+Priorizar:
+
+* `transform`;
+* `opacity`.
+
+Evitar animações pesadas envolvendo layout.
+
+Se for usar blur/glow, limitar quantidade de elementos.
+
+Mobile é prioridade.
+
+A animação precisa rodar suavemente.
+
+---
+
+# 24. PREFERS-REDUCED-MOTION
+
+Respeitar:
+
+`prefers-reduced-motion: reduce`
+
+Nesse caso, substituir toda essa experiência por algo muito mais simples:
+
+* fade da Home;
+* fade do leitor.
+
+Não executar:
+
+* zoom grande;
+* rotação;
+* raios;
+* abertura simulada.
+
+---
+
+# 25. FALLBACK
+
+Caso Motion/shared element não funcione bem em algum navegador, o usuário ainda deve conseguir entrar normalmente no livro.
+
+A navegação nunca pode depender exclusivamente da animação.
+
+Se ocorrer erro de animação:
+
+executar a navegação normalmente.
+
+---
+
+# 26. NÃO ALTERAR A HOME VISUALMENTE
+
+Em estado normal, a Home deve continuar exatamente como está.
+
+Não alterar:
+
+* grid;
+* card Comunidade;
+* Mentorias;
+* IA;
+* header;
+* tamanhos.
+
+Só adicionar o comportamento de transição ao card do livro.
+
+---
+
+# 27. CRITÉRIO DE SUCESSO NO MOBILE
+
+Em uma viewport próxima de `390px`, ao tocar no card:
+
+1. Home escurece;
+2. livro sai visualmente do card;
+3. cresce para o centro;
+4. efeitos roxos reagem;
+5. livro faz pequena mudança de perspectiva;
+6. ocorre a ilusão de abertura;
+7. surge uma única página do leitor;
+8. usuário pode imediatamente começar a virar páginas.
+
+Tudo isso sem:
+
+* overflow horizontal;
+* flash branco;
+* salto brusco de layout;
+* mostrar livro de duas páginas no mobile.
+
+---
+
+# 28. SENSAÇÃO DESEJADA
+
+Quero que o usuário sinta:
+
+**“Eu cliquei na capa e o próprio livro abriu na minha frente.”**
+
+A transição deve ser uma assinatura do produto.
+
+Mas ainda deve parecer:
+
+* elegante;
+* premium;
+* dark;
+* fluida.
+
+Não quero uma animação de videogame nem um splash screen longo.
+
+---
+
+# 29. IMPLEMENTAÇÃO INCREMENTAL
+
+Antes de alterar componentes centrais, analise:
+
+* card atual;
+* animações já existentes;
+* rota da Jornada;
+* BookReader;
+* biblioteca de animação instalada.
+
+Reaproveite o máximo possível.
+
+Faça essa implementação incrementalmente e preserve tudo que já funciona.
+
+---
+
+# 30. PRIORIDADE
+
+Se precisar simplificar para garantir qualidade, priorize nesta ordem:
+
+1. shared transition do livro do card para o centro;
+2. overlay/fade da Home;
+3. crossfade elegante para o BookReader;
+4. pequena abertura/perspectiva;
+5. reação dos glows;
+6. raios/corrente durante a transição.
+
+É preferível uma transição simples e impecável a uma animação complexa e quebrada.

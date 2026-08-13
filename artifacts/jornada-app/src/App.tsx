@@ -8,6 +8,8 @@ import Home from '@/pages/Home';
 import Journey from '@/pages/Journey';
 import Chapter from '@/pages/Chapter';
 import UpToDate from '@/pages/UpToDate';
+import { BookTransitionProvider } from '@/context/BookTransitionContext';
+import { BookTransitionOverlay } from '@/components/BookTransitionOverlay';
 import {
   Route,
   Switch,
@@ -40,9 +42,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
-        </WouterRouter>
+        <BookTransitionProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+            <Router />
+            {/* Overlay must be inside WouterRouter to access useLocation */}
+            <BookTransitionOverlay />
+          </WouterRouter>
+        </BookTransitionProvider>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
