@@ -94,14 +94,17 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
     // breaking the animation visually.
     if (currentPageRef.current > 0) {
       currentPageRef.current -= 1;
-      bookRef.current?.pageFlip()?.flipPrev();
+      // 'top' is the correct corner for a backward flip in portrait mode.
+      // 'bottom' tries to animate from the bottom-left which StPageFlip does
+      // not handle in single-page (portrait) layout.
+      bookRef.current?.pageFlip()?.flipPrev('top');
     }
   }, []);
 
   const flipNext = useCallback(() => {
     if (currentPageRef.current < totalPages - 1) {
       currentPageRef.current += 1;
-      bookRef.current?.pageFlip()?.flipNext();
+      bookRef.current?.pageFlip()?.flipNext('bottom');
     }
   }, [totalPages]);
 
