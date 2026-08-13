@@ -1,0 +1,218 @@
+Quero fazer um **ajuste de proporção e hierarquia visual na Home atual**.
+
+A estrutura já está correta e não quero redesenhar a página do zero.
+
+O problema agora é de escala: o header ainda parece pequeno em relação ao hero e aos cards do ecossistema, e a Home continua com sensação de elementos grandes demais ocupando a tela.
+
+Quero corrigir isso de forma conjunta, mexendo em:
+
+1. branding do header;
+2. largura e presença do hero;
+3. tamanho dos cards do ecossistema;
+4. espaçamentos;
+5. título “Explore o ecossistema”.
+
+O objetivo é deixar a Home mais equilibrada, minimalista e sofisticada.
+
+# 1. AUMENTAR MAIS O BRANDING
+
+Aumentar um pouco mais a presença de:
+
+**[ícone] Lábia de Cachorro**
+
+No mobile, testar aproximadamente:
+
+Ícone:
+`48px–52px`
+
+Nome:
+`22px–24px`
+
+Peso sugerido:
+`500–600`
+
+Não transformar em um header gigante, mas fazer com que a marca tenha presença comparável ao restante da interface.
+
+O branding deve ser claramente percebido antes do hero.
+
+# 2. AUMENTAR O RESPIRO DO HEADER
+
+Criar um pouco mais de distância entre:
+
+* header;
+* hero.
+
+A marca precisa respirar e não parecer grudada ao card principal.
+
+Não exagerar no espaço vertical, apenas reforçar a separação visual.
+
+# 3. REDUZIR A PRESENÇA VISUAL DO HERO
+
+O hero atual ocupa largura demais e parece pesado.
+
+Quero que ele continue sendo o principal elemento de conteúdo da Home, mas com uma escala um pouco mais refinada.
+
+Reduzir a largura visual do hero.
+
+Como referência no mobile:
+
+* usar aproximadamente `92%–94%` da largura útil;
+* centralizar horizontalmente;
+* manter a composição da capa à esquerda e texto à direita.
+
+Não reduzir demais a altura nem prejudicar a leitura.
+
+A ideia é apenas fazê-lo parecer menos “banner full width” e mais um card editorial premium.
+
+# 4. AUMENTAR LEVEMENTE O ESPAÇO INTERNO DO HERO
+
+Ao reduzir a largura externa, preserve boa leitura interna.
+
+Se necessário:
+
+* aumentar levemente os paddings;
+* garantir espaço ao redor da capa;
+* manter distância confortável entre capa e texto.
+
+Não comprimir os elementos.
+
+# 5. REDUZIR OS CARDS DO ECOSSISTEMA
+
+Os cards da seção “Explore o ecossistema” também estão grandes demais em relação ao header.
+
+Reduzir levemente a largura de cada card.
+
+No mobile, manter 2 por linha, mas buscar algo próximo de:
+
+* `46%–47%` da largura útil para cada card;
+* gap um pouco maior entre eles.
+
+Isso deve criar mais respiro e reduzir a sensação de blocos gigantes.
+
+# 6. MAIS ESPAÇO ENTRE OS CARDS
+
+Aumentar ligeiramente:
+
+* gap horizontal;
+* gap vertical.
+
+Quero que cada card pareça uma peça individual, e não parte de uma grade muito apertada.
+
+# 7. MANTER A MESMA PROPORÇÃO DOS CARDS
+
+Não alterar drasticamente o aspect ratio.
+
+Continuar com os cards verticais atuais.
+
+Apenas reduzir escala e melhorar espaçamento.
+
+# 8. AJUSTAR “EXPLORE O ECOSSISTEMA”
+
+O título ainda está visualmente muito largo por causa do `letter-spacing`.
+
+Reduzir:
+
+* tamanho levemente, se necessário;
+* principalmente o tracking.
+
+Ele deve continuar em uppercase, mas com aparência mais compacta e elegante.
+
+A hierarquia deve ser:
+
+1. Lábia de Cachorro
+2. Hero
+3. Explore o ecossistema
+4. Cards
+
+O título da seção não deve competir com a marca.
+
+# 9. ALINHAMENTO GERAL
+
+Quero que todos os elementos sigam uma mesma linha visual.
+
+Header, hero, título da seção e grid precisam parecer parte da mesma composição.
+
+Evitar situações onde:
+
+* header começa muito para dentro;
+* hero começa em outro alinhamento;
+* cards usam margens completamente diferentes.
+
+Criar um container/padding horizontal consistente para a Home.
+
+# 10. MAIS ESPAÇO NEGATIVO
+
+Aproveitar essa redução de escala para criar uma Home mais silenciosa.
+
+Adicionar um pouco mais de espaço entre:
+
+* hero;
+* título “Explore o ecossistema”;
+* título e cards.
+
+O resultado deve parecer premium, não vazio.
+
+# 11. NÃO AUMENTAR A DENSIDADE DE CONTEÚDO
+
+Não adicionar:
+
+* novos textos;
+* novas métricas;
+* novos ícones;
+* novos CTAs;
+* novas seções.
+
+O objetivo é justamente melhorar a composição atual usando menos peso visual.
+
+# 12. NÃO ALTERAR O HERO INTERNAMENTE
+
+Preservar:
+
+* capa do livro à esquerda;
+* label `CONTINUE DE ONDE PAROU`;
+* título `Conexão e Presença`;
+* capítulos concluídos;
+* CTA `Continuar jornada →`.
+
+Apenas ajuste escala, espaçamento e proporção.
+
+# 13. NÃO ALTERAR OS ASSETS
+
+Manter:
+
+* ícone atual do Lábia de Cachorro;
+* capa atual;
+* imagens atuais dos cards;
+* paleta atual.
+
+Não trocar imagens nesta tarefa.
+
+# 14. DIREÇÃO VISUAL
+
+O objetivo final deve ser uma Home com:
+
+* mais respiro;
+* elementos menores e mais intencionais;
+* marca mais presente;
+* menos sensação de cards gigantes;
+* melhor proporção entre identidade e conteúdo.
+
+Quero que ela pareça mais próxima de uma interface editorial premium e menos próxima de uma grade de banners.
+
+# 15. IMPORTANTE
+
+Faça essas mudanças de maneira incremental.
+
+Não reconstruir a Home.
+
+Não alterar:
+
+* rotas;
+* navegação;
+* estados mockados;
+* lógica do app;
+* Jornada;
+* capítulos;
+* comportamento dos cards.
+
+Esta tarefa é exclusivamente sobre **proporção, escala, espaçamento e hierarquia visual da Home**.

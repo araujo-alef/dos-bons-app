@@ -40,12 +40,12 @@ export default function Home() {
           />
 
           {/* Ecosystem section */}
-          <section className="px-6 mt-2">
-            <h2 className="text-white/40 text-[10px] font-bold tracking-[0.22em] mb-6">
+          <section className="px-4 mt-10">
+            <h2 className="text-white/35 text-[10px] font-bold tracking-[0.14em] mb-5">
               EXPLORE O ECOSSISTEMA
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {ecosystemProducts.map((product) => (
                 <EcosystemCard key={product.id} product={product} />
               ))}

@@ -1,0 +1,177 @@
+Quero fazer um refinamento visual pontual na Home atual, sem alterar a estrutura funcional, rotas ou comportamento dos cards.
+
+O objetivo é corrigir a hierarquia visual do topo da página.
+
+Hoje o ícone e o nome **“Lábia de Cachorro”** estão pequenos demais em comparação com o hero e os cards do ecossistema, fazendo com que a marca pareça apenas um detalhe.
+
+Quero dar mais presença ao branding sem deixar o header exagerado.
+
+## 1. AUMENTAR O ÍCONE DA MARCA
+
+Aumentar o tamanho do ícone do cachorro no header em aproximadamente **20% a 30%**.
+
+Como referência, testar algo na faixa de:
+
+`40px–44px`
+
+no mobile.
+
+O mascote precisa ficar facilmente reconhecível, mas sem parecer um avatar de perfil.
+
+Preservar:
+
+* glow roxo;
+* proporção original;
+* qualidade da imagem;
+* integração com o fundo escuro.
+
+Não adicionar borda pesada nem container chamativo.
+
+## 2. AUMENTAR O NOME “Lábia de Cachorro”
+
+Aumentar o tamanho do nome da marca em aproximadamente **15% a 20%**.
+
+Como referência, testar algo na faixa de:
+
+`19px–21px`
+
+no mobile.
+
+Manter em sans-serif moderna.
+
+Não usar serif nessa área.
+
+Sugestão:
+
+* peso `500` ou `600`;
+* branco ou quase branco;
+* boa legibilidade;
+* sem uppercase.
+
+O objetivo é parecer uma marca forte e sofisticada, não um título de seção.
+
+## 3. RELAÇÃO ENTRE ÍCONE E TEXTO
+
+Ajustar o espaçamento horizontal entre ícone e nome.
+
+Usar algo próximo de:
+
+`12px–14px`
+
+A composição deve parecer uma única assinatura visual:
+
+`[ÍCONE]  Lábia de Cachorro`
+
+Alinhar verticalmente pelo centro.
+
+## 4. MAIS RESPIRO ABAIXO DO HEADER
+
+Aumentar levemente a distância entre:
+
+* header;
+* hero principal.
+
+Hoje o header parece muito pequeno e imediatamente “engolido” pelo card principal.
+
+Adicionar espaço suficiente para separar claramente:
+
+**marca**
+
+de
+
+**conteúdo principal**
+
+Sem exagerar.
+
+## 5. NÃO DIMINUIR OS CARDS AGORA
+
+Não reduzir de forma relevante o tamanho do hero ou dos cards do ecossistema nesta etapa.
+
+Primeiro quero corrigir a presença da marca.
+
+Depois poderemos avaliar se ainda existe excesso de peso visual.
+
+Se algum ajuste for necessário para equilíbrio, limite qualquer redução dos cards a algo muito sutil, no máximo aproximadamente `5%`.
+
+## 6. AJUSTAR “EXPLORE O ECOSSISTEMA”
+
+O título da seção atualmente utiliza um espaçamento entre letras muito aberto, o que faz com que ele tenha mais presença visual do que deveria.
+
+Manter:
+
+`EXPLORE O ECOSSISTEMA`
+
+mas reduzir um pouco o `letter-spacing`.
+
+Ele deve continuar sendo:
+
+* uppercase;
+* discreto;
+* secundário.
+
+Não pode competir com:
+
+* nome do app;
+* hero;
+* título do capítulo.
+
+## 7. HIERARQUIA FINAL DESEJADA
+
+A ordem de leitura visual da Home deve ser:
+
+1. **Lábia de Cachorro**
+2. **Hero da Jornada**
+3. **Explore o ecossistema**
+4. **Cards dos produtos**
+
+Hoje a marca está visualmente abaixo dessa hierarquia.
+
+Corrigir isso.
+
+## 8. NÃO EXAGERAR
+
+Mesmo aumentando o branding, continuar respeitando a direção:
+
+* minimalista;
+* premium;
+* editorial;
+* dark.
+
+Não transformar o header em um banner.
+
+Não adicionar:
+
+* subtítulo;
+* slogan;
+* menu;
+* fundo próprio;
+* divisor;
+* botão;
+* navegação.
+
+Quero apenas que a identidade já existente tenha a presença correta.
+
+## 9. RESPONSIVIDADE
+
+No desktop/tablet, escalar o header de forma proporcional e controlada.
+
+Não permitir que o logo fique gigante.
+
+Usar limites responsivos para manter a mesma sensação visual do mobile.
+
+## 10. NÃO ALTERAR
+
+Não mexer nesta tarefa em:
+
+* composição do hero;
+* capa do livro;
+* conteúdo do hero;
+* rotas;
+* cards do ecossistema;
+* mocks;
+* fluxo da Jornada;
+* fundo geral da página.
+
+Esta é uma alteração exclusivamente de **hierarquia visual do branding e do título da seção Explore**.
+
+O resultado esperado é uma Home em que **“Lábia de Cachorro” seja claramente percebido como a marca do aplicativo logo no primeiro olhar**, sem perder a estética limpa atual.
