@@ -30,31 +30,30 @@ export default function Home() {
         {/* Two-line phrase */}
         <AppHeader />
 
-        {/* Chain — brand separator, full bleed */}
-        <div className="flex justify-center" style={{ marginTop: '14px', marginBottom: '32px' }}>
-          <div
-            aria-hidden="true"
+        {/* Chain — brand separator, full bleed edge-to-edge */}
+        <div
+          aria-hidden="true"
+          style={{
+            width: '100%',
+            height: '42px',
+            overflow: 'hidden',
+            position: 'relative',
+            mixBlendMode: 'screen',
+            marginTop: '14px',
+            marginBottom: '32px',
+          }}
+        >
+          <img
+            src={chainImg}
+            alt=""
             style={{
-              width: '88%',
-              maxWidth: '480px',
-              height: '42px',
-              overflow: 'hidden',
-              position: 'relative',
-              mixBlendMode: 'screen',
+              position: 'absolute',
+              width: '100%',
+              height: 'auto',
+              top: '50%',
+              transform: 'translateY(-50%)',
             }}
-          >
-            <img
-              src={chainImg}
-              alt=""
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: 'auto',
-                top: '50%',
-                transform: 'translateY(-50%)',
-              }}
-            />
-          </div>
+          />
         </div>
 
         <main className="animate-in fade-in duration-700 ease-out px-4 pb-4">
