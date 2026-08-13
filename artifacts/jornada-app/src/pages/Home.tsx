@@ -1,7 +1,6 @@
 import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
 import { EcosystemCard } from '@/components/EcosystemCard';
-import { JOURNEY_STATE } from '@/mocks/config';
 import { ecosystemProducts } from '@/mocks/data';
 
 export default function Home() {
@@ -32,7 +31,7 @@ export default function Home() {
         <main className="animate-in fade-in duration-700 ease-out px-4 pt-2 pb-4">
           {/* Unified product grid — Jornada first, then ecosystem */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <JourneyCard state={JOURNEY_STATE} />
+            <JourneyCard />
             {ecosystemProducts.map((product) => (
               <EcosystemCard key={product.id} product={product} />
             ))}

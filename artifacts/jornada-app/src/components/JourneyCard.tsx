@@ -1,14 +1,7 @@
 import { Link } from 'wouter';
-import { ArrowRight } from 'lucide-react';
 import book3DImg from '@assets/image_1786600341057.png';
-import type { JourneyState } from '@/mocks/config';
 
-interface JourneyCardProps {
-  state: JourneyState;
-}
-
-export function JourneyCard({ state }: JourneyCardProps) {
-  const cta = state === 'notStarted' ? 'Começar' : 'Continuar';
+export function JourneyCard() {
 
   return (
     <Link href="/jornada" className="block no-underline">
@@ -66,10 +59,6 @@ export function JourneyCard({ state }: JourneyCardProps) {
           <h3 className="text-white/90 font-sans text-sm font-semibold leading-tight">
             Cachorro dos Bons
           </h3>
-          <div className="flex items-center gap-1 text-white/40 text-xs font-medium transition-colors duration-300 group-hover:text-primary/80 mt-0.5">
-            <span>{cta}</span>
-            <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" />
-          </div>
         </div>
       </div>
     </Link>
