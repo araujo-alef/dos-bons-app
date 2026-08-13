@@ -2,6 +2,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
 import { EcosystemCard } from '@/components/EcosystemCard';
 import { ecosystemProducts } from '@/mocks/data';
+import chainImg from '@/assets/chain-wide.png';
 
 export default function Home() {
   return (
@@ -26,31 +27,37 @@ export default function Home() {
       </div>
 
       <div className="relative" style={{ zIndex: 1 }}>
+        {/* Two-line phrase */}
         <AppHeader />
 
-        <main className="animate-in fade-in duration-700 ease-out px-4 pt-0 pb-4">
-          {/* Glowing divider */}
-          <div className="relative flex justify-center items-center" style={{ marginBottom: '28px' }}>
-            <div
-              aria-hidden="true"
+        {/* Chain — brand separator, full bleed */}
+        <div className="flex justify-center" style={{ marginTop: '14px', marginBottom: '32px' }}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: '88%',
+              maxWidth: '480px',
+              height: '42px',
+              overflow: 'hidden',
+              position: 'relative',
+              mixBlendMode: 'screen',
+            }}
+          >
+            <img
+              src={chainImg}
+              alt=""
               style={{
                 position: 'absolute',
-                width: '220px',
-                height: '60px',
-                background: 'radial-gradient(ellipse at 50% 50%, rgba(139,53,255,0.18) 0%, transparent 70%)',
-                filter: 'blur(10px)',
-                pointerEvents: 'none',
-              }}
-            />
-            <div
-              style={{
                 width: '100%',
-                height: '1px',
-                background: 'linear-gradient(to right, transparent, rgba(178,102,255,0.28) 30%, rgba(178,102,255,0.28) 70%, transparent)',
-                position: 'relative',
+                height: 'auto',
+                top: '50%',
+                transform: 'translateY(-50%)',
               }}
             />
           </div>
+        </div>
+
+        <main className="animate-in fade-in duration-700 ease-out px-4 pb-4">
           {/* Unified product grid — Jornada first, then ecosystem */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <JourneyCard />

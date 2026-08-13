@@ -1,0 +1,333 @@
+Quero fazer um refinamento visual no topo da Home.
+
+A direção atual está boa, mas a composição da frase e da corrente ainda está muito separada e com aparência um pouco pesada.
+
+Hoje temos algo próximo de:
+
+`Nem todo cachorro nasceu`
+
+[corrente]
+
+`pra usar coleira`
+
+Quero transformar isso em uma composição mais coesa, mais premium e mais ligada à identidade da marca.
+
+## 1. JUNTAR A FRASE EM UM ÚNICO BLOCO
+
+Quero que a frase apareça como uma unidade visual, em duas linhas próximas:
+
+**Nem todo cachorro nasceu**
+**pra usar coleira.**
+
+Não separar as duas partes por uma grande distância.
+
+Não colocar a corrente no meio da frase.
+
+A frase deve ser lida naturalmente de uma vez.
+
+---
+
+# 2. POSICIONAMENTO DA CORRENTE
+
+A corrente deve ficar **logo abaixo da frase**, funcionando como uma assinatura gráfica / sublinhado visual da mensagem.
+
+Estrutura desejada:
+
+```text
+Nem todo cachorro nasceu
+pra usar coleira.
+
+════════ corrente ════════
+
+[ cards ]
+```
+
+A corrente não deve parecer um ícone pequeno.
+
+Ela deve funcionar como um elemento horizontal de marca.
+
+---
+
+# 3. AUMENTAR A LARGURA DA CORRENTE
+
+A corrente atual está pequena demais.
+
+Quero que ela ocupe aproximadamente:
+
+`80%–90%`
+
+da largura útil da Home no mobile.
+
+Ela deve ir quase de um lado ao outro do conteúdo.
+
+Preservar aspect ratio.
+
+Não aumentar a altura proporcionalmente demais.
+
+Quero uma corrente:
+
+* longa;
+* estreita;
+* horizontal.
+
+Não quero uma imagem grande com muito espaço vazio acima e abaixo.
+
+---
+
+# 4. ALTURA DA CORRENTE
+
+A altura visual deve ser próxima apenas à própria corrente.
+
+Evitar que o PNG reserve uma área muito alta.
+
+Se o asset anexado tiver espaço transparente excessivo, ajuste sua apresentação usando:
+
+* `object-fit`;
+* `object-position`;
+* container com altura controlada;
+* clipping/overflow adequado.
+
+Não distorcer a corrente.
+
+---
+
+# 5. REMOVER O DIVIDER/LINE EXISTENTE
+
+Hoje ainda existe uma linha roxa fina abaixo dessa região.
+
+Remover essa linha.
+
+A corrente passa a ser o próprio elemento de divisão visual.
+
+Não quero:
+
+corrente + linha + espaço.
+
+Quero apenas:
+
+frase → corrente → cards.
+
+---
+
+# 6. TIPOGRAFIA DA FRASE
+
+A frase atual está pesada demais.
+
+Quero uma tipografia mais refinada e editorial.
+
+Usar uma sans-serif moderna, preferencialmente a mesma família já utilizada no app, como:
+
+* Geist;
+* Manrope;
+* Inter;
+
+ou equivalente já configurada.
+
+No mobile, testar algo próximo de:
+
+`22px–24px`
+
+Peso:
+
+`500`
+
+Evitar `700`/bold pesado.
+
+Line-height:
+
+aproximadamente `1.2–1.3`
+
+A frase deve ter presença, mas não parecer uma headline de landing page.
+
+---
+
+# 7. COR DO TEXTO
+
+Usar branco levemente quebrado, algo próximo de:
+
+`#F3F3F3`
+
+Não precisa ser `#FFFFFF` puro.
+
+Por enquanto, manter toda a frase na mesma cor.
+
+Não destacar palavras individualmente nesta etapa.
+
+A própria corrente roxa já funciona como contraste.
+
+---
+
+# 8. ALINHAMENTO
+
+Manter a frase centralizada horizontalmente.
+
+A corrente também deve ficar centralizada.
+
+A composição deve formar uma coluna visual única:
+
+```text
+       frase
+       frase
+
+    corrente longa
+```
+
+---
+
+# 9. ESPAÇAMENTOS
+
+Reduzir bastante o espaço vertical atual.
+
+Quero aproximadamente esta lógica:
+
+header / início da área
+
+↓
+
+frase
+
+`12px–20px`
+
+corrente
+
+`28px–40px`
+
+grid de produtos
+
+Ajuste visualmente para ficar natural.
+
+Não criar grandes áreas vazias.
+
+---
+
+# 10. APROXIMAR OS CARDS
+
+Depois da corrente, os cards devem começar relativamente próximos.
+
+Não quero uma “segunda seção”.
+
+A Home deve parecer um fluxo contínuo:
+
+**mensagem da marca → corrente → ecossistema.**
+
+---
+
+# 11. NÃO ADICIONAR TÍTULO DE SEÇÃO
+
+Não adicionar:
+
+* `Explore`;
+* `Ecossistema`;
+* `Produtos`;
+* qualquer outro label.
+
+A frase e a corrente já cumprem o papel de introdução visual.
+
+---
+
+# 12. CARDS
+
+Não alterar nesta tarefa:
+
+* tamanho;
+* grid;
+* assets;
+* SVGs;
+* textos;
+* animações;
+* card do livro.
+
+Apenas garantir que o grid fique bem posicionado após a redução do espaço superior.
+
+---
+
+# 13. RESPONSIVIDADE
+
+No mobile:
+
+* frase em duas linhas;
+* corrente ocupando aproximadamente 80–90% da largura útil;
+* sem overflow horizontal.
+
+Em telas maiores:
+
+* limitar a largura máxima da frase;
+* limitar também a corrente para ela não ficar absurdamente longa.
+
+A corrente deve crescer até um `max-width` elegante.
+
+---
+
+# 14. RESULTADO DESEJADO
+
+Quero sair de:
+
+```text
+Nem todo cachorro nasceu
+
+
+    corrente pequena
+
+
+pra usar coleira
+
+──────────────
+
+cards
+```
+
+e chegar em algo mais próximo de:
+
+```text
+Nem todo cachorro nasceu
+pra usar coleira.
+
+══════════════════════
+
+[ Jornada ]   [ Comunidade ]
+[ Mentoria ]  [ IA ]
+```
+
+A corrente deve funcionar como uma assinatura visual forte da marca, mas sem pesar.
+
+---
+
+# 15. DIREÇÃO VISUAL
+
+Preservar a identidade:
+
+* dark;
+* premium;
+* minimalista;
+* roxo;
+* editorial;
+* masculina;
+* sofisticada.
+
+Não transformar essa área em uma seção de landing page.
+
+Quero uma abertura curta e marcante.
+
+---
+
+# 16. IMPORTANTE
+
+Não alterar nesta tarefa:
+
+* rotas;
+* navegação;
+* animação do livro;
+* leitor;
+* Jornada;
+* lógica dos produtos;
+* comportamento dos cards.
+
+O foco é exclusivamente:
+
+1. reorganizar a frase;
+2. melhorar a tipografia;
+3. mover a corrente para baixo da frase;
+4. aumentar a largura da corrente;
+5. reduzir sua altura visual;
+6. remover o divider antigo;
+7. compactar os espaços.
