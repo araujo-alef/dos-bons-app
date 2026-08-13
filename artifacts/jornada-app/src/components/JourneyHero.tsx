@@ -44,56 +44,42 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
   return (
     <Link href="/jornada" className="block w-full px-4 md:px-6 mb-8" data-testid="hero-journey">
       <div
-        className="relative w-full flex flex-row items-center gap-5 md:gap-8 rounded-[16px] overflow-hidden group border border-white/[0.06] transition-colors duration-500 hover:border-white/[0.12]"
+        className="relative w-full flex flex-row items-stretch rounded-[16px] overflow-hidden group border border-white/[0.06] transition-colors duration-500 hover:border-white/[0.12]"
         style={{
           background:
             'radial-gradient(ellipse 100% 120% at 60% 50%, rgba(139,53,255,0.07) 0%, transparent 65%), #0C0C0E',
-          padding: '24px 20px',
-          minHeight: '180px',
+          minHeight: '190px',
         }}
       >
-        {/* ─── LEFT: Book cover (front only, cropped from spread) ─── */}
+        {/* ─── LEFT: Book cover — flush to all edges ─── */}
         <div
-          className="relative flex-shrink-0 self-center"
-          style={{ width: '36%', maxWidth: '140px' }}
+          className="relative flex-shrink-0"
+          style={{ width: '38%', maxWidth: '150px' }}
         >
-          {/* Shadow depth */}
           <div
-            className="absolute inset-0 rounded-[6px] pointer-events-none"
             style={{
-              boxShadow:
-                '0 8px 32px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5), 4px 0 12px rgba(139,53,255,0.12)',
-              zIndex: 1,
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `url(${bookSpreadImg})`,
+              backgroundSize: '210% auto',
+              backgroundPosition: 'right center',
+              backgroundRepeat: 'no-repeat',
+              transition: 'transform 600ms ease-out',
+            }}
+            className="group-hover:scale-[1.03]"
+          />
+          {/* Right-side fade so cover blends into the dark background */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(to right, transparent 55%, #0C0C0E 100%)',
             }}
           />
-          {/* Front cover — crop right half of the spread image */}
-          <div
-            className="w-full rounded-[6px] overflow-hidden"
-            style={{
-              aspectRatio: '2 / 3',
-              position: 'relative',
-              zIndex: 2,
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                /* The spread is ~2:1 landscape. Front cover = right half.
-                   We double the width and anchor right so only the front shows. */
-                inset: 0,
-                backgroundImage: `url(${bookSpreadImg})`,
-                backgroundSize: '210% auto',
-                backgroundPosition: 'right center',
-                backgroundRepeat: 'no-repeat',
-                transition: 'transform 600ms ease-out',
-              }}
-              className="group-hover:scale-[1.03]"
-            />
-          </div>
         </div>
 
         {/* ─── RIGHT: Text content — three clear visual groups ─── */}
-        <div className="flex flex-col flex-1 min-w-0 justify-center" style={{ gap: 0 }}>
+        <div className="flex flex-col flex-1 min-w-0 justify-center" style={{ gap: 0, padding: '22px 18px 22px 12px' }}>
 
           {/* GROUP 1 — Context label (small, purple, top) */}
           <div style={{ marginBottom: '10px' }}>
