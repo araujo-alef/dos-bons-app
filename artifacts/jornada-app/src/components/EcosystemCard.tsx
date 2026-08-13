@@ -32,20 +32,21 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
         style={{ backgroundImage: `url(${imageSrc})` }}
       />
       
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent opacity-90" />
+      {/* Heavy overlay — cards are atmospheric, not hero-level */}
+      <div className="absolute inset-0 bg-[#050505]/55" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
 
       {/* Content */}
-      <div className="absolute inset-0 p-5 flex flex-col justify-end">
-        <h3 className="text-foreground font-serif text-xl mb-1">{product.name}</h3>
-        
+      <div className="absolute inset-0 p-4 flex flex-col justify-end">
+        <h3 className="text-white/85 font-sans text-sm font-semibold mb-1 leading-tight">{product.name}</h3>
+
         {product.available ? (
-          <div className="flex items-center gap-2 text-white/60 text-sm font-medium transition-colors group-hover:text-primary">
+          <div className="flex items-center gap-1 text-white/35 text-xs font-medium transition-colors duration-300 group-hover:text-primary/80">
             <span>Conhecer</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" />
           </div>
         ) : (
-          <div className="text-xs font-semibold tracking-wider text-primary mt-1">
+          <div className="text-[10px] font-bold tracking-[0.18em] text-white/30 mt-0.5">
             EM BREVE
           </div>
         )}

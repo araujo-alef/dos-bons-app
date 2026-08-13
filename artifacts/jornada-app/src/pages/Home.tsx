@@ -3,39 +3,28 @@ import { JourneyHero } from '@/components/JourneyHero';
 import { EcosystemCard } from '@/components/EcosystemCard';
 import { JOURNEY_STATE, CURRENT_CHAPTER_ID, COMPLETED_CHAPTERS } from '@/mocks/config';
 import { chapters, ecosystemProducts } from '@/mocks/data';
+import chainImg from '@assets/image_1786597568841.png';
 
-function HomeBackground() {
+function ChainDivider() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={{ zIndex: 0 }}
+      className="relative w-full flex items-center justify-center overflow-hidden"
+      style={{ height: '40px', margin: '8px 0 24px' }}
     >
-      {/* Primary glow — top-center, behind the hero */}
       <div
         style={{
-          position: 'absolute',
-          top: '-5%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '120%',
-          height: '60%',
-          background:
-            'radial-gradient(ellipse at 50% 10%, rgba(139, 53, 255, 0.28) 0%, rgba(139, 53, 255, 0.10) 40%, transparent 68%)',
-          filter: 'blur(24px)',
-        }}
-      />
-      {/* Secondary glow — lower-left, near Explore section */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '10%',
-          left: '-5%',
-          width: '70%',
-          height: '40%',
-          background:
-            'radial-gradient(ellipse at 20% 80%, rgba(100, 30, 200, 0.14) 0%, transparent 60%)',
-          filter: 'blur(36px)',
+          width: '100%',
+          height: '40px',
+          backgroundImage: `url(${chainImg})`,
+          backgroundSize: 'auto 100%',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: 'invert(1) brightness(0.35) opacity(0.55)',
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)',
+          maskImage:
+            'linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)',
         }}
       />
     </div>
@@ -46,35 +35,54 @@ export default function Home() {
   const currentChapter = chapters.find(c => c.id === CURRENT_CHAPTER_ID);
 
   return (
-    <div className="relative min-h-[100dvh] w-full pb-12" style={{ background: '#050505' }}>
-      <HomeBackground />
-      <AppHeader />
-      
-      <main className="relative animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" style={{ zIndex: 1 }}>
-        <div className="px-6 py-4 mb-4">
-          <p className="font-serif text-white/80 text-xl md:text-2xl italic">
-            O próximo passo começa aqui.
-          </p>
-        </div>
-
-        <JourneyHero 
-          state={JOURNEY_STATE} 
-          currentChapter={currentChapter} 
-          completedCount={COMPLETED_CHAPTERS.length} 
+    <div className="relative min-h-[100dvh] w-full pb-14" style={{ background: '#050505' }}>
+      {/* Subtle ambient background — very dark purple at top */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+        style={{ zIndex: 0 }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '70%',
+            background:
+              'radial-gradient(ellipse 90% 60% at 70% 0%, rgba(139,53,255,0.13) 0%, rgba(139,53,255,0.04) 50%, transparent 75%)',
+          }}
         />
+      </div>
 
-        <section className="px-6 mt-16">
-          <h2 className="text-white/90 text-sm font-semibold tracking-wider mb-6">
-            EXPLORE O ECOSSISTEMA
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {ecosystemProducts.map((product) => (
-              <EcosystemCard key={product.id} product={product} />
-            ))}
-          </div>
-        </section>
-      </main>
+      <div className="relative" style={{ zIndex: 1 }}>
+        <AppHeader />
+
+        <main className="animate-in fade-in duration-700 ease-out">
+          {/* Hero — directly after header, no opening phrase */}
+          <JourneyHero
+            state={JOURNEY_STATE}
+            currentChapter={currentChapter}
+            completedCount={COMPLETED_CHAPTERS.length}
+          />
+
+          {/* Chain divider */}
+          <ChainDivider />
+
+          {/* Ecosystem section */}
+          <section className="px-6 mt-2">
+            <h2 className="text-white/40 text-[10px] font-bold tracking-[0.22em] mb-6">
+              EXPLORE O ECOSSISTEMA
+            </h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {ecosystemProducts.map((product) => (
+                <EcosystemCard key={product.id} product={product} />
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,449 @@
+Quero refinar a Home que já foi criada.
+
+A estrutura atual está boa e **não quero reconstruir a página do zero**. O objetivo desta tarefa é melhorar a direção visual, deixando a Home:
+
+* mais minimalista;
+* mais premium;
+* mais editorial;
+* mais alinhada com a identidade visual real do produto;
+* menos pesada visualmente.
+
+Vou anexar imagens reais da marca e quero que elas sejam utilizadas como referência e, quando indicado, como assets da interface.
+
+## PROBLEMA DA VERSÃO ATUAL
+
+A Home atual funciona estruturalmente, porém está visualmente pesada.
+
+Hoje temos:
+
+* uma frase de abertura grande;
+* um hero com imagem forte;
+* vários cards com imagens igualmente fortes;
+* fundo muito presente;
+* muitos elementos competindo por atenção.
+
+O resultado está elegante, porém com excesso de peso visual.
+
+Quero uma hierarquia muito mais clara:
+
+1. identidade da marca;
+2. Jornada/livro como protagonista absoluto;
+3. ecossistema como conteúdo secundário.
+
+A Home precisa respirar mais.
+
+---
+
+# 1. REMOVER A FRASE GRANDE DE ABERTURA
+
+Remover completamente da Home:
+
+**"O próximo passo começa aqui."**
+
+Não substituir por outra frase grande.
+
+Depois do header, quero que a experiência entre praticamente direto no hero da Jornada.
+
+Isso deve reduzir bastante a altura inicial da página e deixar a interface mais objetiva.
+
+---
+
+# 2. HEADER
+
+Manter:
+
+* logo;
+* nome do ecossistema.
+
+Continuar minimalista.
+
+Não adicionar:
+
+* avatar;
+* menu;
+* notificações;
+* navegação;
+* botões.
+
+A marca no topo deve ter presença discreta.
+
+---
+
+# 3. NOVO HERO DA JORNADA
+
+Vou anexar uma imagem do influencer segurando o livro, com uma figura/cachorro iluminado em roxo ao fundo.
+
+Essa imagem deve substituir a atual arte abstrata do hero.
+
+Ela é o principal asset visual da Home.
+
+## Composição desejada
+
+Não quero simplesmente colocar a foto inteira como background com texto por cima.
+
+Quero uma composição mais editorial.
+
+No mobile:
+
+* a pessoa/livro deve ficar principalmente do lado direito ou na região visual com maior destaque;
+* o conteúdo textual deve permanecer à esquerda;
+* criar uma transição gradual da imagem para preto na região esquerda;
+* o texto deve ficar sobre uma área escura e limpa;
+* preservar ao máximo o rosto, o livro e a figura roxa ao fundo.
+
+Use gradients/masks para integrar a foto ao fundo preto.
+
+Não recorte a imagem agressivamente.
+
+---
+
+# 4. HERO MAIS LIMPO
+
+Manter apenas as informações realmente importantes.
+
+Exemplo:
+
+`CONTINUE DE ONDE PAROU`
+
+**Conexão e Presença**
+
+`5 capítulos concluídos`
+
+`Continuar jornada →`
+
+Se houver novo capítulo:
+
+pequeno selo:
+
+`NOVO CAPÍTULO DISPONÍVEL`
+
+Não mostrar:
+
+* percentual;
+* barra;
+* tempo estimado;
+* número excessivo de informações;
+* descrição longa.
+
+---
+
+# 5. IMAGEM COMO PROTAGONISTA
+
+A fotografia deve ter muito mais importância do que os efeitos gráficos.
+
+Não adicionar:
+
+* grandes glows extras;
+* formas abstratas;
+* partículas genéricas;
+* ilustrações artificiais.
+
+A própria foto já possui iluminação roxa e identidade suficiente.
+
+A interface deve trabalhar ao redor dela.
+
+---
+
+# 6. FUNDO DA HOME
+
+Manter o preto como cor predominante:
+
+`#050505`
+
+Mas evitar um preto completamente chapado.
+
+Inspirar-se também nas referências da landing page anexadas.
+
+Criar um fundo muito sutil com:
+
+* preto;
+* violeta extremamente escuro;
+* transições grandes e suaves;
+* pequenas áreas de luminosidade roxa quase imperceptíveis.
+
+Algo que à primeira vista ainda pareça preto.
+
+Não criar um wallpaper chamativo.
+
+Não usar neon.
+
+Não criar várias bolhas de glow espalhadas.
+
+---
+
+# 7. CORRENTE COMO ELEMENTO DE MARCA
+
+Vou anexar também uma imagem da corrente utilizada na landing page.
+
+Quero testar essa corrente como um **divisor gráfico sutil** entre:
+
+* hero da Jornada;
+* seção "Explore o ecossistema".
+
+Não quero usar a imagem do jeito que ela está, com o fundo branco.
+
+Faça o tratamento necessário para integrá-la ao fundo escuro.
+
+A corrente deve:
+
+* ocupar uma faixa horizontal;
+* ser discreta;
+* poder desaparecer gradualmente nas laterais;
+* funcionar como detalhe de identidade;
+* não parecer uma imagem simplesmente colada na página.
+
+Se o asset não funcionar bem após tratamento, prefira não utilizá-lo a prejudicar o visual.
+
+Use no máximo uma vez na Home.
+
+---
+
+# 8. CAPA DO LIVRO
+
+Também vou anexar a arte completa da capa/contracapa do livro.
+
+Nesta etapa, NÃO quero colocar essa imagem completa dentro da Home.
+
+Use-a principalmente como referência visual para entender:
+
+* identidade da marca;
+* textura;
+* linguagem;
+* tipografia;
+* contraste;
+* uso de preto;
+* uso de branco;
+* elementos agressivos da marca.
+
+A experiência do app deve ser mais refinada e editorial que a capa, portanto não copie literalmente todos os elementos.
+
+---
+
+# 9. EXPLORE O ECOSSISTEMA
+
+Manter a seção:
+
+**EXPLORE O ECOSSISTEMA**
+
+Ela vem imediatamente depois do hero/divisor.
+
+Os produtos continuam em grid:
+
+**2 cards por linha no mobile.**
+
+Exemplos:
+
+* Comunidade;
+* Mentorias;
+* IA de Conversas.
+
+---
+
+# 10. SIMPLIFICAR OS CARDS DO ECOSSISTEMA
+
+Os cards atuais possuem imagens muito fortes e acabam competindo com o hero.
+
+Quero reduzir isso.
+
+O hero deve ser claramente o elemento visual mais forte da Home.
+
+Nos cards secundários:
+
+* imagem mais escura;
+* contraste visual reduzido;
+* overlay preto mais forte que no hero;
+* nome do produto;
+* CTA discreto `Conhecer →`;
+* selo `EM BREVE` quando necessário.
+
+As imagens devem funcionar quase como textura/atmosfera.
+
+Não quero três "mini-heros" abaixo do hero principal.
+
+---
+
+# 11. CONSISTÊNCIA DOS CARDS
+
+Todos os produtos secundários devem:
+
+* ter exatamente a mesma proporção;
+* mesma estrutura;
+* mesmo posicionamento de título;
+* mesmo CTA;
+* mesma linguagem visual.
+
+Não destacar um deles com card maior.
+
+Somente a Jornada possui hero grande.
+
+---
+
+# 12. MAIS ESPAÇO NEGATIVO
+
+A Home atual parece um pouco cheia.
+
+Aumente moderadamente o espaço negativo entre:
+
+* header e hero;
+* hero e divisor;
+* divisor e Explore;
+* linhas do grid.
+
+Porém não crie espaços gigantes.
+
+O resultado deve parecer organizado, silencioso e premium.
+
+---
+
+# 13. TIPOGRAFIA
+
+Use a identidade da landing page como referência, mas sem transformar o app em uma página de vendas.
+
+Manter a ideia:
+
+* labels pequenos e fortes podem utilizar uma fonte mais condensada;
+* títulos principais podem utilizar a serif editorial já escolhida;
+* textos funcionais e CTAs em sans-serif limpa.
+
+Exemplo:
+
+`CONTINUE DE ONDE PAROU`
+
+→ uppercase pequeno, espaçado, lilás.
+
+**Conexão e Presença**
+
+→ serif editorial, branca.
+
+`5 capítulos concluídos`
+
+→ sans-serif secundária.
+
+`Continuar jornada →`
+
+→ sans-serif clara e discreta.
+
+---
+
+# 14. USO DAS CORES
+
+Continuar respeitando:
+
+Background:
+`#050505`
+
+Texto:
+`#FFFFFF`
+
+Identidade roxa:
+`#B266FF`
+
+Glow/roxo escuro:
+baseado em `rgba(139,53,255,...)`
+
+Verde:
+`#16A34A`
+
+O roxo continua sendo a assinatura do app.
+
+O vermelho presente na capa do livro NÃO deve virar a nova cor dominante da interface.
+
+Ele pode futuramente aparecer em situações específicas, mas nesta Home continue priorizando preto + branco + roxo.
+
+---
+
+# 15. NÃO TRANSFORMAR A HOME EM LANDING PAGE
+
+As referências da página de vendas servem para transmitir a identidade da marca.
+
+Não copie:
+
+* grandes headlines de venda;
+* grandes CTAs roxos;
+* textos comerciais;
+* áreas longas;
+* provas sociais;
+* FAQ;
+* blocos de venda.
+
+O aplicativo deve parecer uma evolução mais sofisticada dessa identidade.
+
+A lógica é:
+
+**mesma marca, experiência diferente.**
+
+---
+
+# 16. RESULTADO VISUAL DESEJADO
+
+Quero que a Home passe a sensação de:
+
+* marca forte;
+* conteúdo premium;
+* pouca informação;
+* foco;
+* exclusividade;
+* atmosfera;
+* sofisticação.
+
+Ela deve parecer mais próxima de:
+
+**uma publicação/editorial premium com fotografia forte**
+
+do que de:
+
+**um dashboard com vários cards ilustrados.**
+
+---
+
+# 17. ORDEM FINAL DA HOME
+
+A estrutura final deve ser aproximadamente:
+
+HEADER
+
+↓
+
+HERO DA JORNADA COM A FOTO REAL
+
+↓
+
+DIVISOR DA CORRENTE, SE VISUALMENTE FUNCIONAR
+
+↓
+
+EXPLORE O ECOSSISTEMA
+
+↓
+
+GRID 2 COLUNAS DOS PRODUTOS
+
+↓
+
+FIM
+
+Sem footer.
+
+Sem seção "Do autor".
+
+Sem frase grande de abertura.
+
+Sem seção de métricas.
+
+---
+
+# 18. IMPORTANTE
+
+Não alterar nesta tarefa:
+
+* regras de navegação;
+* rotas;
+* estados mockados;
+* funcionamento da Jornada;
+* funcionamento dos capítulos;
+* lógica de conclusão;
+* estrutura geral do projeto.
+
+Esta tarefa é principalmente um **refinamento visual da Home existente**.
+
+Faça alterações incrementais e preserve tudo que já funciona.

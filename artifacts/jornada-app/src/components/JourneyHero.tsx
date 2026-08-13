@@ -2,7 +2,7 @@ import { Link } from 'wouter';
 import { ArrowRight } from 'lucide-react';
 import type { JourneyState } from '@/mocks/config';
 import type { Chapter } from '@/mocks/data';
-import journeyHeroImg from '@/assets/journey-hero.png';
+import heroPhoto from '@assets/image_1786597558256.png';
 
 interface JourneyHeroProps {
   state: JourneyState;
@@ -11,7 +11,6 @@ interface JourneyHeroProps {
 }
 
 export function JourneyHero({ state, currentChapter, completedCount }: JourneyHeroProps) {
-  // Determine labels and text based on state
   let label = '';
   let title = '';
   let subtext = '';
@@ -21,7 +20,7 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
   switch (state) {
     case 'notStarted':
       label = 'COMECE SUA JORNADA';
-      title = currentChapter?.title || 'O Despertar';
+      title = currentChapter?.title || 'Fundamentos';
       break;
     case 'newChapterAvailable':
       showNewBadge = true;
@@ -42,51 +41,72 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
   }
 
   return (
-    <Link href="/jornada" className="block w-full px-6 mb-12">
-      <div 
-        className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-[20px] overflow-hidden group border border-white/10 hover:border-primary/30 transition-colors duration-500"
-        data-testid="hero-journey"
-      >
-        {/* Background artwork */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-700 ease-out group-hover:scale-105"
-          style={{ backgroundImage: `url(${journeyHeroImg})` }}
-        />
-        
-        {/* Deep elegant overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-80" />
-        
-        {/* Ambient glow in center-left */}
-        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/20 rounded-full blur-[80px] pointer-events-none opacity-50 group-hover:opacity-80 transition-opacity duration-700" />
+    <Link href="/jornada" className="block w-full mb-10" data-testid="hero-journey">
+      {/* Hero — editorial composition: text left, photo right */}
+      <div className="relative w-full overflow-hidden group" style={{ minHeight: '300px' }}>
 
-        {/* Content */}
-        <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-center max-w-[80%] md:max-w-[50%]">
+        {/* Photo — right-aligned, full bleed, no border-radius crop */}
+        <div
+          className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+          style={{
+            backgroundImage: `url(${heroPhoto})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'right center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+
+        {/* Left-to-right fade: solid black on left, transparent toward right */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to right, #050505 0%, #050505 30%, rgba(5,5,5,0.82) 50%, rgba(5,5,5,0.30) 72%, transparent 100%)',
+          }}
+        />
+
+        {/* Bottom vignette for clean edge */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to top, #050505 0%, rgba(5,5,5,0.6) 18%, transparent 45%)',
+          }}
+        />
+
+        {/* Top vignette */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to bottom, #050505 0%, transparent 25%)',
+          }}
+        />
+
+        {/* Text content — left side */}
+        <div className="relative z-10 px-6 md:px-10 py-10 md:py-14 flex flex-col justify-center max-w-[62%] md:max-w-[45%]" style={{ minHeight: '300px' }}>
           {showNewBadge && (
-            <div className="absolute top-6 left-6 md:top-10 md:left-10 bg-primary text-primary-foreground text-[10px] font-bold tracking-widest px-2 py-1 rounded-sm mb-4 inline-block">
+            <span
+              className="text-[9px] font-bold tracking-[0.2em] text-primary border border-primary/40 px-2 py-1 rounded-sm inline-block mb-4 self-start"
+            >
               NOVO CAPÍTULO DISPONÍVEL
-            </div>
+            </span>
           )}
 
-          <div className="flex flex-col gap-2 mt-auto md:mt-0">
-            <span className="text-[10px] md:text-xs font-semibold tracking-widest text-primary/90">
-              {label}
+          <span className="text-[10px] md:text-[11px] font-bold tracking-[0.18em] text-primary/90 mb-3 block">
+            {label}
+          </span>
+
+          <h2 className="font-serif text-2xl md:text-[2.2rem] text-white leading-snug mb-3">
+            {title}
+          </h2>
+
+          {subtext && (
+            <span className="text-white/50 text-sm mb-5 block">
+              {subtext}
             </span>
-            
-            <h2 className="font-serif text-2xl md:text-4xl text-white leading-tight">
-              {title}
-            </h2>
+          )}
 
-            {subtext && (
-              <span className="text-white/60 text-sm md:text-base">
-                {subtext}
-              </span>
-            )}
-
-            <div className="flex items-center gap-2 mt-4 text-white/80 group-hover:text-primary transition-colors text-sm font-medium">
-              <span className="group-hover:underline underline-offset-4 decoration-primary/50">{cta}</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </div>
+          <div className="flex items-center gap-2 text-white/70 group-hover:text-primary transition-colors duration-300 text-sm font-medium mt-1">
+            <span className="group-hover:underline underline-offset-4 decoration-primary/50">{cta}</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </div>
         </div>
       </div>
