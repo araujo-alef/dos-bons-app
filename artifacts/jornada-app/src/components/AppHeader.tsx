@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { ChainSVG } from '@/components/ChainSVG';
+import chainImg from '@/assets/chain-real.png';
 
 export function AppHeader() {
   return (
@@ -8,8 +8,13 @@ export function AppHeader() {
         <p className="text-white text-lg font-semibold tracking-wide leading-none">
           Nem todo cachorro nasceu
         </p>
-        <div className="chain-anim opacity-90">
-          <ChainSVG links={9} />
+        <div className="chain-anim" style={{ mixBlendMode: 'screen' }}>
+          <img
+            src={chainImg}
+            alt=""
+            aria-hidden="true"
+            style={{ width: '200px', height: 'auto', display: 'block' }}
+          />
         </div>
         <p className="text-white text-lg font-semibold tracking-wide leading-none">
           pra usar coleira
