@@ -151,7 +151,7 @@ export function BookReader({ chapter, onComplete }: BookReaderProps) {
       maxHeight={900}
       showCover={false}
       usePortrait={isPortrait}
-      flippingTime={prefersReducedMotion ? 1 : 520}
+      flippingTime={prefersReducedMotion ? 1 : 900}
       useMouseEvents={false}
       mobileScrollSupport={true}
       drawShadow={!isPortrait}
