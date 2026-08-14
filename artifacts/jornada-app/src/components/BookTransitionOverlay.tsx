@@ -179,8 +179,8 @@ function BookTransitionShell() {
         const vh = window.innerHeight;
 
         /* ── Geometry ──────────────────────────────────────────────────── */
-        // Target: book center lands on viewport center, scaled to ~72% width
-        const targetW     = Math.min(vw * 0.72, 310);
+        // Target: book fills ~88% of viewport width — large and imposing
+        const targetW     = vw * 0.88;
         const targetScale = targetW / bookRect.width;
 
         // With transformOrigin:'top left', translate the top-left corner so
@@ -195,48 +195,51 @@ function BookTransitionShell() {
         const expandTx   = vw / 2 - bookRect.left - (bookRect.width  * finalScale) / 2;
         const expandTy   = vh / 2 - bookRect.top  - (bookRect.height * finalScale) / 2;
 
-        // Organic curve offsets (proportional to viewport so mobile/desktop scale)
-        const dipY   = vh * 0.09;   // dip down before rising
-        const swingX = vw * 0.04;   // slight lateral swing
+        // Dramatic arc: book drops down vh*0.30 then rises up to centre
+        // This creates the "descer e subir se aproximando" arc the user wants.
+        const dipY    = vh * 0.30;            // big drop — clearly visible
+        const dipX    = vw * 0.06;            // slight lateral drift on the way down
+        const midScale = targetScale * 0.55;  // mid-arc scale (growing but not there yet)
 
         /* ── detaching (1–2 frames) ────────────────────────────────────── */
         setPhase('detaching');
         await sleep(40);
         if (cancelledRef.current) return;
 
-        /* ── launching (700ms) ─────────────────────────────────────────── */
-        // Curved 4-keyframe path; book flies out of the card, dips, sweeps,
-        // rises to centre — all while growing and tilting.
+        /* ── launching (850ms) ─────────────────────────────────────────── */
+        // 5-keyframe arc: card pos → dip-down-right → bottom of arc →
+        // rising toward centre → arrives centred large.
         setPhase('launching');
         await Promise.all([
           shellCtrl.start({
-            x:       [0, swingX, tx - vw * 0.04, tx],
-            y:       [0, dipY,   ty + vh * 0.04, ty],
-            scale:   [1, 1.06,   targetScale * 1.06, targetScale],
-            rotateZ: [0, -4,     3,  0],
-            rotateY: [0, -8,     5,  0],
-            rotateX: [0,  2,    -1,  0],
+            x:       [0,       dipX,       tx * 0.35,          tx * 0.75,    tx],
+            y:       [0,       dipY * 0.5, dipY,               ty * 0.4,     ty],
+            scale:   [1,       1.10,       midScale,           targetScale * 0.92, targetScale],
+            rotateZ: [0,       -5,         -2,                 1,            0],
+            rotateY: [0,       -10,        -4,                 3,            0],
+            rotateX: [0,        3,          1,                -1,            0],
             transition: {
-              duration: 0.70,
-              times:    [0, 0.33, 0.70, 1],
+              duration: 0.85,
+              times:    [0, 0.20, 0.45, 0.75, 1],
               ease:     [
-                [0.33, 1, 0.68, 1],
-                [0.22, 1, 0.36, 1],
-                [0.16, 1, 0.3,  1],
+                [0.42, 0, 0.58, 1],   // ease-in-out — accelerates into the dip
+                [0.33, 1, 0.68, 1],   // overshoot out of the dip
+                [0.22, 1, 0.36, 1],   // smooth rise
+                [0.16, 1, 0.3,  1],   // lands softly
               ],
             },
           }),
           overlayCtrl.start({
-            opacity:    0.80,
-            transition: { duration: 0.55, ease: 'easeOut' },
+            opacity:    0.85,
+            transition: { duration: 0.65, ease: 'easeOut' },
           }),
         ]);
         if (cancelledRef.current) return;
 
-        /* ── centering (120ms) ─────────────────────────────────────────── */
-        // Book has arrived at centre — brief pause so user registers it.
+        /* ── centering (100ms) ─────────────────────────────────────────── */
+        // Book is now large at viewport centre — brief beat so user registers.
         setPhase('centering');
-        await sleep(120);
+        await sleep(100);
         if (cancelledRef.current) return;
 
         /* ── crossfading PNG → OpeningBookStage (120ms) ─────────────────── */
