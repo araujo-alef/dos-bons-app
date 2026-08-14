@@ -81,7 +81,8 @@ type Phase =
 const NUM_FLIP = 6;
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-/* ─── FlipPage ───────────────────────────────────────────────────────────── */
+/* ─── FlipPage helpers ───────────────────────────────────────────────────── */
+
 const PAGE_BG = [
   'linear-gradient(to right,#d5ccb6,#e4dbca)',
   'linear-gradient(to right,#dbd2bc,#e9e0ce)',
@@ -91,6 +92,53 @@ const PAGE_BG = [
   'linear-gradient(to right,#e8e0cb,#f2e9da)',
 ];
 
+/** Quadratic-bezier wave that looks like cartoon scribble text. */
+function wigglyPath(x0: number, y: number, x1: number, amp: number): string {
+  const wl = 5;
+  let d = `M ${x0.toFixed(1)},${y.toFixed(1)}`;
+  let dir = 1;
+  for (let x = x0; x < x1; x += wl) {
+    const cx = x + wl / 2;
+    const ex = Math.min(x + wl, x1);
+    d += ` Q ${cx.toFixed(1)},${(y + amp * dir).toFixed(1)} ${ex.toFixed(1)},${y.toFixed(1)}`;
+    dir *= -1;
+  }
+  return d;
+}
+
+// [y, x-end (out of 100), amplitude] — varied widths mimic real text lines
+const WIGGLE_LINES: [number, number, number][] = [
+  [12, 94, 1.4],
+  [24, 100, 1.6],
+  [36, 78, 1.3],
+  [48, 97, 1.5],
+  [60, 86, 1.4],
+  [72, 50, 1.6],
+];
+
+function WigglyLines() {
+  return (
+    <svg
+      viewBox="0 0 100 85"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      style={{ position:'absolute', inset:'10% 16% 16% 14%', opacity:0.12 }}
+    >
+      {WIGGLE_LINES.map(([y, x1, amp], i) => (
+        <path
+          key={i}
+          d={wigglyPath(0, y, x1, amp)}
+          stroke="#251508"
+          strokeWidth="1.9"
+          fill="none"
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  );
+}
+
+/* ─── FlipPage ───────────────────────────────────────────────────────────── */
 function FlipPage({ index, phase }: { index: number; phase: Phase }) {
   const flipping = ['flippingBack','zooming','revealingReader','complete'].includes(phase);
   const visible  = ['opening','flippingBack','zooming','revealingReader','complete'].includes(phase);
@@ -107,7 +155,6 @@ function FlipPage({ index, phase }: { index: number; phase: Phase }) {
         position: 'absolute', inset: 0,
         transformOrigin: 'left center',
         transformStyle: 'preserve-3d',
-        borderRadius: '2px 5px 5px 2px',
         zIndex: NUM_FLIP - index,
       }}
     >
@@ -115,22 +162,17 @@ function FlipPage({ index, phase }: { index: number; phase: Phase }) {
       <div style={{
         position: 'absolute', inset: 0,
         background: PAGE_BG[index],
-        borderRadius: 'inherit',
         backfaceVisibility: 'hidden',
         overflow: 'hidden',
       }}>
-        <div style={{ position:'absolute', inset:'12% 16%', display:'flex', flexDirection:'column', gap:'9%', opacity:0.10 }}>
-          {[100,100,100,60,85].map((w,j) => (
-            <div key={j} style={{ height:'4%', background:'#251508', borderRadius:2, width:`${w}%` }} />
-          ))}
-        </div>
+        <WigglyLines />
         <div style={{ position:'absolute', bottom:'6%', right:'8%', fontSize:'6px', color:'rgba(37,21,8,0.22)', fontFamily:'serif' }}>
           {index + 1}
         </div>
         <div style={{ position:'absolute', top:0, bottom:0, left:0, width:'14%', background:'linear-gradient(to right,rgba(0,0,0,0.14),transparent)' }} />
       </div>
       {/* back */}
-      <div style={{ position:'absolute', inset:0, background:'#ddd4be', transform:'rotateY(180deg)', backfaceVisibility:'hidden', borderRadius:'inherit' }} />
+      <div style={{ position:'absolute', inset:0, background:'#ddd4be', transform:'rotateY(180deg)', backfaceVisibility:'hidden' }} />
     </motion.div>
   );
 }
@@ -605,7 +647,6 @@ function BookTransitionShell() {
           <div style={{
             position:'absolute', inset:0,
             background:'#0d0b09',
-            borderRadius:'3px 6px 6px 3px',
             boxShadow:'6px 0 20px rgba(0,0,0,0.7)',
           }} />
 
@@ -613,7 +654,6 @@ function BookTransitionShell() {
           <div style={{
             position:'absolute', inset:0,
             background:'linear-gradient(150deg,#f2e9d4 0%,#ece0c4 100%)',
-            borderRadius:'2px 5px 5px 2px',
             opacity: proxyVisible ? 1 : 0,
             transition:'opacity 80ms ease-in',
             zIndex: 0,
@@ -635,10 +675,10 @@ function BookTransitionShell() {
               zIndex:          NUM_FLIP + 1,
             }}
           >
-            <div style={{ position:'absolute', inset:0, backfaceVisibility:'hidden', borderRadius:'3px 6px 6px 3px', overflow:'hidden' }}>
+            <div style={{ position:'absolute', inset:0, backfaceVisibility:'hidden', overflow:'hidden' }}>
               <img src={bookImg} alt="" style={{ width:'100%', height:'100%', objectFit:'fill', display:'block' }} />
             </div>
-            <div style={{ position:'absolute', inset:0, background:'#181210', backfaceVisibility:'hidden', transform:'rotateY(180deg)', borderRadius:'3px 6px 6px 3px' }} />
+            <div style={{ position:'absolute', inset:0, background:'#181210', backfaceVisibility:'hidden', transform:'rotateY(180deg)' }} />
           </motion.div>
         </motion.div>
       </motion.div>
