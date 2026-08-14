@@ -1,0 +1,451 @@
+Quero fazer uma evolução visual na Home atual para criar uma separação mais clara entre a identidade geral do app e a área dos produtos.
+
+A ideia é manter o **roxo como assinatura da marca Lábia de Cachorro**, concentrado principalmente no topo/app bar, e introduzir uma nova linguagem em **vermelho escuro/vinho** na área dos cards.
+
+Isso deve criar uma diferença visual entre:
+
+* identidade do app;
+* conteúdo/produtos do ecossistema.
+
+Muito importante: não quero transformar a Home em preto + vermelho puro de forma agressiva. O vermelho deve entrar como atmosfera e detalhe, mantendo o visual premium, dark e sofisticado.
+
+# 1. MANTER O TOPO ROXO
+
+Preservar a linguagem atual do topo:
+
+* frase:
+  `Nem todo cachorro nasceu pra usar coleira.`
+* palavra `coleira.` em lilás;
+* corrente roxa;
+* efeitos roxos associados ao header/app bar;
+* identidade geral da marca.
+
+Continuar usando:
+
+`#B266FF`
+
+como principal cor de identidade dessa região.
+
+Não trocar a corrente ou a palavra `coleira.` para vermelho.
+
+Quero que o topo continue claramente associado ao universo visual do **Lábia de Cachorro**.
+
+# 2. A PARTIR DOS CARDS, INTRODUZIR UMA NOVA ATMOSFERA
+
+Na região do grid dos produtos, começar a usar tons vermelhos profundos como cor secundária.
+
+A transição deve ser sutil.
+
+Não precisa existir uma divisão rígida.
+
+A sensação deve ser:
+
+**roxo da marca no topo → conteúdo mais escuro e avermelhado abaixo.**
+
+# 3. PALETA VERMELHA DOS CARDS
+
+Usar principalmente vermelhos escuros e vinho.
+
+Referências:
+
+Glow profundo:
+`rgba(180, 20, 20, 0.12–0.22)`
+
+Vermelho intermediário:
+`#B91C1C`
+ou equivalente
+
+Acento mais vivo:
+`#DC2626`
+ou equivalente
+
+Vermelho claro deve aparecer apenas em pequenos detalhes.
+
+Não usar:
+
+`#FF0000`
+
+como grande área sólida.
+
+# 4. FUNDO DOS CARDS
+
+Os cards devem continuar praticamente pretos.
+
+Manter algo próximo de:
+
+`#08070A`
+`#0B0809`
+ou equivalente.
+
+Adicionar apenas uma nuance vinho/vermelha extremamente discreta.
+
+Exemplo:
+
+* radial gradient vermelho muito suave atrás do ícone;
+* pequena luminosidade inferior;
+* atmosfera profunda.
+
+Não transformar o card em um bloco vermelho.
+
+# 5. CARD DO LIVRO
+
+O card **Cachorro dos Bons** já utiliza uma capa com detalhes vermelhos.
+
+Quero que os efeitos desse card passem a conversar mais diretamente com a capa.
+
+Alterar os efeitos atuais do card do livro de roxo para vermelho/vinho, incluindo quando aplicável:
+
+* glow atrás do livro;
+* pequenos raios/descargas;
+* luz ambiente;
+* reflexos;
+* partículas já existentes;
+* efeitos de hover.
+
+Preservar:
+
+* animação de flutuação;
+* timings;
+* movimento;
+* corrente;
+* estrutura;
+* comportamento.
+
+Trocar principalmente a linguagem cromática.
+
+# 6. CORRENTE DENTRO DO CARD DO LIVRO
+
+Se o card do livro atualmente possui uma corrente decorativa própria associada à animação:
+
+não precisa deixá-la totalmente vermelha.
+
+Preferência:
+
+* corrente grafite/preta;
+* pequenos reflexos vermelhos;
+* iluminação avermelhada ocasional.
+
+Isso mantém sensação metálica.
+
+Não transformar a corrente em um elemento vermelho sólido.
+
+# 7. CARDS COM SVG
+
+Comunidade, Mentorias e IA de Conversas atualmente utilizam SVGs roxos.
+
+Quero adaptar visualmente esses SVGs para a nova linguagem dos cards.
+
+Mas NÃO deixar tudo vermelho.
+
+Usar uma abordagem **duotone**.
+
+Estrutura recomendada:
+
+* formas principais em branco/cinza muito claro;
+* detalhes secundários em vermelho;
+* glow vermelho escuro;
+* pequenos pontos luminosos em vermelho mais vivo.
+
+Exemplo conceitual:
+
+```text
+ícone principal:
+#F0F0F0
+
+detalhes:
+#C62828
+
+glow:
+rgba(180,20,20,.20)
+```
+
+# 8. NÃO PERDER A LEGIBILIDADE DOS SVGs
+
+Os símbolos precisam continuar facilmente reconhecíveis.
+
+Não substituir todos os traços claros por vermelho escuro.
+
+O branco/cinza ajuda a manter contraste.
+
+Use vermelho como:
+
+* energia;
+* glow;
+* conexão;
+* pequenos detalhes.
+
+# 9. COMUNIDADE
+
+No card Comunidade:
+
+* figuras principais podem ficar branco/cinza claro;
+* conexões entre pessoas podem utilizar vermelho;
+* núcleo central pode ter glow vinho;
+* pequenos pontos podem utilizar vermelho mais vivo.
+
+A sensação deve continuar sendo conexão entre pessoas.
+
+# 10. MENTORIAS
+
+No card Mentorias:
+
+* mentor/mentorado podem continuar claros;
+* caminho de orientação pode virar vermelho;
+* ponto final/estrela pode ter pequeno brilho vermelho;
+* glow de fundo vinho escuro.
+
+Não mudar o desenho.
+
+Apenas a linguagem cromática.
+
+# 11. IA DE CONVERSAS
+
+No card IA:
+
+* balões/estrutura podem permanecer claros;
+* núcleo de inteligência/sinal pode receber vermelho;
+* detalhes internos vermelhos;
+* glow de fundo vinho.
+
+Evitar visual cyberpunk vermelho exagerado.
+
+# 12. HOVER DOS CARDS
+
+Nos cards secundários:
+
+ao hover no desktop, usar efeitos muito discretos.
+
+Sugestão:
+
+* glow vermelho aumenta `10%–15%`;
+* borda ganha uma nuance vinho;
+* ícone ganha luminosidade mínima.
+
+Não usar:
+
+* zoom forte;
+* sombra vermelha enorme;
+* flash.
+
+# 13. BORDAS
+
+Manter bordas muito discretas.
+
+Pode substituir uma borda totalmente neutra por algo como:
+
+`rgba(185,28,28,0.10)`
+
+ou similar.
+
+No hover:
+
+`rgba(220,38,38,0.18)`
+
+Ajustar visualmente.
+
+Não deixar outline vermelho aparente demais.
+
+# 14. TEXTO DOS CARDS
+
+Não mudar os títulos dos produtos para vermelho.
+
+Manter:
+
+* títulos em branco/quase branco;
+* labels secundárias em cinza;
+* `JORNADA` ou badges pequenos podem receber vermelho se fizer sentido.
+
+A cor vermelha deve continuar sendo detalhe.
+
+# 15. CARD DO LIVRO — LABEL JORNADA
+
+No card Cachorro dos Bons, se hoje existe:
+
+`JORNADA`
+
+em roxo, alterar para um vermelho mais elegante.
+
+Exemplo:
+
+`#DC2626`
+
+ou ligeiramente mais escuro.
+
+Assim o próprio card já comunica visualmente a mudança de linguagem.
+
+# 16. TRANSIÇÃO ENTRE TOPO E CARDS
+
+Não adicionar uma nova linha divisória.
+
+A separação deve acontecer pela própria mudança cromática.
+
+Podemos usar um gradiente vertical muito discreto no background geral:
+
+topo:
+
+`preto + nuance roxa`
+
+↓
+
+região central:
+
+`preto`
+
+↓
+
+cards:
+
+`preto + nuance vinho`
+
+A transição deve ser longa e suave.
+
+Não criar faixa vermelha visível.
+
+# 17. FUNDO GERAL DA HOME
+
+Manter base:
+
+`#050505`
+
+Mas permitir pequenas atmosferas:
+
+### Região superior
+
+glow roxo extremamente discreto.
+
+### Região dos cards
+
+glow vinho/vermelho extremamente discreto.
+
+Essas atmosferas não devem competir entre si.
+
+# 18. IMPORTANTE: NÃO TROCAR TODA A IDENTIDADE
+
+A marca continua sendo roxa.
+
+Não quero que o app inteiro passe a parecer vermelho.
+
+A regra visual deve ser aproximadamente:
+
+**ROXO**
+= Lábia de Cachorro / marca / topo / assinatura.
+
+**VERMELHO**
+= Cachorro dos Bons / produtos / conteúdo / energia.
+
+# 19. MANTER A FRASE COMO ESTÁ
+
+Não alterar:
+
+`Nem todo cachorro nasceu pra usar coleira.`
+
+Preservar:
+
+* tipografia;
+* destaque roxo em `coleira.`;
+* corrente roxa abaixo.
+
+# 20. MANTER A CORRENTE SUPERIOR ROXA
+
+Muito importante:
+
+a corrente horizontal logo abaixo da frase deve continuar roxa.
+
+Ela faz parte da identidade do topo.
+
+Não recolorir para vermelho.
+
+# 21. NÃO REESTRUTURAR A HOME
+
+Não alterar:
+
+* grid;
+* tamanho dos cards;
+* espaçamentos;
+* ordem dos produtos;
+* textos;
+* rotas;
+* comportamento dos cards.
+
+Esta tarefa é um refinamento cromático.
+
+# 22. NÃO ALTERAR AS ANIMAÇÕES ESTRUTURAIS
+
+No card do livro, preservar:
+
+* flutuação;
+* expansão;
+* animação ao clicar;
+* abertura do livro;
+* shared transition;
+* timings;
+* lógica.
+
+Somente adapte as cores dos efeitos quando necessário.
+
+# 23. RESULTADO DESEJADO
+
+Quero que, ao olhar a Home, exista uma leitura visual clara:
+
+### Parte superior
+
+**Lábia de Cachorro**
+
+preto + roxo.
+
+### Produtos
+
+**universo Cachorro dos Bons / ecossistema**
+
+preto + vermelho/vinho.
+
+Mas tudo ainda precisa parecer parte da mesma marca.
+
+# 24. REFERÊNCIA DE SENSAÇÃO
+
+Quero algo parecido com:
+
+```text
+TOPO
+
+branco
+roxo
+preto
+
+Nem todo cachorro nasceu
+pra usar coleira.
+
+corrente roxa
+
+
+↓ transição suave ↓
+
+
+PRODUTOS
+
+preto
+vinho
+vermelho escuro
+
+[ livro ]
+[ comunidade ]
+[ mentorias ]
+[ IA ]
+```
+
+Não quero uma quebra de tema.
+
+Quero uma evolução cromática dentro da mesma interface.
+
+# 25. CRITÉRIO DE SUCESSO
+
+A mudança está correta se:
+
+* o topo continua imediatamente reconhecível como roxo;
+* os cards passam a ter personalidade própria em vermelho/vinho;
+* a capa do livro parece mais integrada ao ambiente;
+* os SVGs deixam de parecer “ícones neon roxos genéricos”;
+* o visual continua premium;
+* nenhum card parece agressivamente vermelho.
+
+Priorize sutileza, contraste e coerência.

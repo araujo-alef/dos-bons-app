@@ -13,10 +13,10 @@ const CHAIN_W = (16 - 1) * 18 + 18; // 288px — matches ChainSVG default (16 li
 function BoltA() {
   return (
     <svg width="16" height="46" viewBox="0 0 16 46" fill="none" aria-hidden="true"
-      style={{ filter: 'drop-shadow(0 0 5px #B266FF)' }}>
+      style={{ filter: 'drop-shadow(0 0 5px #B91C1C)' }}>
       <path
         d="M 3,0 L 9,15 L 5,15 L 12,30 L 7,30 L 13,45"
-        stroke="#B266FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+        stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
       />
     </svg>
   );
@@ -26,10 +26,10 @@ function BoltA() {
 function BoltB() {
   return (
     <svg width="16" height="44" viewBox="0 0 16 44" fill="none" aria-hidden="true"
-      style={{ filter: 'drop-shadow(0 0 5px #D6B2FF)' }}>
+      style={{ filter: 'drop-shadow(0 0 5px #EF4444)' }}>
       <path
         d="M 13,0 L 7,14 L 11,14 L 4,28 L 8,28 L 2,42"
-        stroke="#D6B2FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+        stroke="#EF4444" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
       />
     </svg>
   );
@@ -39,10 +39,10 @@ function BoltB() {
 function BoltC() {
   return (
     <svg width="12" height="30" viewBox="0 0 12 30" fill="none" aria-hidden="true"
-      style={{ filter: 'drop-shadow(0 0 4px #B266FF)' }}>
+      style={{ filter: 'drop-shadow(0 0 4px #B91C1C)' }}>
       <path
         d="M 4,0 L 9,10 L 6,10 L 10,22 L 7,22 L 11,30"
-        stroke="#B266FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+        stroke="#DC2626" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
       />
     </svg>
   );
@@ -52,10 +52,10 @@ function BoltC() {
 function BoltD() {
   return (
     <svg width="36" height="14" viewBox="0 0 36 14" fill="none" aria-hidden="true"
-      style={{ filter: 'drop-shadow(0 0 4px #D6B2FF)' }}>
+      style={{ filter: 'drop-shadow(0 0 4px #EF4444)' }}>
       <path
         d="M 0,8 L 13,4 L 11,9 L 23,5 L 21,10 L 36,7"
-        stroke="#D6B2FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
       />
     </svg>
   );
@@ -95,8 +95,8 @@ export function JourneyCard() {
   return (
       <div
         ref={cardRef}
-        className="book-card-wrap relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07] cursor-pointer"
-        style={{ background: '#08070B' }}
+        className="book-card-wrap relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border cursor-pointer"
+        style={{ background: '#0B0708', borderColor: 'rgba(185,28,28,0.12)' }}
         data-testid="card-product-jornada"
         onClick={handleClick}
         role="button"
@@ -118,7 +118,7 @@ export function JourneyCard() {
             height: '70%',
             /* translateX(-50%) lives inside the keyframe so scale() stays centered */
             background:
-              'radial-gradient(ellipse at 50% 55%, rgba(178,102,255,0.36) 0%, rgba(139,53,255,0.16) 42%, transparent 70%)',
+              'radial-gradient(ellipse at 50% 55%, rgba(180,20,20,0.34) 0%, rgba(140,10,10,0.15) 42%, transparent 70%)',
             filter: 'blur(22px)',
             pointerEvents: 'none',
           }}
@@ -136,7 +136,7 @@ export function JourneyCard() {
             width: '115%',
             height: '60%',
             background:
-              'radial-gradient(ellipse at 50% 50%, rgba(139,53,255,0.12) 0%, transparent 65%)',
+              'radial-gradient(ellipse at 50% 50%, rgba(140,10,10,0.11) 0%, transparent 65%)',
             filter: 'blur(34px)',
             pointerEvents: 'none',
           }}
@@ -149,7 +149,7 @@ export function JourneyCard() {
           style={{
             zIndex: 14,
             background:
-              'radial-gradient(ellipse 78% 55% at 50% 36%, rgba(178,102,255,0.18) 0%, transparent 70%)',
+              'radial-gradient(ellipse 78% 55% at 50% 36%, rgba(185,28,28,0.18) 0%, transparent 70%)',
           }}
         />
 

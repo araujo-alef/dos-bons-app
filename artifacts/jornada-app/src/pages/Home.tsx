@@ -7,21 +7,30 @@ import chainImg from '@/assets/chain-wide.png';
 export default function Home() {
   return (
     <div className="relative min-h-[100dvh] w-full pb-14" style={{ background: '#050505' }}>
-      {/* Ambient purple — top only, very subtle */}
+      {/* Ambient layers — purple top (brand), wine bottom (products) */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
         style={{ zIndex: 0 }}
       >
+        {/* Purple — header/brand zone */}
         <div
           style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '50%',
+            top: 0, left: 0, right: 0,
+            height: '45%',
             background:
-              'radial-gradient(ellipse 80% 50% at 60% 0%, rgba(139,53,255,0.10) 0%, transparent 70%)',
+              'radial-gradient(ellipse 80% 55% at 60% 0%, rgba(139,53,255,0.10) 0%, transparent 70%)',
+          }}
+        />
+        {/* Wine — products/cards zone, long soft fade */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0, left: 0, right: 0,
+            height: '65%',
+            background:
+              'radial-gradient(ellipse 90% 60% at 40% 100%, rgba(140,10,10,0.11) 0%, transparent 72%)',
           }}
         />
       </div>

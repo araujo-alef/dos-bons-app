@@ -24,8 +24,8 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
   const content = isIconCard ? (
     /* ── Icon cards (Comunidade, Mentorias) — object on dark bg ── */
     <div
-      className="relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border border-white/[0.07]"
-      style={{ background: '#08070B' }}
+      className="relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border"
+      style={{ background: '#0B0708', borderColor: 'rgba(185,28,28,0.10)' }}
       data-testid={`card-product-${product.id}`}
     >
       {/* Faint purple ambient behind icon */}
@@ -34,7 +34,7 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(ellipse 70% 50% at 50% 40%, rgba(139,53,255,0.10) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 70% 50% at 50% 40%, rgba(180,20,20,0.13) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -49,6 +49,7 @@ export function EcosystemCard({ product }: EcosystemCardProps) {
             height: '58%',
             objectFit: 'contain',
             mixBlendMode: 'screen',
+            filter: 'hue-rotate(88deg) saturate(1.15) brightness(0.92)',
             transition: 'opacity 400ms ease',
           }}
           className="opacity-90 group-hover:opacity-100"

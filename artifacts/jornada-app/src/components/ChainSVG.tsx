@@ -14,8 +14,8 @@ export function ChainSVG({ links = 16 }: ChainSVGProps) {
   const W = (links - 1) * SPACING + 18;
   const H = 24;
 
-  const purpleH = new Set([2, 7, 11].filter(i => i < links));
-  const purpleV = new Set([4, 9, 13].filter(i => i < links - 1));
+  const litH = new Set([2, 7, 11].filter(i => i < links));
+  const litV = new Set([4, 9, 13].filter(i => i < links - 1));
 
   return (
     <svg
@@ -28,30 +28,30 @@ export function ChainSVG({ links = 16 }: ChainSVGProps) {
       {/* Pass 1: horizontal links — drawn first, sit behind vertical */}
       {Array.from({ length: links }, (_, i) => {
         const cx = i * SPACING + 9;
-        const lit = purpleH.has(i);
+        const lit = litH.has(i);
         return (
           <ellipse
             key={`h${i}`}
             cx={cx} cy={12}
             rx={8.5} ry={4.2}
-            stroke={lit ? '#4A2878' : '#1C1628'}
+            stroke={lit ? '#5A1010' : '#1A1414'}
             strokeWidth="1.3"
-            fill={lit ? '#140F20' : '#0C0A12'}
+            fill={lit ? '#130808' : '#0C0A0A'}
           />
         );
       })}
       {/* Pass 2: vertical links — interlocked between horizontal pairs */}
       {Array.from({ length: links - 1 }, (_, i) => {
         const cx = i * SPACING + 18;
-        const lit = purpleV.has(i);
+        const lit = litV.has(i);
         return (
           <ellipse
             key={`v${i}`}
             cx={cx} cy={12}
             rx={4.2} ry={9}
-            stroke={lit ? '#5A3490' : '#18142A'}
+            stroke={lit ? '#6B1414' : '#181212'}
             strokeWidth="1.3"
-            fill={lit ? '#110D1E' : '#0A0810'}
+            fill={lit ? '#120808' : '#0A0808'}
           />
         );
       })}
