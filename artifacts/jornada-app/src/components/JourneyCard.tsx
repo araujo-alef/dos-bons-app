@@ -4,9 +4,6 @@ import book3dV3 from '@/assets/book-3d-v3.png';
 import { CURRENT_CHAPTER_ID } from '@/mocks/config';
 import { useBookTransition } from '@/context/BookTransitionContext';
 
-import { ChainSVG } from '@/components/ChainSVG';
-
-const CHAIN_W = (16 - 1) * 18 + 18; // 288px — matches ChainSVG default (16 links)
 
 /* ─── Lightning bolt SVG shapes ─────────────────────────────────────────── */
 /** Tall bolt pointing down-right */
@@ -169,24 +166,6 @@ export function JourneyCard() {
           style={{ top: '14%', right: '7%', zIndex: 20 }}
         >
           <BoltB />
-        </div>
-
-        {/* ── z-[25] Chain — passes behind the book ────────────────────── */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '55%',
-            left: '50%',
-            transform: `translateX(-${CHAIN_W / 2}px)`,
-            zIndex: 25,
-            pointerEvents: 'none',
-          }}
-        >
-          {/* Inner div receives the drift animation (outer keeps centering) */}
-          <div className="chain-anim">
-            <ChainSVG />
-          </div>
         </div>
 
         {/* ── z-[30] Book shadow — synced ellipse below the book ─────────
