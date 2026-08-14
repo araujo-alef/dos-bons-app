@@ -73,14 +73,15 @@ function BoltD() {
      z-[60]  text labels
    --------------------------------------------------------------------------- */
 export function JourneyCard() {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const bookImgRef = useRef<HTMLImageElement>(null);
   const [, setLocation] = useLocation();
   const { startTransition, isTransitioning } = useBookTransition();
   const targetPath = `/jornada/capitulo/${CURRENT_CHAPTER_ID}`;
 
   function handleClick() {
     if (isTransitioning) return;
-    const rect = cardRef.current?.getBoundingClientRect();
+    // Capture the rendered book-image rect for pixel-perfect shell placement
+    const rect = bookImgRef.current?.getBoundingClientRect();
     if (rect) {
       startTransition(targetPath, rect);
     } else {
@@ -91,7 +92,6 @@ export function JourneyCard() {
 
   return (
       <div
-        ref={cardRef}
         className="book-card-wrap relative w-full aspect-[4/5] rounded-[14px] overflow-hidden group border cursor-pointer"
         style={{ background: '#0B0708', borderColor: 'rgba(185,28,28,0.12)' }}
         data-testid="card-product-jornada"
@@ -209,6 +209,7 @@ export function JourneyCard() {
             float animation on <img> so the two transforms don't fight.
           */}
           <img
+            ref={bookImgRef}
             src={book3dV3}
             alt="Cachorro dos Bons"
             className="book-float group-hover:translate-y-[-2px] transition-transform duration-700 ease-out"
@@ -220,6 +221,7 @@ export function JourneyCard() {
               display: 'block',
               mixBlendMode: 'normal',
               willChange: 'transform',
+              animationPlayState: isTransitioning ? 'paused' : 'running',
             }}
             loading="eager"
           />

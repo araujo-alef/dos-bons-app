@@ -1,0 +1,775 @@
+Quero refatorar a transição do livro para uma implementação mais técnica, determinística e fluida, preservando o visual atual da Home e o BookReader já existente.
+
+O objetivo agora é transformar a animação em uma sequência coordenada por fases, com uma trajetória curva, mudança de perspectiva, abertura do livro, folheio rápido para trás e zoom final na página até o leitor real.
+
+A prioridade é:
+
+continuidade visual + ausência de flicker + performance mobile + controle de estado previsível.
+
+1. NÃO IMPLEMENTAR COM VÁRIOS setTimeout INDEPENDENTES
+
+Evite controlar a animação com uma sequência de setTimeout espalhados.
+
+Quero uma arquitetura baseada em uma state machine simples de fases ou uma sequência centralizada de animação.
+
+Exemplo conceitual:
+
+type BookTransitionPhase =
+  | "idle"
+  | "launching"
+  | "centering"
+  | "opening"
+  | "flippingBack"
+  | "zooming"
+  | "revealingReader"
+  | "complete";
+
+Use essa fase como fonte de verdade da transição.
+
+2. CRIAR UM BookTransitionController
+
+Centralize toda a lógica em um componente/hook responsável apenas pela transição.
+
+Exemplo conceitual:
+
+useBookTransition()
+
+ou
+
+<BookTransitionController />
+
+Ele deve controlar:
+
+- fase atual;
+- bounding box inicial;
+- bounding box final;
+- transform atual;
+- abertura da capa;
+- folheio;
+- zoom;
+- opacidade do reader;
+- bloqueio de interação.
+
+Evite lógica de animação espalhada pela Home, card e reader ao mesmo tempo.
+
+3. MANTER UM ÚNICO WRAPPER VISUAL DURANTE QUASE TODA A TRANSIÇÃO
+
+Quero um shell persistente, algo como:
+
+<BookTransitionShell>
+  <GlowLayer />
+  <EnergyLayer />
+  <ClosedBookVisual />
+  <OpeningBookStage />
+  <FlipStack />
+  <ReaderProxyPage />
+</BookTransitionShell>
+
+O BookTransitionShell deve permanecer montado durante toda a transição.
+
+A ideia é evitar:
+
+- desmontar livro;
+- montar outro;
+- recalcular posição;
+- gerar flicker.
+
+4. CAPTURAR A POSIÇÃO INICIAL COM getBoundingClientRect
+
+No clique do card:
+
+const rect = bookRef.current.getBoundingClientRect();
+
+Capture pelo menos:
+
+{
+  top,
+  left,
+  width,
+  height
+}
+
+Use esse rect como estado inicial real da animação.
+
+Não derive posição inicial de valores hardcoded.
+
+5. PROMOVER O LIVRO PARA position: fixed
+
+Quando a animação começar, crie um clone/transição visual do livro usando:
+
+position: fixed;
+
+com:
+
+top: rect.top;
+left: rect.left;
+width: rect.width;
+height: rect.height;
+
+Isso deve manter o livro exatamente sobre o card no primeiro frame.
+
+Depois o card original pode ficar invisível, mas seu espaço no layout deve continuar preservado até a Home ser escondida.
+
+6. USAR useLayoutEffect
+
+Se for React, use useLayoutEffect para aplicar posição e dimensões antes do paint.
+
+Quero evitar:
+
+- primeiro frame em posição default;
+- segundo frame corrigindo posição.
+
+Isso é fundamental para não gerar flash.
+
+7. PREFERÊNCIA POR MOTION / FRAMER MOTION
+
+Se o projeto já usa Motion/Framer Motion, prefira usá-lo para:
+
+- keyframes;
+- animate;
+- useAnimationControls;
+- sequences;
+- layoutId onde fizer sentido.
+
+Evite misturar:
+
+- CSS animation infinita;
+- Motion transform;
+- inline transform;
+
+no mesmo elemento.
+
+Quando a transição começar, pause a animação idle e deixe apenas o controller principal controlar o transform.
+
+8. TRAJETÓRIA CURVA USANDO KEYFRAMES DE X/Y
+
+A trajetória não deve ser linear.
+
+Use múltiplos keyframes de x e y.
+
+Exemplo conceitual:
+
+x: [
+  startX,
+  startX + 20,
+  centerX - 35,
+  centerX
+]
+
+y: [
+  startY,
+  startY + 80,
+  centerY + 50,
+  centerY
+]
+
+O objetivo é criar uma curva:
+
+- sai do card;
+- desce;
+- avança;
+- sobe suavemente até o centro.
+
+Não usar só:
+
+x: [start, center]
+y: [start, center]
+
+9. USAR EASING DIFERENTE POR SEGMENTO
+
+A curva deve parecer orgânica.
+
+Pode usar algo semelhante a:
+
+ease: [
+  [0.33, 1, 0.68, 1],
+  [0.22, 1, 0.36, 1],
+  [0.16, 1, 0.3, 1]
+]
+
+ou equivalente.
+
+Não usar linear.
+
+10. ESCALA DURANTE O VOO
+
+Além da curva, anime scale.
+
+Exemplo conceitual:
+
+scale: [
+  1,
+  1.08,
+  1.35,
+  finalScale
+]
+
+O livro deve parecer se aproximar da câmera.
+
+Mas evite crescimento abrupto.
+
+11. ROTAÇÃO EM MÚLTIPLOS EIXOS
+
+Adicionar leve variação de:
+
+rotateZ
+rotateY
+rotateX
+
+Exemplo:
+
+rotateZ: [-2, 1.5, -0.5, 0]
+rotateY: [-8, 4, -2, 0]
+rotateX: [2, -1, 0]
+
+Valores pequenos.
+
+Não quero giro completo.
+
+12. A FASE centering DEVE ESTABILIZAR ANTES DA ABERTURA
+
+Quando a curva termina:
+
+- posição final fixa;
+- escala final;
+- rotação quase neutra;
+- não desmontar nada.
+
+Duração curta de estabilização:
+
+80–140ms
+
+Essa fase evita começar a abertura enquanto o livro ainda está corrigindo geometria.
+
+13. OpeningBookStage DEVE EXISTIR ANTES DE APARECER
+
+Monte o OpeningBookStage previamente com:
+
+opacity: 0;
+pointer-events: none;
+
+Não monte apenas no instante em que ele será exibido.
+
+Assim evitamos custo de render/layout no frame crítico.
+
+14. ClosedBookVisual E OpeningBookStage DEVEM OCUPAR EXATAMENTE O MESMO SHELL
+
+Ambos precisam usar:
+
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+
+A geometria externa deve vir apenas do BookTransitionShell.
+
+Não permitir que cada fase calcule tamanho independentemente.
+
+15. CROSSFADE CURTO ENTRE O PNG E O OPENING STAGE
+
+Depois da estabilização:
+
+ClosedBookVisual opacity: 1 → 0
+OpeningBookStage opacity: 0 → 1
+
+em aproximadamente:
+
+80–140ms
+
+Não iniciar a abertura da capa antes de o crossfade estar praticamente concluído.
+
+16. PERSPECTIVA DO OPENING STAGE
+
+Use:
+
+perspective: 1200px;
+transform-style: preserve-3d;
+
+no container correto.
+
+A capa frontal deve usar:
+
+transform-origin: left center;
+backface-visibility: hidden;
+
+17. ABERTURA DA CAPA COM rotateY
+
+A capa deve animar aproximadamente:
+
+rotateY: [0, -105]
+
+ou algo próximo.
+
+Duração:
+
+350–500ms
+
+Não abrir até -180deg se isso piorar visualmente.
+
+18. CRIAR UMA FACE TRASEIRA SIMPLES PARA A CAPA
+
+Se a rotação passar de 90°, não mostrar a capa espelhada.
+
+Use duas faces:
+
+<div className="cover">
+  <div className="cover-front" />
+  <div className="cover-back" />
+</div>
+
+Com:
+
+backface-visibility: hidden;
+
+A face traseira pode ser:
+
+- preto;
+- grafite;
+- textura discreta.
+
+19. MIOLO/PÁGINAS INTERNAS DEVEM EXISTIR DESDE O INÍCIO DA ABERTURA
+
+Atrás da capa, já deve haver:
+
+<PageStack />
+
+O usuário precisa enxergar as páginas aparecendo conforme a capa abre.
+
+Não mostrar página só depois que a capa terminar.
+
+20. APÓS ABRIR, INICIAR FASE flippingBack
+
+Quando a capa estiver suficientemente aberta:
+
+iniciar uma animação rápida de páginas virando de trás para frente, simulando retorno ao início do livro.
+
+Não usar o BookReader real para essa fase se isso complicar.
+
+Crie um FlipStack temporário.
+
+21. IMPLEMENTAÇÃO RECOMENDADA DO FlipStack
+
+Crie entre 5 e 8 folhas temporárias:
+
+{pages.map((_, index) => (
+  <div className="transition-page" />
+))}
+
+Todas ficam empilhadas.
+
+Cada folha usa:
+
+position: absolute;
+transform-origin: left center;
+transform-style: preserve-3d;
+
+ou a origem adequada para a direção de retorno.
+
+22. FOLHEAR USANDO STAGGER
+
+As folhas devem virar com pequeno stagger.
+
+Exemplo:
+
+page 0 → delay 0ms
+page 1 → delay 45ms
+page 2 → delay 90ms
+page 3 → delay 135ms
+...
+
+Cada flip pode durar:
+
+180–260ms
+
+A fase inteira deve ficar aproximadamente entre:
+
+400–650ms
+
+23. A ANIMAÇÃO DAS FOLHAS PODE USAR rotateY
+
+Exemplo conceitual:
+
+rotateY: [0, 160]
+
+ou inverso, dependendo da direção visual correta.
+
+A direção precisa parecer que estamos voltando para o início.
+
+24. ADICIONAR SOMBRA INDIVIDUAL ÀS FOLHAS
+
+Cada página temporária deve ter uma sombra/gradient que acompanhe a rotação.
+
+Evite filtros pesados.
+
+Pode usar:
+
+background:
+  linear-gradient(...),
+  pageColor;
+
+para simular sombra.
+
+25. NÃO RENDERIZAR CONTEÚDO REAL EM TODAS AS FOLHAS
+
+As páginas de folheio são transitórias.
+
+Não precisa renderizar conteúdo completo.
+
+Pode usar:
+
+- pequenas linhas falsas;
+- textura editorial;
+- números pequenos;
+- ou superfície quase limpa.
+
+O foco é o movimento.
+
+26. A ÚLTIMA PÁGINA DO FOLHEIO DEVE SER UMA ReaderProxyPage
+
+Quando o folheio terminar, deixar uma página estática que representa exatamente a página que será mostrada no BookReader.
+
+Essa página será a ponte para o zoom final.
+
+27. ReaderProxyPage DEVE COPIAR O VISUAL DO LEITOR REAL
+
+Ela deve utilizar os mesmos tokens do BookReader:
+
+- background;
+- border radius;
+- text color;
+- typography;
+- padding;
+- aspect ratio.
+
+Não precisa renderizar tudo, mas precisa se parecer visualmente com o destino.
+
+28. ZOOM FINAL DEVE ACONTECER NO SHELL/PÁGINA, NÃO NA ROTA INTEIRA
+
+Na fase zooming:
+
+anime a ReaderProxyPage até ocupar exatamente o bounding box final do leitor.
+
+Use:
+
+targetReaderRect = readerContainer.getBoundingClientRect()
+
+se o reader já estiver pré-montado.
+
+29. PRÉ-MONTAR O BookReader
+
+Idealmente, monte o BookReader antes da fase final:
+
+opacity: 0;
+pointer-events: none;
+visibility: visible;
+
+Assim podemos medir seu getBoundingClientRect().
+
+Não use display: none, porque isso impede medir layout.
+
+30. USAR FLIP PARA ALINHAR PROXYPAGE E READER
+
+A transição final deve seguir FLIP:
+
+First
+rect da ReaderProxyPage.
+
+Last
+rect do BookReader.
+
+Invert
+calcular:
+
+deltaX = first.left - last.left
+deltaY = first.top - last.top
+scaleX = first.width / last.width
+scaleY = first.height / last.height
+
+Play
+anime de:
+
+translate(deltaX, deltaY) scale(scaleX, scaleY)
+
+para:
+
+translate(0,0) scale(1)
+
+Isso aumenta muito a chance de o zoom parecer contínuo.
+
+31. CROSSFADE FINAL
+
+Enquanto a proxy page chega ao retângulo do reader:
+
+ProxyPage opacity 1 → 0
+BookReader opacity 0 → 1
+
+em aproximadamente:
+
+120–220ms
+
+Quando terminar:
+
+- remover transition shell;
+- habilitar pointer events do reader;
+- marcar phase como complete.
+
+32. NÃO NAVEGAR DESMONTANDO TUDO NO MEIO
+
+Se a navegação de rota estiver desmontando a Home/transition cedo demais, use uma estratégia de overlay persistente.
+
+Pode ser:
+
+<TransitionPortal />
+
+renderizado em um portal no root.
+
+Assim a animação continua independente da rota.
+
+33. PREFERIR PORTAL PARA A TRANSIÇÃO
+
+Se necessário:
+
+createPortal(
+  <BookTransitionShell />,
+  document.body
+)
+
+Isso evita problemas com:
+
+- overflow: hidden;
+- stacking context;
+- transforms de pais;
+- z-index.
+
+O shell deve usar:
+
+position: fixed;
+inset: 0;
+z-index: alto;
+pointer-events: none;
+
+e o livro interno recebe seus próprios bounds.
+
+34. USAR ResizeObserver PARA RESPONSIVIDADE
+
+O target do reader pode mudar conforme viewport.
+
+Use ResizeObserver ou medida no momento correto.
+
+Não hardcode dimensões baseadas em 390px.
+
+35. MOBILE CONTINUA SINGLE-PAGE
+
+No mobile:
+
+o BookReader final precisa estar em single-page.
+
+O ReaderProxyPage também precisa representar uma única página.
+
+Não criar spread visual no final da animação mobile.
+
+36. DESKTOP PODE ADAPTAR PARA SPREAD
+
+No desktop, se o reader tiver duas páginas, a ReaderProxyPage pode se expandir em um ReaderProxySpread.
+
+Mas só faça isso depois que mobile estiver impecável.
+
+37. TIMELINE SUGERIDA
+
+Algo próximo de:
+
+0–650ms
+launching / curva + scale + rotação
+
+650–760ms
+centering / estabilização
+
+760–880ms
+crossfade PNG → OpeningBookStage
+
+880–1280ms
+opening / capa abre
+
+1080–1600ms
+flippingBack / folhas voltam ao início
+
+1600–1900ms
+zooming / proxy page ocupa o reader
+
+1820–2050ms
+revealingReader / crossfade final
+
+Total aproximado:
+
+~2.0s
+
+Pode variar entre 1.7s e 2.3s.
+
+Não exceder muito isso.
+
+38. EVITAR CONFLITOS DE TRANSFORM
+
+Regra importante:
+
+Cada nível deve ter responsabilidade única.
+
+Exemplo:
+
+TransitionShell
+→ posição global / trajetória / scale
+
+OpeningBookStage
+→ perspectiva geral
+
+Cover
+→ rotateY da abertura
+
+TransitionPage
+→ rotateY individual do flip
+
+ReaderProxy
+→ zoom final
+
+Não aplique todos os transforms no mesmo elemento.
+
+39. will-change
+
+Durante a transição, usar com moderação:
+
+will-change: transform, opacity;
+
+Nos elementos:
+
+- shell;
+- capa;
+- páginas temporárias;
+- proxy.
+
+Remover ou deixar de aplicar quando a animação terminar.
+
+40. NÃO ANIMAR PROPRIEDADES DE LAYOUT
+
+Evitar animar:
+
+- top;
+- left;
+- width;
+- height;
+
+continuamente.
+
+Calcule bounds e converta em:
+
+transform: translate(...) scale(...)
+
+para melhor performance.
+
+41. ASSETS PRECISAM ESTAR PRÉ-CARREGADOS
+
+Antes de iniciar a transição:
+
+- book PNG;
+- cover image;
+- qualquer textura do opening stage;
+
+precisam já estar decodificados.
+
+Use algo como:
+
+await img.decode()
+
+ou preload equivalente.
+
+Não permitir fetch/decode no meio da animação.
+
+42. EVENTOS DE CONCLUSÃO DEVEM CONTROLAR FASES
+
+Prefira:
+
+await controls.start(...)
+
+ou onAnimationComplete
+
+para mudar de fase.
+
+Não use timers soltos para supor que uma animação terminou.
+
+43. BLOQUEAR INTERAÇÃO ENQUANTO phase !== complete
+
+Durante a transição:
+
+isTransitioning = true
+
+Bloquear:
+
+- novos cliques;
+- outros cards;
+- gesture do reader antes da hora.
+
+Depois do crossfade final:
+
+isTransitioning = false
+
+44. REDUCED MOTION
+
+Se:
+
+prefers-reduced-motion: reduce
+
+usar fluxo simplificado:
+
+Home
+→ fade
+→ Reader
+
+Sem:
+
+- trajetória curva;
+- giro;
+- abertura;
+- folheio;
+- zoom complexo.
+
+45. FALLBACK
+
+Se qualquer etapa falhar:
+
+não travar o usuário.
+
+Fallback:
+
+navigateToReader()
+
+O efeito é opcional; a navegação não.
+
+46. CRITÉRIO TÉCNICO DE ACEITE
+
+Considere a implementação correta somente se:
+
+- nenhum asset carrega no meio da transição;
+- não existe layout shift visível;
+- não existe frame preto/branco entre fases;
+- não existe flicker PNG → opening stage;
+- trajetória é curva, não linear;
+- opening stage nasce no mesmo bounds do livro centralizado;
+- folheio usa stagger suave;
+- proxy page termina exatamente no bounds do reader;
+- reader assume sem salto;
+- mobile termina em single-page.
+
+47. CRITÉRIO VISUAL DE ACEITE
+
+Em câmera lenta, a sequência deve parecer um único objeto contínuo:
+
+card → livro voa em curva → estabiliza → abre → folhas voltam rápido → página cresce → leitor assume
+
+O usuário não deve perceber:
+
+- troca de componente;
+- troca de asset;
+- troca de rota;
+- troca de layout.
+
+A tecnologia pode mudar por baixo.
+
+Visualmente deve parecer uma única animação contínua.
