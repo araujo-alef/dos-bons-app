@@ -74,10 +74,10 @@ export function BookTransitionOverlay() {
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = requestAnimationFrame(() => {
         setPhase(1);                                              // shell → centre
-        at(() => setPhase(2), 308);                              // crossfade
-        at(() => setPhase(3), 392);                              // open cover
-        at(() => { setLocation(transition.targetPath); setPhase(4); }, 665);
-        at(() => clearTransition(), 896);
+        at(() => setPhase(2), 440);                              // crossfade
+        at(() => setPhase(3), 560);                              // open cover
+        at(() => { setLocation(transition.targetPath); setPhase(4); }, 950);
+        at(() => clearTransition(), 1280);
       });
     });
 
@@ -107,36 +107,36 @@ export function BookTransitionOverlay() {
     ? `translate(${dx}px, ${dy}px) scale(${scale})`
     : 'translate(0px, 0px) scale(1)';
   const shellTransition = phase === 1
-    ? 'transform 294ms cubic-bezier(0.22,1,0.36,1)'
+    ? 'transform 420ms cubic-bezier(0.22,1,0.36,1)'
     : 'none';                       // ← frozen in place for phases 2–5
 
   // PNG: visible in phases 0–1, fades out at phase 2
   const pngOpacity    = phase >= 2 ? 0 : 1;
-  const pngTransition = phase === 2 ? 'opacity 98ms ease-out' : 'none';
+  const pngTransition = phase === 2 ? 'opacity 140ms ease-out' : 'none';
 
   // Stage: pre-mounted at opacity 0; fades in at phase 2, out at phase 4
   const stageOpacity    = phase >= 4 ? 0 : phase >= 2 ? 1 : 0;
   const stageTransition = phase >= 4
-    ? 'opacity 210ms ease-out'
+    ? 'opacity 300ms ease-out'
     : phase === 2
-    ? 'opacity 98ms ease-in'
+    ? 'opacity 140ms ease-in'
     : 'none';
 
   // Cover rotation (only in phase 3)
   const coverDeg        = phase >= 3 ? -115 : 0;
   const coverTransition = phase === 3
-    ? 'transform 385ms cubic-bezier(0.22,1,0.36,1)'
+    ? 'transform 550ms cubic-bezier(0.22,1,0.36,1)'
     : 'none';
 
   // Shadow on inner page (sweeps away as cover opens)
   const shadowOpacity    = phase >= 3 ? 0 : 1;
-  const shadowTransition = phase === 3 ? 'opacity 350ms ease-out 42ms' : 'none';
+  const shadowTransition = phase === 3 ? 'opacity 500ms ease-out 60ms' : 'none';
 
   // Spine light (purple/warm, appears as cover opens)
   const spineLightOpacity    = phase === 3 ? 0.65 : 0;
   const spineLightTransition = phase === 3
-    ? 'opacity 245ms ease-in'
-    : 'opacity 140ms ease-out';
+    ? 'opacity 350ms ease-in'
+    : 'opacity 200ms ease-out';
 
   // Ambient glow (peaks at phase 3)
   const glowOpacity    = phase === 3 ? 0.65 : phase === 2 ? 0.30 : 0;
@@ -145,9 +145,9 @@ export function BookTransitionOverlay() {
   // Dark overlay
   const bgOpacity    = phase >= 4 ? 0 : phase >= 1 ? 0.94 : 0;
   const bgTransition = phase >= 4
-    ? 'opacity 280ms ease-out'
+    ? 'opacity 400ms ease-out'
     : phase === 1
-    ? 'opacity 252ms ease-out'
+    ? 'opacity 360ms ease-out'
     : 'none';
 
   return (
