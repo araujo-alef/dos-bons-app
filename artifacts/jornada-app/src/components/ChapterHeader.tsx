@@ -9,7 +9,7 @@ interface ChapterHeaderProps {
 export function ChapterHeader({ chapter }: ChapterHeaderProps) {
   return (
     <header className="px-6 py-8 md:py-12 max-w-2xl mx-auto w-full flex flex-col gap-6 animate-in fade-in duration-1000 fill-mode-both">
-      <Link href="/jornada" className="inline-flex items-center text-white/40 hover:text-white transition-colors w-fit no-underline">
+      <Link href="/" className="inline-flex items-center text-white/40 hover:text-white transition-colors w-fit no-underline">
         <ArrowLeft className="w-5 h-5" />
       </Link>
       

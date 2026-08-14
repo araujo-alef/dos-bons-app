@@ -108,7 +108,7 @@ export default function Chapter() {
           style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
         >
           <Link
-            href="/jornada"
+            href="/"
             className="flex items-center justify-center no-underline text-white/40 hover:text-white/70 transition-colors"
             style={{ width: '32px', height: '32px' }}
           >

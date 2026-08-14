@@ -5,7 +5,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import Home from '@/pages/Home';
-import Journey from '@/pages/Journey';
 import Chapter from '@/pages/Chapter';
 import UpToDate from '@/pages/UpToDate';
 import { BookTransitionProvider } from '@/context/BookTransitionContext';
@@ -24,7 +23,6 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/jornada" component={Journey} />
         <Route path="/jornada/capitulo/:id" component={Chapter} />
         <Route path="/jornada/em-dia" component={UpToDate} />
         <Route component={NotFound} />

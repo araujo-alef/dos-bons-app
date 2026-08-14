@@ -42,7 +42,7 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
   }
 
   return (
-    <Link href="/jornada" className="block w-full px-4 md:px-6 mb-8" data-testid="hero-journey">
+    <Link href="/" className="block w-full px-4 md:px-6 mb-8" data-testid="hero-journey">
       <div
         className="relative w-full flex flex-row items-stretch rounded-[8px] overflow-hidden group border border-white/[0.06] transition-colors duration-500 hover:border-white/[0.12]"
         style={{

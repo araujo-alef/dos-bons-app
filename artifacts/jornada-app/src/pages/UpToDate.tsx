@@ -22,7 +22,7 @@ export default function UpToDate() {
         </p>
 
         <Link 
-          href="/jornada" 
+          href="/" 
           data-testid="link-revisit-chapters"
           className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors group no-underline"
         >
