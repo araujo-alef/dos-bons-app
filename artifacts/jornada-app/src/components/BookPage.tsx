@@ -118,7 +118,7 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
             userSelect: 'none',
           }}
         >
-          {pageIndex + 1} / {totalPages}
+          {pageIndex + 1}
         </div>
       </div>
     );
