@@ -221,7 +221,10 @@ export function JourneyCard() {
               display: 'block',
               mixBlendMode: 'normal',
               willChange: 'transform',
-              animationPlayState: isTransitioning ? 'paused' : 'running',
+              // Hide instantly when transitioning — the shell sits pixel-perfect
+              // on top and takes over. Leaving it visible (even paused) creates
+              // the impression of a freeze as the dark overlay fades in slowly.
+              opacity: isTransitioning ? 0 : 1,
             }}
             loading="eager"
           />
