@@ -104,20 +104,21 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
           )}
         </div>
 
-        {/* Page number */}
+        {/* Page number — always bottom-right */}
         <div
           style={{
             position: 'absolute',
-            bottom: '7px',
-            [numSide]: '16px',
-            fontSize: '9px',
+            bottom: '10px',
+            right: '16px',
+            fontSize: '10px',
             fontFamily: 'monospace',
-            color: C.inkGhost,
-            letterSpacing: '0.05em',
+            color: C.inkFaint,
+            letterSpacing: '0.06em',
             zIndex: 3,
+            userSelect: 'none',
           }}
         >
-          {pageIndex + 1}
+          {pageIndex + 1} / {totalPages}
         </div>
       </div>
     );

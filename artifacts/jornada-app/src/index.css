@@ -366,3 +366,5 @@
     animation: none !important;
   }
 }
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }

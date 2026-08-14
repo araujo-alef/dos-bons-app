@@ -2,7 +2,7 @@ import { Link } from "wouter";
 
 export function AppHeader() {
   return (
-    <header className="flex flex-col items-center justify-center pt-6 pb-0 px-4">
+    <header className="flex flex-col items-center justify-center pt-8 pb-0 px-4">
       <Link href="/" className="no-underline text-center">
         <p
           style={{
