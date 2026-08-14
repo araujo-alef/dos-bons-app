@@ -310,8 +310,8 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     // In highlight mode, taps go to text selection — don't navigate
     if (readerMode === 'highlighting') return;
 
-    // Collapse toolbar but still execute the action
-    if (toolbarExpanded) setToolbarExpanded(false);
+    // First tap only closes the toolbar; action fires on the next tap
+    if (toolbarExpanded) { setToolbarExpanded(false); return; }
 
     const { left, width } = e.currentTarget.getBoundingClientRect();
     const x     = e.clientX - left;
