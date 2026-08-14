@@ -102,31 +102,28 @@ export default function Chapter() {
         )}
         {isCompleted && <ChapterCompletion onNext={handleNext} />}
 
-        {/* Minimal header */}
-        <header
-          className="flex items-center gap-3 flex-shrink-0"
-          style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+        {/* Floating back arrow */}
+        <Link
+          href="/"
+          className="no-underline"
+          style={{
+            position: 'absolute',
+            top: '14px',
+            left: '14px',
+            zIndex: 50,
+            width: '32px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'rgba(0,0,0,0.45)',
+          }}
+          aria-label="Voltar"
         >
-          <Link
-            href="/"
-            className="flex items-center justify-center no-underline text-white/40 hover:text-white/70 transition-colors"
-            style={{ width: '32px', height: '32px' }}
-          >
-            <ArrowLeft style={{ width: '18px', height: '18px' }} />
-          </Link>
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 600,
-              letterSpacing: '0.15em',
-              color: 'rgba(255,255,255,0.35)',
-            }}
-          >
-            CAPÍTULO {chapter.number}
-          </span>
-        </header>
+          <ArrowLeft style={{ width: '20px', height: '20px' }} />
+        </Link>
 
-        {/* Book — fills remaining height */}
+        {/* Book — fills full height */}
         <BookReader chapter={chapter} onComplete={handleComplete} />
       </div>
     );
