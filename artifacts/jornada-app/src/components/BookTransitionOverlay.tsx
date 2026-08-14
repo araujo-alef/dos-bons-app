@@ -149,36 +149,35 @@ function FlipPage({ index, phase }: { index: number; phase: Phase }) {
  *    270° → spine visible (lombada)
  *    360° → front visible again
  *
- *  The parent BookFlightObject div receives rotateY/X/Z from bookRotCtrl.
- *  The shell parent moves via x/y/scale (shellCtrl).
- *  Both are in separate Framer Motion elements so transforms don't mix.
+ *  The shell parent moves via x/y/scale (shellCtrl for FM phases; WAAPI during flight).
+ *  The BookFlightObject itself is a plain div animated via WAAPI — no Framer Motion
+ *  controls on it. WAAPI runs entirely on the compositor, so keyframe boundaries
+ *  produce zero JS-thread stutter.
  * ─────────────────────────────────────────────────────────────────────────── */
 function BookFlightObject({
-  bookRotCtrl,
+  bookFlightRef,
   spineW,
   pagesW,
   phase,
 }: {
-  bookRotCtrl: ReturnType<typeof useAnimationControls>;
+  bookFlightRef: React.RefObject<HTMLDivElement>;
   spineW: number;
   pagesW: number;
   phase: Phase;
 }) {
-  // Hide the 3D flight object once we crossfade to OpeningBookStage
+  // Hide once we crossfade to OpeningBookStage
   const flightVisible = !['crossfading','opening','flippingBack','zooming','revealingReader','complete'].includes(phase);
 
   return (
-    <motion.div
-      initial={{ rotateY: 0, rotateX: 0, rotateZ: 0 }}
-      animate={bookRotCtrl}
+    <div
+      ref={bookFlightRef}
       style={{
         position:       'absolute',
         inset:          0,
         transformStyle: 'preserve-3d',
-        // opacity driven by phase (fade out when OpeningBookStage takes over)
-        opacity: flightVisible ? 1 : 0,
-        transition: 'opacity 120ms ease-out',
-        pointerEvents: 'none',
+        opacity:        flightVisible ? 1 : 0,
+        transition:     'opacity 150ms ease-out',
+        pointerEvents:  'none',
       }}
     >
       {/* ── Front face ─────────────────────────────────── */}
@@ -277,7 +276,7 @@ function BookFlightObject({
           }} />
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -288,15 +287,17 @@ function BookTransitionShell() {
   const [phase, setPhase] = useState<Phase>('idle');
   const cancelledRef = useRef(false);
 
-  // Shell: position in space (x, y, scale)
+  // Shell: position in space (x, y, scale) — Framer Motion for non-flight phases
   const shellCtrl   = useAnimationControls();
-  // Book orientation (rotateY, rotateX, rotateZ) — separate from position
-  const bookRotCtrl = useAnimationControls();
   // Supporting elements
   const overlayCtrl = useAnimationControls();
-  const pngCtrl     = useAnimationControls();   // ← actually unused after refactor; kept for safety
   const stageCtrl   = useAnimationControls();
   const coverCtrl   = useAnimationControls();
+
+  // Refs for WAAPI during the flight phase
+  // WAAPI runs on the compositor — no JS-thread stutter at keyframe boundaries
+  const shellRef      = useRef<HTMLDivElement>(null);
+  const bookFlightRef = useRef<HTMLDivElement>(null);
 
   // Reset phase when transition disappears
   useLayoutEffect(() => {
@@ -372,67 +373,97 @@ function BookTransitionShell() {
         await sleep(40);
         if (cancelledRef.current) return;
 
-        /* ── launching — 3D flight maneuver ────────────────────────────────
+        /* ── launching — WAAPI 3D flight maneuver ──────────────────────────
          *
-         *  KEY DESIGN DECISIONS:
+         *  WHY WAAPI (Web Animations API) instead of Framer Motion:
          *
-         *  1. Single ease value (not an array) for the whole keyframe sequence.
-         *     Per-segment ease arrays cause Framer Motion to create separate
-         *     internal sub-animations, producing visible micro-stutters at
-         *     every keyframe boundary. A single cubic-bezier runs one continuous
-         *     interpolation across all keyframes — no joints, no hitches.
+         *  Framer Motion implements multi-property keyframe animations by
+         *  creating per-segment sub-animations internally. At every keyframe
+         *  boundary, one sub-animation ends and the next begins — even with
+         *  a single ease value — producing a visible micro-stutter on each
+         *  joint. With 7 keyframes (6 joints) this was 5-6 visible freezes.
          *
-         *  2. No centering pause. The ease already decelerates at the end.
-         *     A static pause after motion reads as a freeze/bug.
+         *  WAAPI runs entirely on the browser's compositor thread. Keyframe
+         *  interpolation is native — no JS between frames, no boundary
+         *  artifacts. `easing` per keyframe lets us control per-segment
+         *  velocity without creating separate animations.
          *
-         *  3. Crossfade starts 200ms before flight ends (overlap).
-         *     OpeningBookStage fades in while the book is still settling,
-         *     creating a seamless handoff with no dead moment between phases.
+         *  After the WAAPI flight ends:
+         *    1. shellCtrl.set() syncs Framer Motion's internal state
+         *    2. WAAPI animations are cancelled (FM has already taken over)
+         *    3. Remaining phases (open, flip, zoom, fade) continue with FM
          *
-         *  POSITION:  dip down 28% vh, lateral drift, rise to centre.
-         *  ROTATION:  rotateY 0→360: front→pages-edge→back→spine→front.
-         *             rotateX: nose-dive (max 24°) then pull-up.
-         *             rotateZ: banking tilt (max -14°).
+         *  POSITION:  5-point arc — leave card → dip 28% vh → rise to centre.
+         *             Using 'ease-in' on down-segments, 'ease-out' on up-segments
+         *             so velocity is continuous at the dip (no stutter there).
+         *  ROTATION:  rotateY 0→360, rotateX nose-dive/pull-up, rotateZ banking.
          * ─────────────────────────────────────────────────────────────── */
         setPhase('launching');
 
-        // Single smooth cubic-bezier for the entire flight.
-        // Slow out of the card, full speed through the maneuver,
-        // decelerates as it arrives at centre.
-        const flightEase: [number, number, number, number] = [0.37, 0, 0.63, 1];
-        const FLIGHT_MS  = 1400;
-        const CROSSFADE_OVERLAP_MS = 200; // crossfade starts this many ms before flight ends
+        const FLIGHT_MS            = 1400;
+        const CROSSFADE_OVERLAP_MS = 200;
 
-        shellCtrl.start({
-          x:     [0,        dipX * 0.6, dipX,       dipX * 0.4, tx * 0.35,  tx * 0.78, tx],
-          y:     [0,        dipY * 0.3, dipY * 0.8, dipY,       dipY * 0.4, ty * 0.6,  ty],
-          scale: [1,        0.97,       0.93,       1.02,       1.18,       targetScale * 0.96, targetScale],
-          transition: { duration: FLIGHT_MS / 1000, times: KF_TIMES, ease: flightEase },
-        });
-        bookRotCtrl.start({
-          rotateY: [0,   30,   90,   180,  270,  330,  360],
-          rotateX: [0,   10,   22,   24,   14,   4,    0  ],
-          rotateZ: [0,   -6,   -13,  -14,  -7,   3,    0  ],
-          transition: { duration: FLIGHT_MS / 1000, times: KF_TIMES, ease: flightEase },
-        });
-        overlayCtrl.start({
-          opacity:    0.85,
-          transition: { duration: 0.55, ease: 'easeOut' },
-        });
+        // Overlay fades in during flight (simple FM animation — fine to fire-and-forget)
+        overlayCtrl.start({ opacity: 0.85, transition: { duration: 0.55, ease: 'easeOut' } });
 
-        // Wait until 200ms before flight ends, then start crossfade (overlap)
+        // ── WAAPI: Shell position ─────────────────────────────────────────
+        // translate(x, y) scale(s) — same CSS values FM uses, so set() handoff is seamless.
+        // Per-keyframe easing: ease-in on descent (exit fast), ease-out on ascent (arrive soft).
+        // At the dip boundary: descent ends at max velocity, ascent starts at max velocity → smooth.
+        let shellWaapi: Animation | null = null;
+        const shellEl = shellRef.current;
+        if (shellEl) {
+          shellWaapi = shellEl.animate([
+            { transform: `translate(0px, 0px) scale(1)`,
+              easing: 'cubic-bezier(0.4,0,1,1)' },                                         // t=0.00 → ease-in (accelerates into dip)
+            { transform: `translate(${dipX * 0.5}px, ${dipY * 0.45}px) scale(0.96)`,
+              easing: 'cubic-bezier(0.4,0,1,1)', offset: 0.28 },                           // t=0.28 → still accelerating
+            { transform: `translate(${dipX}px, ${dipY}px) scale(0.92)`,
+              easing: 'cubic-bezier(0,0,0.6,1)', offset: 0.50 },                           // t=0.50 → dip bottom — switch to ease-out
+            { transform: `translate(${tx * 0.55}px, ${dipY * 0.25}px) scale(${targetScale * 0.82})`,
+              easing: 'cubic-bezier(0,0,0.6,1)', offset: 0.76 },                           // t=0.76 → still decelerating upward
+            { transform: `translate(${tx}px, ${ty}px) scale(${targetScale})` },            // t=1.00 → arrived
+          ], { duration: FLIGHT_MS, fill: 'forwards' });
+        }
+
+        // ── WAAPI: Book rotation ──────────────────────────────────────────
+        // 'ease-in-out' per keyframe: each segment has zero velocity at its own
+        // start and end, which is fine here because the rotation passes through
+        // all 360° — slight ease at each face transition actually looks natural
+        // (a brief linger at front/back/spine before rotating away).
+        let bookWaapi: Animation | null = null;
+        const bookEl = bookFlightRef.current;
+        if (bookEl) {
+          bookWaapi = bookEl.animate([
+            { transform: 'rotateY(0deg)   rotateX(0deg)  rotateZ(0deg)',   easing: 'ease-in-out' },
+            { transform: 'rotateY(25deg)  rotateX(10deg) rotateZ(-6deg)',  easing: 'ease-in-out', offset: 0.15 },
+            { transform: 'rotateY(90deg)  rotateX(22deg) rotateZ(-13deg)', easing: 'ease-in-out', offset: 0.35 },
+            { transform: 'rotateY(180deg) rotateX(24deg) rotateZ(-14deg)', easing: 'ease-in-out', offset: 0.50 },
+            { transform: 'rotateY(270deg) rotateX(14deg) rotateZ(-7deg)',  easing: 'ease-in-out', offset: 0.68 },
+            { transform: 'rotateY(330deg) rotateX(4deg)  rotateZ(3deg)',   easing: 'ease-in-out', offset: 0.84 },
+            { transform: 'rotateY(360deg) rotateX(0deg)  rotateZ(0deg)' },
+          ], { duration: FLIGHT_MS, fill: 'forwards' });
+        }
+
+        // Wait until 200ms before flight ends, start crossfade overlap
         await sleep(FLIGHT_MS - CROSSFADE_OVERLAP_MS);
         if (cancelledRef.current) return;
 
-        /* ── crossfading 3D book → OpeningBookStage (overlaps flight tail) ─
-         *  OpeningBookStage fades in while book is still arriving at centre.
-         *  BookFlightObject fades out via phase change (CSS opacity transition). */
+        /* ── crossfading 3D book → OpeningBookStage (overlaps tail of flight) ─
+         *  BookFlightObject fades out via phase → opacity:0 CSS transition.
+         *  OpeningBookStage fades in simultaneously. */
         setPhase('crossfading');
-        stageCtrl.start({ opacity: 1, transition: { duration: 0.20, ease: 'easeIn' } });
+        stageCtrl.start({ opacity: 1, transition: { duration: 0.22, ease: 'easeIn' } });
 
-        // Wait for flight to fully finish before opening cover
         await sleep(CROSSFADE_OVERLAP_MS + 60);
         if (cancelledRef.current) return;
+
+        // Sync Framer Motion internal state to where WAAPI landed the shell.
+        // Order matters: FM.set() writes its transform BEFORE cancelling WAAPI,
+        // so the element never snaps back to the pre-animation position.
+        shellCtrl.set({ x: tx, y: ty, scale: targetScale });
+        shellWaapi?.cancel();
+        bookWaapi?.cancel();
 
         /* ── opening — cover swings open (400ms); NOT awaited ───────────── */
         setPhase('opening');
@@ -535,6 +566,7 @@ function BookTransitionShell() {
        *  preserve-3d passes the perspective through to inner BookFlightObject.
        * ─────────────────────────────────────────────────────────────────── */}
       <motion.div
+        ref={shellRef}
         initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
         animate={shellCtrl}
         style={{
@@ -556,7 +588,7 @@ function BookTransitionShell() {
          *  Fades out when OpeningBookStage crossfades in.
          * ─────────────────────────────────────────────────────────────── */}
         <BookFlightObject
-          bookRotCtrl={bookRotCtrl}
+          bookFlightRef={bookFlightRef}
           spineW={spineW}
           pagesW={pagesW}
           phase={phase}
