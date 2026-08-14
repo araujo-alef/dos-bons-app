@@ -66,6 +66,61 @@ export default function Home() {
         <main className="animate-in fade-in duration-700 ease-out px-4 pb-4">
           <div className="grid grid-cols-2 gap-4">
             <JourneyCard />
+
+            {/* Em breve — 3 placeholder cards */}
+            {[
+              { label: 'Comunidade' },
+              { label: 'Mentorias'  },
+              { label: 'IA'         },
+            ].map(({ label }) => (
+              <div
+                key={label}
+                style={{
+                  opacity:      0.35,
+                  borderRadius: 16,
+                  border:       '1px solid rgba(255,255,255,0.08)',
+                  background:   'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(139,53,255,0.07) 0%, transparent 70%), #0C0C0E',
+                  minHeight:    220,
+                  display:      'flex',
+                  flexDirection:'column',
+                  alignItems:   'center',
+                  justifyContent:'center',
+                  gap:          10,
+                  padding:      '24px 16px',
+                }}
+              >
+                {/* Lock icon */}
+                <svg
+                  width="24" height="24" viewBox="0 0 24 24"
+                  fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+
+                <span style={{
+                  fontSize:    13,
+                  fontWeight:  600,
+                  color:       'rgba(255,255,255,0.55)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}>
+                  {label}
+                </span>
+
+                <span style={{
+                  fontSize:    11,
+                  color:       'rgba(139,53,255,0.7)',
+                  fontWeight:  500,
+                  letterSpacing:'0.12em',
+                  textTransform:'uppercase',
+                }}>
+                  Em breve
+                </span>
+              </div>
+            ))}
           </div>
         </main>
       </div>
