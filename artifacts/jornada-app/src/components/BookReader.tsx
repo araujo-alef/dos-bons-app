@@ -138,49 +138,62 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   useEffect(() => {
     if (readerMode !== 'highlighting') return;
 
+    const processSelection = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+
+      const range = sel.getRangeAt(0);
+      const selectedText = sel.toString().trim();
+      if (!selectedText) return;
+
+      const anchorBlock = findAncestorWithAttr(range.startContainer, 'data-block-idx');
+      const focusBlock  = findAncestorWithAttr(range.endContainer,   'data-block-idx');
+
+      // Determine the single valid block — clamp if selection drifts into padding/margins
+      const block = anchorBlock ?? focusBlock;
+      // No valid text block found at all — leave selection visible, don't show menu
+      if (!block) return;
+      // Cross-block selection — not supported; leave selection intact
+      if (anchorBlock && focusBlock && anchorBlock !== focusBlock) return;
+
+      const pageEl = findAncestorWithAttr(block, 'data-page-idx');
+      if (!pageEl) return;
+
+      const blockIdx = parseInt(block.getAttribute('data-block-idx') ?? '-1', 10);
+      const pageIdx  = parseInt(pageEl.getAttribute('data-page-idx') ?? '-1', 10);
+      if (blockIdx < 0 || pageIdx < 0) return;
+
+      // Clamp endpoints when one side fell outside the block (into padding, etc.)
+      const startOffset = anchorBlock
+        ? getOffsetInBlock(range.startContainer, range.startOffset, block)
+        : 0;
+      const endOffset = focusBlock
+        ? getOffsetInBlock(range.endContainer, range.endOffset, block)
+        : (block.textContent?.length ?? 0);
+
+      if (startOffset < 0 || endOffset < 0 || startOffset >= endOffset) return;
+
+      const rect = range.getBoundingClientRect();
+      setPendingSelection({
+        text: selectedText,
+        blockIdx,
+        pageIdx,
+        pageId:      pages[pageIdx]?.id ?? 0,
+        startOffset,
+        endOffset,
+        anchorY: rect.top + rect.height / 2,
+      });
+    };
+
     const capture = (e: Event) => {
-      const delay = e.type === 'touchend' ? 120 : 0;
-      setTimeout(() => {
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
-
-        const range = sel.getRangeAt(0);
-        const selectedText = sel.toString().trim();
-        if (!selectedText) return;
-
-        // Both anchor and focus must be in the same text block
-        const anchorBlock = findAncestorWithAttr(range.startContainer, 'data-block-idx');
-        const focusBlock  = findAncestorWithAttr(range.endContainer,   'data-block-idx');
-        if (!anchorBlock || !focusBlock || anchorBlock !== focusBlock) {
-          sel.removeAllRanges();
-          return;
-        }
-
-        const pageEl = findAncestorWithAttr(anchorBlock, 'data-page-idx');
-        if (!pageEl) return;
-
-        const blockIdx = parseInt(anchorBlock.getAttribute('data-block-idx') ?? '-1', 10);
-        const pageIdx  = parseInt(pageEl.getAttribute('data-page-idx') ?? '-1', 10);
-        if (blockIdx < 0 || pageIdx < 0) return;
-
-        const startOffset = getOffsetInBlock(range.startContainer, range.startOffset, anchorBlock);
-        const endOffset   = getOffsetInBlock(range.endContainer,   range.endOffset,   anchorBlock);
-        if (startOffset < 0 || endOffset < 0 || startOffset >= endOffset) {
-          sel.removeAllRanges();
-          return;
-        }
-
-        const rect = range.getBoundingClientRect();
-        setPendingSelection({
-          text: selectedText,
-          blockIdx,
-          pageIdx,
-          pageId:      pages[pageIdx]?.id ?? 0,
-          startOffset,
-          endOffset,
-          anchorY: rect.top + rect.height / 2,
-        });
-      }, delay);
+      if (e.type === 'touchend') {
+        // iOS Safari updates window.getSelection() asynchronously after touchend
+        setTimeout(processSelection, 120);
+      } else {
+        // Desktop mouseup: selection is synchronously available — read immediately
+        // before any subsequent click event can collapse it
+        processSelection();
+      }
     };
 
     document.addEventListener('mouseup',  capture);
