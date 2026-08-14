@@ -1,0 +1,1474 @@
+```text
+Quero evoluir a tela de leitura atual do BookReader adicionando uma barra de ações inferior expansível, mantendo a experiência visual extremamente limpa e sem app bar no topo.
+
+IMPORTANTE:
+a tela de leitura atual está deliberadamente minimalista e deve continuar assim.
+
+Hoje:
+- a página ocupa praticamente toda a tela;
+- clicar no lado esquerdo volta página;
+- clicar no lado direito avança página;
+- clicar no centro tira o zoom e abre o modo/carrossel para navegar por várias páginas;
+- existe um pequeno indicador/controle inferior;
+- não existe mais tela separada de progresso/capítulos.
+
+Quero aproveitar a região inferior onde hoje existe esse pequeno marcador e transformar isso no ponto central de acesso às ações do leitor.
+
+==================================================
+1. OBJETIVO GERAL
+==================================================
+
+Criar uma barra inferior expansível com quatro ações:
+
+- Sair
+- Destacar
+- Ver destaques
+- Recolher
+
+A barra deve ficar recolhida por padrão.
+
+No estado recolhido, deve existir apenas um pequeno botão/gatilho discreto na parte inferior da página.
+
+Ao tocar nesse botão:
+
+- ele se expande suavemente;
+- mostra as quatro ações;
+- cada ação deve ter ícone + texto;
+- o layout exato pode ser adaptado pelo próprio projeto para ficar bonito e responsivo.
+
+Não quero apenas ícones sem identificação.
+
+Os textos precisam deixar claro o que cada botão faz.
+
+==================================================
+2. ESTADO RECOLHIDO
+==================================================
+
+No estado normal de leitura, manter a interface praticamente limpa.
+
+Na parte inferior central, usar um pequeno controle discreto.
+
+Esse controle pode evoluir visualmente do indicador atual.
+
+Exemplos conceituais:
+
+[ ••• ]
+
+ou
+
+[ ︿ ]
+
+ou outra solução minimalista coerente com o design existente.
+
+Não quero uma toolbar grande sempre visível.
+
+==================================================
+3. ESTADO EXPANDIDO
+==================================================
+
+Ao tocar no controle inferior:
+
+expandir para uma mini toolbar.
+
+Ações obrigatórias:
+
+1. Sair
+2. Destacar
+3. Ver destaques
+4. Recolher
+
+Usar ícone + texto.
+
+Exemplo conceitual:
+
+[ ← Sair ] [ 🖍 Destacar ] [ 🔖 Ver destaques ] [ ⌄ Recolher ]
+
+Não precisa copiar exatamente esse layout.
+
+Quero que o Replit adapte:
+
+- espaçamentos;
+- largura;
+- tamanho;
+- ícones;
+- quebra em telas menores;
+- responsividade.
+
+O importante é preservar a hierarquia.
+
+==================================================
+4. VISUAL DA TOOLBAR
+==================================================
+
+A barra deve combinar com o leitor atual.
+
+Preferência:
+
+- fundo grafite/preto;
+- leve transparência;
+- blur muito discreto, se já fizer sentido com o projeto;
+- borda sutil;
+- ícones claros;
+- textos claros;
+- roxo apenas como cor de estado/ação;
+- sem glow forte.
+
+Não transformar em uma barra de aplicativo tradicional.
+
+Ela deve parecer um controle flutuante discreto sobre o livro.
+
+==================================================
+5. ANIMAÇÃO DA EXPANSÃO
+==================================================
+
+A expansão/recolhimento deve ser rápida e suave.
+
+Algo próximo de:
+
+180ms–260ms.
+
+Pode usar:
+
+- scale;
+- width;
+- opacity;
+- transform;
+
+sem animações pesadas.
+
+A sensação deve ser de uma pequena cápsula se abrindo.
+
+==================================================
+6. RECOLHER AO INTERAGIR FORA DA BARRA
+==================================================
+
+Quando a toolbar estiver expandida e o usuário clicar em qualquer lugar fora dela:
+
+recolher imediatamente.
+
+Mas o clique original deve continuar executando sua ação normal.
+
+Exemplos:
+
+toolbar expandida
+↓
+usuário toca no lado direito
+↓
+toolbar recolhe
+↓
+próxima página abre normalmente.
+
+Outro exemplo:
+
+toolbar expandida
+↓
+usuário toca no centro
+↓
+toolbar recolhe
+↓
+modo/carrossel abre normalmente.
+
+Não consumir o clique apenas para fechar a barra.
+
+==================================================
+7. RECOLHER AO NAVEGAR
+==================================================
+
+Também recolher automaticamente quando ocorrer:
+
+- próxima página;
+- página anterior;
+- swipe;
+- entrada no modo carrossel;
+- seleção direta de outra página no carrossel.
+
+Ou seja, a toolbar não deve permanecer aberta durante navegação normal.
+
+==================================================
+8. EXCEÇÃO: MODO DE DESTAQUE
+==================================================
+
+Existe uma exceção importante.
+
+Quando o usuário entrar em Modo Destaque:
+
+não recolher automaticamente a toolbar ao tocar/arrastar sobre o texto.
+
+Nesse estado, o toque na página serve para selecionar conteúdo.
+
+Precisamos diferenciar claramente:
+
+LEITURA NORMAL
+vs
+MODO DESTAQUE.
+
+==================================================
+9. BOTÃO SAIR
+==================================================
+
+O botão "Sair" deve fechar o leitor e voltar para a tela anterior/Home conforme a navegação atual do projeto.
+
+Mas antes disso:
+
+salvar a página atual.
+
+Ao abrir o livro novamente:
+
+o usuário deve voltar exatamente para a última página que estava lendo.
+
+==================================================
+10. NÃO SALVAR POSIÇÃO APENAS AO SAIR
+==================================================
+
+A posição de leitura também deve ser salva automaticamente conforme o usuário navega.
+
+Sempre que a página lógica atual mudar:
+
+persistir o índice/página atual.
+
+Usar debounce se necessário.
+
+Não depender apenas do botão "Sair".
+
+Isso deve proteger contra:
+
+- fechar aba;
+- fechar app;
+- refresh;
+- navegação inesperada.
+
+==================================================
+11. PERSISTÊNCIA TEMPORÁRIA
+==================================================
+
+Se o frontend ainda não possui backend/autenticação real implementados:
+
+usar a estrutura de persistência existente ou mock/localStorage de forma organizada.
+
+Exemplo conceitual:
+
+bookProgress = {
+  bookId,
+  chapterId,
+  pageIndex
+}
+
+Mas criar uma abstração clara para futuramente substituir por backend/Firebase/API sem reescrever o reader.
+
+==================================================
+12. BOTÃO DESTACAR
+==================================================
+
+O botão "Destacar" NÃO deve destacar a página inteira.
+
+Ele ativa um modo específico de seleção de trecho.
+
+Ao tocar em "Destacar":
+
+phase/mode:
+
+reading
+→
+highlighting
+
+O botão deve mudar visualmente para indicar estado ativo.
+
+O texto pode mudar, por exemplo:
+
+"Destacar"
+→
+"Modo destaque"
+
+ou outra solução visual clara.
+
+Quero que o usuário perceba imediatamente que entrou em outro modo.
+
+==================================================
+13. MODO DESTAQUE
+==================================================
+
+Enquanto o modo destaque estiver ativo:
+
+- permitir seleção de texto;
+- desativar temporariamente a navegação por clique sobre o texto;
+- não interpretar drag de seleção como page navigation;
+- manter o botão de destaque visualmente ativo;
+- manter a toolbar visível.
+
+Mostrar por pouco tempo uma instrução discreta:
+
+"Arraste sobre o trecho que deseja destacar"
+
+ou equivalente.
+
+A mensagem pode desaparecer sozinha.
+
+==================================================
+14. CONFLITO COM PROTEÇÃO DE CÓPIA
+==================================================
+
+Atualmente o BookReader possui proteção contra seleção/cópia.
+
+Precisamos ajustar isso.
+
+No modo normal:
+
+user-select: none
+
+No modo destaque:
+
+user-select: text
+
+ou solução equivalente.
+
+PORÉM:
+
+mesmo no modo destaque, continuar bloqueando:
+
+- copy;
+- Ctrl + C;
+- Cmd + C;
+- cut.
+
+O objetivo é:
+
+permitir seleção para criar destaque,
+mas não permitir copiar o conteúdo diretamente.
+
+==================================================
+15. NÃO USAR A SELEÇÃO NATIVA COMO RESULTADO FINAL
+==================================================
+
+A seleção azul padrão do navegador pode aparecer durante a escolha do trecho.
+
+Mas depois que o usuário confirmar o destaque:
+
+converter essa seleção em um highlight permanente do aplicativo.
+
+Não manter a seleção nativa ativa.
+
+==================================================
+16. MENU APÓS SELEÇÃO
+==================================================
+
+Quando o usuário selecionar um trecho válido:
+
+mostrar um pequeno menu contextual próximo da seleção ou numa posição segura da interface.
+
+Ações:
+
+- Salvar destaque
+- Adicionar nota
+- Cancelar
+
+O Replit pode escolher o melhor layout:
+
+popover;
+floating menu;
+bottom sheet pequeno no mobile.
+
+Priorizar usabilidade mobile.
+
+==================================================
+17. SALVAR DESTAQUE
+==================================================
+
+Ao tocar em "Salvar destaque":
+
+persistir o trecho.
+
+Estrutura sugerida:
+
+{
+  id,
+  bookId,
+  chapterId,
+  pageIndex,
+  startOffset,
+  endOffset,
+  selectedText,
+  note,
+  createdAt
+}
+
+A implementação exata pode variar conforme a estrutura atual do conteúdo.
+
+O ponto principal é que o destaque precisa conseguir ser reconstruído depois.
+
+==================================================
+18. NÃO DEPENDER APENAS DO TEXTO PURO
+==================================================
+
+Evitar salvar apenas:
+
+selectedText: "frase qualquer"
+
+porque a mesma frase pode aparecer várias vezes.
+
+Preferir armazenar uma referência estrutural estável.
+
+Dependendo de como o livro está modelado, pode usar algo como:
+
+- blockId;
+- paragraphId;
+- startOffset;
+- endOffset;
+- pageId;
+- chapterId.
+
+Criar uma solução resiliente.
+
+==================================================
+19. SE O CONTEÚDO JÁ TEM BLOCK IDS
+==================================================
+
+Se a estrutura do livro já usa:
+
+chapter
+→ pages
+→ blocks
+
+usar esses IDs.
+
+Exemplo:
+
+{
+  chapterId,
+  pageId,
+  blockId,
+  startOffset,
+  endOffset
+}
+
+Isso é preferível a depender de DOM index genérico.
+
+==================================================
+20. VISUAL DO DESTAQUE
+==================================================
+
+Quero destacar o trecho como um marca-texto real.
+
+Não usar:
+
+- texto riscado;
+- underline simples;
+- borda ao redor do parágrafo inteiro.
+
+Usar um background translúcido atrás das palavras.
+
+Preferência:
+
+roxo/lilás da identidade do app.
+
+Exemplo visual:
+
+background:
+rgba(178, 102, 255, 0.18)
+
+Pode existir uma segunda camada mais sutil para dar sensação de marca-texto.
+
+Mas manter elegância.
+
+==================================================
+21. O DESTAQUE PRECISA ACOMPANHAR O TEXTO
+==================================================
+
+Se a seleção atravessar mais de uma linha:
+
+o highlight precisa acompanhar cada linha do texto corretamente.
+
+Não criar um retângulo único enorme por trás do bloco.
+
+Usar técnicas adequadas para inline text/highlight ranges.
+
+==================================================
+22. PERSISTÊNCIA DOS DESTAQUES
+==================================================
+
+Ao sair e abrir o livro novamente:
+
+todos os destaques precisam aparecer automaticamente no texto.
+
+Eles precisam ser reconstruídos a partir dos dados persistidos.
+
+==================================================
+23. ADICIONAR NOTA
+==================================================
+
+Ao selecionar um trecho e tocar em "Adicionar nota":
+
+abrir um pequeno editor/modal/bottom sheet.
+
+Mostrar:
+
+trecho selecionado
+
+e um campo:
+
+"Escreva uma anotação..."
+
+A nota deve ficar associada ao destaque.
+
+Ao salvar uma nota:
+
+o trecho também deve automaticamente virar um destaque.
+
+Não permitir uma anotação sem referência ao trecho.
+
+==================================================
+24. SAIR DO MODO DESTAQUE
+==================================================
+
+Depois de:
+
+- salvar destaque;
+- salvar nota;
+- cancelar;
+
+sair automaticamente do Modo Destaque.
+
+Voltar para:
+
+reading
+
+e restaurar:
+
+user-select: none.
+
+A toolbar pode voltar ao estado expandido ou recolhido.
+
+Minha preferência:
+
+após salvar → recolher toolbar.
+
+Após cancelar → manter expandida.
+
+Mas pode ajustar conforme ficar mais natural.
+
+==================================================
+25. BOTÃO VER DESTAQUES
+==================================================
+
+O botão "Ver destaques" deve abrir a área com tudo que o usuário salvou.
+
+Não navegar para uma página completamente separada se não for necessário.
+
+Preferência:
+
+mobile:
+bottom sheet grande.
+
+desktop:
+drawer lateral ou modal/painel.
+
+A leitura deve continuar visualmente no fundo.
+
+==================================================
+26. CONTEÚDO DE "VER DESTAQUES"
+==================================================
+
+Mostrar uma lista organizada de:
+
+- trecho destacado;
+- capítulo;
+- página;
+- nota, se existir.
+
+Ordenar preferencialmente pela ordem do livro.
+
+Não apenas por data de criação.
+
+==================================================
+27. ITEM DA LISTA
+==================================================
+
+Cada item pode mostrar algo como:
+
+CAPÍTULO 06 · PÁGINA 3
+
+"Nem todo encontro precisa de palavras..."
+
+Minha nota:
+"Observar isso na próxima conversa."
+
+Se não houver nota:
+
+mostrar somente o trecho.
+
+==================================================
+28. NAVEGAR PELO DESTAQUE
+==================================================
+
+Ao tocar em um destaque salvo:
+
+1. fechar o painel;
+2. ir diretamente para chapter/page correspondente;
+3. centralizar/mostrar o trecho;
+4. se possível, fazer um pequeno pulse/fade temporário no highlight.
+
+O usuário precisa conseguir usar os destaques como atalhos para partes do livro.
+
+==================================================
+29. EXCLUIR DESTAQUE
+==================================================
+
+Dentro do painel de destaques, permitir excluir um destaque.
+
+Usar uma ação discreta.
+
+Não colocar um grande botão vermelho em cada item.
+
+Pode usar:
+
+menu "...";
+swipe;
+ícone de lixeira discreto.
+
+==================================================
+30. EDITAR NOTA
+==================================================
+
+Se o destaque tiver uma nota:
+
+permitir editar.
+
+Não precisa criar uma tela inteira.
+
+Pode abrir o mesmo editor utilizado na criação.
+
+==================================================
+31. DESTAQUE SEM NOTA CONTINUA VÁLIDO
+==================================================
+
+Existem dois tipos válidos:
+
+DESTAQUE
+trecho marcado, sem comentário.
+
+DESTAQUE + NOTA
+trecho marcado e anotação pessoal.
+
+Ambos aparecem em "Ver destaques".
+
+==================================================
+32. NÃO CRIAR BOTÃO SEPARADO "ANOTAÇÕES"
+==================================================
+
+Não precisamos de um quinto botão.
+
+"Ver destaques" concentra:
+
+- destaques;
+- anotações.
+
+Dentro do painel, os itens podem ter nota ou não.
+
+==================================================
+33. INTERAÇÃO COM CLIQUE ESQUERDA/DIREITA
+==================================================
+
+No modo normal:
+
+preservar exatamente o comportamento atual:
+
+lado esquerdo:
+página anterior.
+
+lado direito:
+próxima página.
+
+No modo destaque:
+
+esses cliques não devem mudar página se o usuário estiver interagindo com texto.
+
+Precisamos evitar seleção acidental que vira navegação.
+
+==================================================
+34. INTERAÇÃO COM CLIQUE NO CENTRO
+==================================================
+
+No modo normal:
+
+preservar:
+
+clique no centro → abrir/reduzir zoom e mostrar carrossel.
+
+Se toolbar estiver aberta:
+
+recolher toolbar e executar a ação normalmente.
+
+No modo destaque:
+
+clique/drag sobre texto não deve abrir carrossel.
+
+==================================================
+35. ESC / CANCELAMENTO
+==================================================
+
+No desktop:
+
+se estiver em modo destaque e o usuário pressionar Escape:
+
+cancelar seleção/modo destaque.
+
+Se o painel de destaques estiver aberto:
+
+Escape fecha o painel.
+
+==================================================
+36. MOBILE LONG PRESS
+==================================================
+
+No mobile, ao entrar no modo destaque:
+
+permitir o comportamento necessário para selecionar texto por touch.
+
+Mas evitar o callout nativo de copiar/lookup quando possível.
+
+A experiência precisa focar no highlight do app.
+
+==================================================
+37. NÃO QUEBRAR PAGE FLIP / CARROSSEL
+==================================================
+
+Mesmo que atualmente não exista animação de page flip, preservar completamente a navegação já implementada.
+
+Não reescrever a lógica do carrossel.
+
+Integrar os novos modos ao componente atual.
+
+==================================================
+38. MODELO DE ESTADO RECOMENDADO
+==================================================
+
+Algo conceitualmente como:
+
+type ReaderMode =
+  | "reading"
+  | "highlighting"
+  | "browsingPages";
+
+type ToolbarState =
+  | "collapsed"
+  | "expanded";
+
+E separadamente:
+
+isHighlightsPanelOpen
+selectedRange
+activeHighlight
+
+Não precisa usar exatamente esses nomes.
+
+Mas evitar dezenas de booleans conflitantes.
+
+==================================================
+39. EVENT PROPAGATION
+==================================================
+
+Muito importante:
+
+clicar em qualquer botão da toolbar NÃO pode:
+
+- trocar página;
+- abrir carrossel;
+- disparar click handler do reader.
+
+Usar:
+
+event.stopPropagation()
+
+nos controles quando necessário.
+
+==================================================
+40. CLIQUE FORA DA TOOLBAR
+==================================================
+
+Implementar comportamento de click-away corretamente.
+
+Se:
+
+toolbarState === "expanded"
+e
+readerMode === "reading"
+
+um clique fora:
+
+1. recolhe toolbar;
+2. continua a ação original desse clique.
+
+Não implementar um overlay invisível que bloqueie todo o reader.
+
+==================================================
+41. NO MODO DESTAQUE NÃO USAR CLICK-AWAY NORMAL
+==================================================
+
+Enquanto:
+
+readerMode === "highlighting"
+
+não recolher ao clicar/arrastar no conteúdo.
+
+A toolbar precisa continuar disponível para indicar o estado atual.
+
+==================================================
+42. ESTADO VISUAL DO BOTÃO DESTACAR
+==================================================
+
+Quando normal:
+
+ícone + "Destacar"
+
+Quando ativo:
+
+usar uma cor/estado claro.
+
+Pode ser:
+
+"Modo destaque"
+
+com fundo roxo discreto.
+
+Exemplo:
+
+background:
+rgba(178,102,255,.14)
+
+border:
+rgba(178,102,255,.3)
+
+Não usar glow exagerado.
+
+==================================================
+43. WATERMARK
+==================================================
+
+Preservar completamente a marca d'água que já foi implementada.
+
+Ela deve continuar aparecendo:
+
+- na leitura;
+- durante seleção;
+- em screenshot;
+- depois de aplicar highlights.
+
+Não remover ou esconder a watermark.
+
+==================================================
+44. DESTAQUES E WATERMARK
+==================================================
+
+A watermark não pode impedir a seleção de texto.
+
+Garantir:
+
+pointer-events: none
+
+na camada de watermark.
+
+Se atualmente a watermark estiver sobre o conteúdo, revisar isso.
+
+==================================================
+45. PROTEÇÃO CONTRA CÓPIA
+==================================================
+
+Preservar:
+
+copy → preventDefault
+cut → preventDefault
+Ctrl/Cmd + C → preventDefault
+
+mesmo quando:
+
+readerMode === "highlighting".
+
+A única coisa que muda é permitir a seleção visual necessária para criar o Range.
+
+==================================================
+46. NÃO TENTAR BLOQUEAR DEVTOOLS
+==================================================
+
+Não adicionar hacks de segurança novos.
+
+Esta tarefa não é sobre DRM.
+
+Foco:
+
+- experiência;
+- highlight;
+- nota;
+- persistência;
+- toolbar.
+
+==================================================
+47. AUTO-SAVE DA PÁGINA
+==================================================
+
+Toda mudança de página deve disparar atualização da posição.
+
+Exemplo:
+
+onPageChange(pageIndex)
+
+→ atualizar estado local imediatamente
+→ persistir com debounce.
+
+Se o usuário sair antes do debounce terminar:
+
+flush da persistência.
+
+==================================================
+48. RETOMADA
+==================================================
+
+Ao abrir o livro:
+
+resolver a última página salva.
+
+Se houver:
+
+abrir diretamente nela.
+
+Caso contrário:
+
+usar a primeira página.
+
+Não mostrar tela intermediária de capítulos/progresso.
+
+==================================================
+49. NÃO REINTRODUZIR TELA DE JORNADA
+==================================================
+
+Importante:
+
+não recriar:
+
+- lista de capítulos;
+- tela de progresso;
+- dashboard do livro.
+
+A experiência agora é deliberadamente:
+
+Home
+→ livro
+→ página salva.
+
+==================================================
+50. RESPONSIVIDADE
+==================================================
+
+Testar principalmente:
+
+375px
+390px
+414px
+430px
+
+A toolbar expandida precisa caber bem.
+
+Como os botões terão texto:
+
+o Replit pode decidir entre:
+
+- cápsula mais larga;
+- duas linhas;
+- labels menores;
+- distribuição adaptativa.
+
+Mas não remover os labels simplesmente porque ficou apertado.
+
+==================================================
+51. DESKTOP
+==================================================
+
+No desktop:
+
+toolbar pode continuar centralizada na parte inferior.
+
+Não transformar em sidebar desnecessariamente.
+
+"Ver destaques" pode abrir drawer lateral se fizer mais sentido em telas largas.
+
+==================================================
+52. SAFE AREA MOBILE
+==================================================
+
+Respeitar:
+
+env(safe-area-inset-bottom)
+
+especialmente em iPhone.
+
+A toolbar não pode ficar colada na área do Home Indicator.
+
+==================================================
+53. ACESSIBILIDADE
+==================================================
+
+Todos os botões devem possuir:
+
+aria-label
+
+Mesmo tendo texto visível.
+
+Estados precisam ser comunicados corretamente.
+
+Exemplo:
+
+aria-pressed=true
+
+no botão de modo destaque quando ativo.
+
+==================================================
+54. ÍCONES
+==================================================
+
+Usar ícones da biblioteca já utilizada no projeto.
+
+Preferências conceituais:
+
+Sair:
+ArrowLeft / LogOut equivalente.
+
+Destacar:
+Highlighter.
+
+Ver destaques:
+Bookmark / BookMarked.
+
+Recolher:
+ChevronDown.
+
+Não adicionar nova biblioteca apenas por causa dos ícones se já existir uma.
+
+==================================================
+55. NÃO USAR EMOJI
+==================================================
+
+Os emojis mostrados nos exemplos são apenas explicativos.
+
+Na implementação real:
+
+usar ícones vetoriais coerentes com o design.
+
+==================================================
+56. SALVAR DADOS DE FORMA ABSTRATA
+==================================================
+
+Criar uma camada simples de serviço/repository.
+
+Algo como:
+
+readerProgressRepository
+highlightsRepository
+
+Mesmo que inicialmente use localStorage.
+
+Não fazer chamadas diretas a localStorage espalhadas pelos componentes.
+
+==================================================
+57. MODELO CONCEITUAL DE HIGHLIGHT
+==================================================
+
+Algo próximo de:
+
+interface BookHighlight {
+  id: string;
+  bookId: string;
+  chapterId?: string;
+  pageId: string;
+  pageIndex: number;
+  blockId?: string;
+  startOffset: number;
+  endOffset: number;
+  selectedText: string;
+  note?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+Adaptar à modelagem real do livro.
+
+==================================================
+58. NÃO SALVAR HTML ARBITRÁRIO
+==================================================
+
+Não persistir innerHTML completo do trecho selecionado.
+
+Persistir:
+
+- IDs;
+- offsets;
+- texto;
+- metadados.
+
+Evitar HTML arbitrário por segurança e fragilidade.
+
+==================================================
+59. RESTAURAR RANGE
+==================================================
+
+Ao renderizar uma página:
+
+buscar highlights daquela página.
+
+Aplicar visualmente os ranges correspondentes.
+
+Se o conteúdo ainda não estiver estruturado para isso, criar uma solução estável sem alterar todo o livro.
+
+==================================================
+60. TRATAR MÚLTIPLOS HIGHLIGHTS
+==================================================
+
+Uma página pode ter vários destaques.
+
+Precisam coexistir.
+
+Não sobrescrever o anterior ao criar um novo.
+
+==================================================
+61. OVERLAP
+==================================================
+
+Se o usuário tentar criar um highlight que se sobrepõe completamente a outro:
+
+evitar criar duplicação visual.
+
+Pode:
+
+- ignorar;
+- mesclar;
+- ou avisar discretamente.
+
+Preferência:
+mesclar quando for simples.
+
+Não precisa criar uma lógica editorial complexa nesta primeira versão.
+
+==================================================
+62. SELEÇÃO INVÁLIDA
+==================================================
+
+Não permitir destaque vazio.
+
+Ignorar seleção que contenha apenas:
+
+- espaços;
+- quebras de linha;
+- caracteres sem conteúdo.
+
+==================================================
+63. SELEÇÃO MUITO GRANDE
+==================================================
+
+Se o usuário selecionar conteúdo enorme atravessando vários blocos/páginas e isso complicar a persistência:
+
+limitar inicialmente o destaque à página atual.
+
+Não permitir highlight atravessando múltiplas páginas.
+
+Essa restrição é aceitável e simplifica bastante.
+
+==================================================
+64. TEXTO DE INSTRUÇÃO
+==================================================
+
+Ao entrar no Modo Destaque:
+
+mostrar algo como:
+
+"Selecione o trecho que deseja destacar"
+
+por aproximadamente 1.5–2.5 segundos.
+
+Pequeno toast discreto.
+
+Não abrir modal grande.
+
+==================================================
+65. APÓS SALVAR
+==================================================
+
+Depois de salvar um destaque:
+
+- limpar seleção nativa;
+- aplicar highlight persistente;
+- sair de highlighting;
+- voltar para reading;
+- recolher a toolbar.
+
+O resultado deve parecer imediato.
+
+==================================================
+66. APÓS ADICIONAR NOTA
+==================================================
+
+Depois de salvar a nota:
+
+mesmo comportamento:
+
+- highlight aparece;
+- nota persiste;
+- seleção some;
+- reader volta ao normal;
+- toolbar recolhe.
+
+==================================================
+67. VER DESTAQUES NÃO DEVE PERDER PÁGINA ATUAL
+==================================================
+
+Abrir/fechar a lista de destaques não altera:
+
+currentPage.
+
+Se o usuário fechar o painel sem escolher nada:
+
+continua exatamente onde estava.
+
+==================================================
+68. BOTÃO SAIR DURANTE MODO DESTAQUE
+==================================================
+
+Se o usuário tocar em Sair enquanto houver uma seleção ainda não salva:
+
+não salvar automaticamente.
+
+Pode simplesmente cancelar seleção e sair.
+
+Não criar highlight acidental.
+
+==================================================
+69. PRESERVAR DESIGN DA PÁGINA
+==================================================
+
+Não alterar:
+
+- papel/background atual;
+- tipografia;
+- padding;
+- número da página;
+- capítulo;
+- watermark;
+- dimensões.
+
+A toolbar fica fora/por cima da região inferior.
+
+==================================================
+70. NÃO EMPURRAR O CONTEÚDO
+==================================================
+
+A barra inferior deve ser overlay.
+
+Ela não deve aumentar padding-bottom da página a ponto de deslocar todo o conteúdo quando expandir.
+
+A página não pode "pular" ao abrir a toolbar.
+
+==================================================
+71. Z-INDEX
+==================================================
+
+Toolbar deve ficar acima da página.
+
+Painel de destaques acima da toolbar quando aberto.
+
+Mas evitar z-index arbitrários espalhados.
+
+Organizar stacking context.
+
+==================================================
+72. ANIMAÇÃO DA TOOLBAR
+==================================================
+
+Quando abrir:
+
+controle pequeno
+→
+cápsula maior
+
+Pode usar:
+
+layout animation;
+Motion;
+CSS transition.
+
+Quando fechar:
+
+processo inverso.
+
+Não desmontar de maneira que cause flicker.
+
+==================================================
+73. COMPORTAMENTO FINAL ESPERADO
+==================================================
+
+Fluxo normal:
+
+Livro aberto
+↓
+controle inferior discreto
+
+Usuário toca
+↓
+toolbar:
+
+Sair | Destacar | Ver destaques | Recolher
+
+Usuário toca fora
+↓
+toolbar recolhe
+e a ação do reader acontece normalmente.
+
+==================================================
+74. FLUXO DE DESTAQUE
+==================================================
+
+Usuário abre toolbar
+↓
+Destacar
+↓
+Modo destaque ativo
+↓
+"Selecione o trecho que deseja destacar"
+↓
+usuário seleciona palavras
+↓
+menu:
+
+Salvar destaque
+Adicionar nota
+Cancelar
+
+↓
+salva
+
+trecho ganha marca-texto roxo
+↓
+toolbar recolhe
+↓
+leitura normal.
+
+==================================================
+75. FLUXO DE VER DESTAQUES
+==================================================
+
+Usuário abre toolbar
+↓
+Ver destaques
+↓
+bottom sheet/drawer
+
+lista de trechos + notas
+
+↓
+toca em item
+
+painel fecha
+↓
+reader navega para página correspondente
+↓
+highlight recebe pulse discreto.
+
+==================================================
+76. FLUXO DE RETOMADA
+==================================================
+
+Usuário está na página 37
+↓
+fecha/sai
+↓
+abre livro novamente
+↓
+reader abre diretamente na página 37.
+
+Sem tela de progresso.
+
+==================================================
+77. PRIORIDADE DE IMPLEMENTAÇÃO
+==================================================
+
+Se precisar fazer de forma incremental:
+
+ETAPA 1
+toolbar expandível e click-away.
+
+ETAPA 2
+persistência da página atual.
+
+ETAPA 3
+modo destaque + seleção.
+
+ETAPA 4
+persistência/restauração dos highlights.
+
+ETAPA 5
+notas.
+
+ETAPA 6
+painel "Ver destaques".
+
+Mas o resultado final da tarefa deve contemplar o fluxo completo.
+
+==================================================
+78. CRITÉRIO DE ACEITE VISUAL
+==================================================
+
+A tela continua parecendo:
+
+um livro.
+
+Não:
+
+um aplicativo cheio de controles.
+
+Quando toolbar recolhida:
+
+ela quase desaparece visualmente.
+
+Quando aberta:
+
+as ações ficam claras por texto + ícone.
+
+==================================================
+79. CRITÉRIO DE ACEITE FUNCIONAL
+==================================================
+
+Considerar pronto somente quando:
+
+- toolbar expande;
+- toolbar recolhe;
+- clique fora recolhe sem impedir a ação original;
+- página atual é salva;
+- livro reabre na última página;
+- botão Destacar ativa modo próprio;
+- seleção de texto funciona apenas nesse modo;
+- copy continua bloqueado;
+- é possível salvar um trecho;
+- highlight persiste;
+- é possível adicionar nota;
+- "Ver destaques" lista tudo;
+- tocar num destaque navega para sua página;
+- watermark continua funcionando;
+- navegação atual esquerda/direita/centro continua funcionando.
+
+==================================================
+80. PRINCÍPIO PRINCIPAL
+==================================================
+
+Não quero adicionar uma interface ao redor do livro.
+
+Quero que o livro continue sendo a interface principal.
+
+A toolbar inferior existe apenas como uma pequena camada de ferramentas que aparece quando o usuário pede.
+
+Priorize:
+
+minimalismo
++
+clareza
++
+leitura
++
+persistência
++
+destaques/anotações.
+```

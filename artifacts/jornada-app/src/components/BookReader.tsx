@@ -1,8 +1,31 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { BookPage } from './BookPage';
+import { ReaderToolbar, type ReaderMode } from './ReaderToolbar';
+import { HighlightSelectionMenu } from './HighlightSelectionMenu';
+import { HighlightsPanel } from './HighlightsPanel';
+import { NoteEditor } from './NoteEditor';
 import type { Chapter } from '@/mocks/data';
+import {
+  type BookHighlight,
+  loadHighlightsForPage,
+  addHighlight,
+  loadAllHighlights,
+} from '@/lib/highlights';
+import { saveProgress, loadProgress } from '@/lib/readerProgress';
 import { useReaderContentProtection } from '@/hooks/useReaderContentProtection';
 import { mockWatermarkIdentity } from '@/lib/watermark';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PendingSelection {
+  text:        string;
+  blockIdx:    number;
+  pageIdx:     number;
+  pageId:      number;
+  startOffset: number;
+  endOffset:   number;
+  anchorY:     number;
+}
 
 interface BookReaderProps {
   chapter:    Chapter;
@@ -10,11 +33,33 @@ interface BookReaderProps {
   onBack:     () => void;
 }
 
+// ─── DOM helpers ──────────────────────────────────────────────────────────────
+
+function findAncestorWithAttr(node: Node, attr: string): Element | null {
+  let cur: Node | null = node;
+  while (cur) {
+    if (cur instanceof Element && cur.hasAttribute(attr)) return cur;
+    cur = cur.parentNode;
+  }
+  return null;
+}
+
+function getOffsetInBlock(node: Node, offset: number, blockEl: Element): number {
+  const walker = document.createTreeWalker(blockEl, NodeFilter.SHOW_TEXT);
+  let total = 0;
+  let current: Node | null = walker.nextNode();
+  while (current) {
+    if (current === node) return total + offset;
+    total += current.textContent?.length ?? 0;
+    current = walker.nextNode();
+  }
+  return -1;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   const containerRef   = useRef<HTMLDivElement>(null);
-
-  // Copy-protection: blocks copy/cut/contextmenu/dragstart/Ctrl+C while reader is mounted
-  useReaderContentProtection(containerRef);
   const carouselRef    = useRef<HTMLDivElement>(null);
   const pageWidthRef   = useRef(0);
   const pageHeightRef  = useRef(0);
@@ -22,17 +67,40 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   const touchStartX    = useRef(0);
   const touchStartPage = useRef(0);
   const wheelLock      = useRef(false);
+  const progressTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [currentPage, setCurrentPage] = useState(0);
+  const pages      = chapter.pages ?? [];
+  const totalPages = pages.length;
+
+  // ── Core reader state ──────────────────────────────────────────────────────
+  const [currentPage, setCurrentPage] = useState(() =>
+    Math.min(loadProgress(chapter.id), Math.max(0, totalPages - 1))
+  );
   const [dragOffset,  setDragOffset]  = useState(0);
   const [isDragging,  setIsDragging]  = useState(false);
   const [pageWidth,   setPageWidth]   = useState(0);
   const [isCarousel,  setIsCarousel]  = useState(false);
 
-  const pages      = chapter.pages ?? [];
-  const totalPages = pages.length;
+  // ── UI / mode state ────────────────────────────────────────────────────────
+  const [readerMode,        setReaderMode]        = useState<ReaderMode>('reading');
+  const [toolbarExpanded,   setToolbarExpanded]   = useState(false);
+  const [highlightsPanelOpen, setHighlightsPanelOpen] = useState(false);
+  const [pendingSelection,  setPendingSelection]  = useState<PendingSelection | null>(null);
+  const [noteEditorOpen,    setNoteEditorOpen]    = useState(false);
+  const [highlightHint,     setHighlightHint]     = useState(false);
+  const [pulsingHighlightId, setPulsingHighlightId] = useState<string | null>(null);
 
-  // ─── Measure container ────────────────────────────────────────────────────
+  // ── Highlights data ────────────────────────────────────────────────────────
+  const [allHighlights, setAllHighlights] = useState<BookHighlight[]>(() => loadAllHighlights());
+
+  const refreshHighlights = useCallback(() => {
+    setAllHighlights(loadAllHighlights());
+  }, []);
+
+  // ── Copy-protection (always active — copy/cut/Ctrl+C stay blocked) ─────────
+  useReaderContentProtection(containerRef);
+
+  // ── Measure container ──────────────────────────────────────────────────────
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -46,7 +114,101 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     return () => ro.disconnect();
   }, []);
 
-  // ─── Navigate ─────────────────────────────────────────────────────────────
+  // ── Auto-save progress whenever current page changes ──────────────────────
+  useEffect(() => {
+    if (progressTimer.current) clearTimeout(progressTimer.current);
+    progressTimer.current = setTimeout(() => {
+      saveProgress(chapter.id, currentPage);
+    }, 300);
+    return () => { if (progressTimer.current) clearTimeout(progressTimer.current); };
+  }, [chapter.id, currentPage]);
+
+  // ── Flush progress on unmount ──────────────────────────────────────────────
+  useEffect(() => {
+    return () => { saveProgress(chapter.id, currentPage); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Text selection capture (only in highlight mode) ────────────────────────
+  useEffect(() => {
+    if (readerMode !== 'highlighting') return;
+
+    const capture = (e: Event) => {
+      const delay = e.type === 'touchend' ? 120 : 0;
+      setTimeout(() => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+
+        const range = sel.getRangeAt(0);
+        const selectedText = sel.toString().trim();
+        if (!selectedText) return;
+
+        // Both anchor and focus must be in the same text block
+        const anchorBlock = findAncestorWithAttr(range.startContainer, 'data-block-idx');
+        const focusBlock  = findAncestorWithAttr(range.endContainer,   'data-block-idx');
+        if (!anchorBlock || !focusBlock || anchorBlock !== focusBlock) {
+          sel.removeAllRanges();
+          return;
+        }
+
+        const pageEl = findAncestorWithAttr(anchorBlock, 'data-page-idx');
+        if (!pageEl) return;
+
+        const blockIdx = parseInt(anchorBlock.getAttribute('data-block-idx') ?? '-1', 10);
+        const pageIdx  = parseInt(pageEl.getAttribute('data-page-idx') ?? '-1', 10);
+        if (blockIdx < 0 || pageIdx < 0) return;
+
+        const startOffset = getOffsetInBlock(range.startContainer, range.startOffset, anchorBlock);
+        const endOffset   = getOffsetInBlock(range.endContainer,   range.endOffset,   anchorBlock);
+        if (startOffset < 0 || endOffset < 0 || startOffset >= endOffset) {
+          sel.removeAllRanges();
+          return;
+        }
+
+        const rect = range.getBoundingClientRect();
+        setPendingSelection({
+          text: selectedText,
+          blockIdx,
+          pageIdx,
+          pageId:      pages[pageIdx]?.id ?? 0,
+          startOffset,
+          endOffset,
+          anchorY: rect.top + rect.height / 2,
+        });
+      }, delay);
+    };
+
+    document.addEventListener('mouseup',  capture);
+    document.addEventListener('touchend', capture);
+    return () => {
+      document.removeEventListener('mouseup',  capture);
+      document.removeEventListener('touchend', capture);
+    };
+  }, [readerMode, pages]);
+
+  // ── Escape key: cancel highlight mode / close panel ───────────────────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (noteEditorOpen) return; // let NoteEditor handle it
+      if (highlightsPanelOpen) { setHighlightsPanelOpen(false); return; }
+      if (pendingSelection) { clearSelection(); return; }
+      if (readerMode === 'highlighting') { exitHighlightMode(); return; }
+      if (toolbarExpanded) { setToolbarExpanded(false); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [readerMode, toolbarExpanded, highlightsPanelOpen, pendingSelection, noteEditorOpen]);
+
+  // ── Hint toast for highlight mode ─────────────────────────────────────────
+  useEffect(() => {
+    if (readerMode !== 'highlighting') { setHighlightHint(false); return; }
+    setHighlightHint(true);
+    const t = setTimeout(() => setHighlightHint(false), 2200);
+    return () => clearTimeout(t);
+  }, [readerMode]);
+
+  // ── Navigate ───────────────────────────────────────────────────────────────
   const goTo = useCallback((page: number) => {
     const clamped = Math.max(0, Math.min(page, totalPages - 1));
     dragOffsetRef.current = 0;
@@ -54,16 +216,33 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     setIsDragging(false);
     setIsCarousel(false);
     setCurrentPage(clamped);
-  }, [totalPages]);
+    setToolbarExpanded(false);
+    // Exit highlight mode on navigation (but keep reading mode intact)
+    if (readerMode === 'highlighting') exitHighlightMode();
+  }, [totalPages, readerMode]);
 
-  // ─── Touch: one page per gesture ──────────────────────────────────────────
+  // ── Highlight mode helpers ─────────────────────────────────────────────────
+  const exitHighlightMode = () => {
+    setReaderMode('reading');
+    setPendingSelection(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const clearSelection = () => {
+    setPendingSelection(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  // ── Touch: one page per gesture (disabled in highlight mode) ──────────────
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (readerMode === 'highlighting') return;
     touchStartX.current    = e.touches[0].clientX;
     touchStartPage.current = currentPage;
     setIsDragging(true);
-  }, [currentPage]);
+  }, [currentPage, readerMode]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (readerMode === 'highlighting') return;
     const dx = e.touches[0].clientX - touchStartX.current;
     const pw = pageWidthRef.current;
     let clamped = Math.max(-pw, Math.min(pw, dx));
@@ -71,20 +250,22 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     if (touchStartPage.current >= totalPages - 1) clamped = Math.max(0, clamped);
     dragOffsetRef.current = clamped;
     setDragOffset(clamped);
-  }, [totalPages]);
+  }, [totalPages, readerMode]);
 
   const handleTouchEnd = useCallback(() => {
+    if (readerMode === 'highlighting') return;
     const pw        = pageWidthRef.current;
     const threshold = pw * 0.25;
     const offset    = dragOffsetRef.current;
     if (offset < -threshold)      goTo(touchStartPage.current + 1);
     else if (offset > threshold)  goTo(touchStartPage.current - 1);
     else                          goTo(touchStartPage.current);
-  }, [goTo]);
+  }, [goTo, readerMode]);
 
-  // ─── Desktop wheel ────────────────────────────────────────────────────────
+  // ── Desktop wheel ──────────────────────────────────────────────────────────
   const handleWheel = useCallback((e: WheelEvent) => {
     if (isCarousel) return;
+    if (readerMode === 'highlighting') return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
     e.preventDefault();
     if (wheelLock.current) return;
@@ -92,7 +273,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     const dir = e.deltaY > 0 ? 1 : -1;
     setCurrentPage(prev => Math.max(0, Math.min(prev + dir, totalPages - 1)));
     setTimeout(() => { wheelLock.current = false; }, 550);
-  }, [totalPages, isCarousel]);
+  }, [totalPages, isCarousel, readerMode]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -101,25 +282,37 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  // ─── Scroll carousel to current page when it opens ───────────────────────
+  // ── Scroll carousel to current page when it opens ─────────────────────────
   useEffect(() => {
     if (!isCarousel) return;
     const el = carouselRef.current;
     if (!el) return;
-    // Each thumb: 58% of container width + 12px gap. Scroll so current is centred.
     const thumbW = pageWidthRef.current * 0.58 + 12;
     const offset = currentPage * thumbW - pageWidthRef.current / 2 + thumbW / 2;
     el.scrollLeft = Math.max(0, offset);
-  }, [isCarousel]); // only on open
+  }, [isCarousel]);
+
+  // ── Pulse a highlight briefly (after navigating to it) ────────────────────
+  const pulseHighlight = useCallback((id: string) => {
+    setPulsingHighlightId(id);
+    setTimeout(() => setPulsingHighlightId(null), 1400);
+  }, []);
 
   if (totalPages === 0) return <div style={{ flex: 1 }} />;
 
   const translateX = -(currentPage * pageWidth) + dragOffset;
 
-  // ─── Click zones: left third | centre third | right third ─────────────────
+  // ── Click zones: left third | centre third | right third ──────────────────
   const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     if (target.closest('button, a, input, textarea, select')) return;
+
+    // In highlight mode, taps go to text selection — don't navigate
+    if (readerMode === 'highlighting') return;
+
+    // Collapse toolbar but still execute the action
+    if (toolbarExpanded) setToolbarExpanded(false);
+
     const { left, width } = e.currentTarget.getBoundingClientRect();
     const x     = e.clientX - left;
     const third = width / 3;
@@ -132,15 +325,96 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     }
   };
 
-  // ─── Thumbnail dimensions (for the carousel overlay) ─────────────────────
-  const thumbW = pageWidth * 0.58;
-  const thumbH = pageHeightRef.current * 0.58;
-  // Scale factor to fit BookPage (full page size) into the thumbnail box
+  // ── Toolbar handlers ───────────────────────────────────────────────────────
+  const handleToolbarExpand  = (e: React.MouseEvent) => { e.stopPropagation(); setToolbarExpanded(true); };
+  const handleToolbarCollapse = (e: React.MouseEvent) => { e.stopPropagation(); setToolbarExpanded(false); };
+  const handleExit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    saveProgress(chapter.id, currentPage); // flush immediately
+    onBack();
+  };
+  const handleHighlightToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (readerMode === 'highlighting') {
+      exitHighlightMode();
+    } else {
+      setReaderMode('highlighting');
+    }
+  };
+  const handleViewHighlights = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHighlightsPanelOpen(true);
+  };
+
+  // ── Selection menu handlers ────────────────────────────────────────────────
+  const handleSaveHighlight = () => {
+    if (!pendingSelection) return;
+    const h: BookHighlight = {
+      id:           crypto.randomUUID(),
+      chapterId:    chapter.id,
+      pageId:       pendingSelection.pageId,
+      pageIndex:    pendingSelection.pageIdx,
+      blockIdx:     pendingSelection.blockIdx,
+      startOffset:  pendingSelection.startOffset,
+      endOffset:    pendingSelection.endOffset,
+      selectedText: pendingSelection.text,
+      createdAt:    new Date().toISOString(),
+    };
+    addHighlight(h);
+    refreshHighlights();
+    clearSelection();
+    exitHighlightMode();
+    setToolbarExpanded(false);
+  };
+
+  const handleOpenNoteEditor = () => {
+    if (!pendingSelection) return;
+    setNoteEditorOpen(true);
+  };
+
+  const handleSaveNote = (note: string) => {
+    if (!pendingSelection) return;
+    const h: BookHighlight = {
+      id:           crypto.randomUUID(),
+      chapterId:    chapter.id,
+      pageId:       pendingSelection.pageId,
+      pageIndex:    pendingSelection.pageIdx,
+      blockIdx:     pendingSelection.blockIdx,
+      startOffset:  pendingSelection.startOffset,
+      endOffset:    pendingSelection.endOffset,
+      selectedText: pendingSelection.text,
+      note:         note || undefined,
+      createdAt:    new Date().toISOString(),
+    };
+    addHighlight(h);
+    refreshHighlights();
+    setNoteEditorOpen(false);
+    clearSelection();
+    exitHighlightMode();
+    setToolbarExpanded(false);
+  };
+
+  const handleCancelSelection = () => {
+    clearSelection();
+    // Keep highlight mode active (user may want to try again)
+  };
+
+  // ── Navigate to highlight (from panel) ───────────────────────────────────
+  const handleNavigateToHighlight = (pageIndex: number, highlightId: string) => {
+    goTo(pageIndex);
+    // Slight delay to let page render, then pulse
+    setTimeout(() => pulseHighlight(highlightId), 350);
+  };
+
+  // ── Thumbnail dimensions ───────────────────────────────────────────────────
+  const thumbW     = pageWidth * 0.58;
+  const thumbH     = pageHeightRef.current * 0.58;
   const thumbScale = 0.58;
 
   return (
     <div
       ref={containerRef}
+      className="book-reader-root"
       style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#050505', cursor: 'pointer' }}
       onTouchStart={!isCarousel ? handleTouchStart : undefined}
       onTouchMove={!isCarousel ? handleTouchMove : undefined}
@@ -148,7 +422,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       onClick={!isCarousel ? handleAreaClick : undefined}
     >
 
-      {/* ── Page strip ─────────────────────────────────────────────────────── */}
+      {/* ── Page strip ──────────────────────────────────────────────────────── */}
       <div
         style={{
           display:    'flex',
@@ -160,7 +434,11 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
         }}
       >
         {pages.map((page, idx) => (
-          <div key={page.id} style={{ width: `${100 / totalPages}%`, height: '100%', flexShrink: 0 }}>
+          <div
+            key={page.id}
+            data-page-idx={idx}
+            style={{ width: `${100 / totalPages}%`, height: '100%', flexShrink: 0 }}
+          >
             <BookPage
               chapter={chapter}
               page={page}
@@ -169,79 +447,89 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
               isPortrait={true}
               onComplete={onComplete}
               watermarkIdentity={mockWatermarkIdentity}
+              isHighlightMode={readerMode === 'highlighting'}
+              pageHighlights={allHighlights.filter(
+                h => h.chapterId === chapter.id && h.pageId === page.id
+              )}
+              pulsingHighlightId={pulsingHighlightId}
             />
           </div>
         ))}
       </div>
 
-      {/* ── Centre-tap hint ─────────────────────────────────────────────────── */}
+      {/* ── Toolbar (collapsed trigger or expanded bar) ──────────────────────── */}
       {!isCarousel && (
+        <ReaderToolbar
+          mode={readerMode}
+          expanded={toolbarExpanded}
+          onExpand={handleToolbarExpand}
+          onExit={handleExit}
+          onHighlight={handleHighlightToggle}
+          onViewHighlights={handleViewHighlights}
+          onCollapse={handleToolbarCollapse}
+        />
+      )}
+
+      {/* ── Highlight-mode instruction toast ────────────────────────────────── */}
+      {highlightHint && (
         <div
-          aria-hidden="true"
+          aria-live="polite"
           style={{
-            position:  'absolute',
-            bottom:    '14px',
-            left:      '50%',
-            transform: 'translateX(-50%)',
-            display:   'flex',
-            gap:       '4px',
+            position:   'absolute',
+            top:        '14px',
+            left:       '50%',
+            transform:  'translateX(-50%)',
+            zIndex:     30,
+            background: 'rgba(8,6,11,0.88)',
+            border:     '1px solid rgba(178,102,255,0.25)',
+            borderRadius: 100,
+            padding:    '7px 16px',
+            fontSize:   11,
+            fontWeight: 500,
+            color:      'rgba(210,160,255,0.90)',
+            letterSpacing: '0.02em',
+            whiteSpace: 'nowrap',
             pointerEvents: 'none',
+            animation:  'toolbar-expand 0.22s cubic-bezier(0.34,1.56,0.64,1) both',
+            backdropFilter: 'blur(10px)',
           }}
         >
-          {[0,1,2].map(i => (
-            <div key={i} style={{
-              width: i === 1 ? '16px' : '4px',
-              height: '2px',
-              borderRadius: '2px',
-              background: i === 1 ? 'rgba(40,20,8,0.35)' : 'rgba(40,20,8,0.15)',
-              transition: 'all 0.3s',
-            }} />
-          ))}
+          Selecione o trecho que deseja destacar
         </div>
+      )}
+
+      {/* ── Text selection menu ─────────────────────────────────────────────── */}
+      {pendingSelection && !noteEditorOpen && (
+        <HighlightSelectionMenu
+          anchorY={pendingSelection.anchorY}
+          onSave={handleSaveHighlight}
+          onNote={handleOpenNoteEditor}
+          onCancel={handleCancelSelection}
+        />
+      )}
+
+      {/* ── Note editor ─────────────────────────────────────────────────────── */}
+      {noteEditorOpen && pendingSelection && (
+        <NoteEditor
+          selectedText={pendingSelection.text}
+          onSave={handleSaveNote}
+          onCancel={() => setNoteEditorOpen(false)}
+        />
       )}
 
       {/* ── Carousel overlay ────────────────────────────────────────────────── */}
       {isCarousel && (
         <div
-          style={{
-            position:   'absolute',
-            inset:      0,
-            zIndex:     100,
-            background: 'rgba(5,5,5,0.96)',
-            display:    'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap:        '20px',
-          }}
-          onClick={() => setIsCarousel(false)} // tap backdrop to close
+          style={{ position: 'absolute', inset: 0, zIndex: 100, background: 'rgba(5,5,5,0.96)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}
+          onClick={() => setIsCarousel(false)}
         >
-          {/* Label */}
-          <span style={{
-            fontSize:      10,
-            fontWeight:    600,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color:         'rgba(255,255,255,0.30)',
-          }}>
+          <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.30)' }}>
             Páginas
           </span>
-
-          {/* Thumbnail strip */}
           <div
             ref={carouselRef}
-            onClick={e => e.stopPropagation()} // don't close when scrolling strip
-            style={{
-              display:        'flex',
-              gap:            '12px',
-              overflowX:      'auto',
-              overflowY:      'hidden',
-              scrollSnapType: 'x mandatory',
-              padding:        `0 ${(pageWidth - thumbW) / 2}px`,
-              scrollbarWidth: 'none',
-              width:          '100%',
-              alignItems:     'center',
-            }}
+            onClick={e => e.stopPropagation()}
+            style={{ display: 'flex', gap: '12px', overflowX: 'auto', overflowY: 'hidden', scrollSnapType: 'x mandatory', padding: `0 ${(pageWidth - thumbW) / 2}px`, scrollbarWidth: 'none', width: '100%', alignItems: 'center' }}
             className="hide-scrollbar"
           >
             {pages.map((page, idx) => {
@@ -250,32 +538,9 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
                 <div
                   key={page.id}
                   onClick={() => goTo(idx)}
-                  style={{
-                    flexShrink:   0,
-                    scrollSnapAlign: 'center',
-                    width:        `${thumbW}px`,
-                    height:       `${thumbH}px`,
-                    borderRadius: '10px',
-                    overflow:     'hidden',
-                    cursor:       'pointer',
-                    border:       isActive
-                      ? '2px solid rgba(139,53,255,0.8)'
-                      : '2px solid rgba(255,255,255,0.08)',
-                    outline:      isActive ? '4px solid rgba(139,53,255,0.15)' : 'none',
-                    transform:    isActive ? 'scale(1.04)' : 'scale(1)',
-                    transition:   'transform 0.2s, border-color 0.2s',
-                    position:     'relative',
-                  }}
+                  style={{ flexShrink: 0, scrollSnapAlign: 'center', width: `${thumbW}px`, height: `${thumbH}px`, borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', border: isActive ? '2px solid rgba(139,53,255,0.8)' : '2px solid rgba(255,255,255,0.08)', outline: isActive ? '4px solid rgba(139,53,255,0.15)' : 'none', transform: isActive ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.2s, border-color 0.2s', position: 'relative' }}
                 >
-                  {/* Scaled-down page */}
-                  <div style={{
-                    width:        `${pageWidth}px`,
-                    height:       `${pageHeightRef.current}px`,
-                    transform:    `scale(${thumbScale})`,
-                    transformOrigin: 'top left',
-                    pointerEvents: 'none',
-                    userSelect:   'none',
-                  }}>
+                  <div style={{ width: `${pageWidth}px`, height: `${pageHeightRef.current}px`, transform: `scale(${thumbScale})`, transformOrigin: 'top left', pointerEvents: 'none', userSelect: 'none' }}>
                     <BookPage
                       chapter={chapter}
                       page={page}
@@ -283,39 +548,34 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
                       totalPages={totalPages}
                       isPortrait={true}
                       watermarkIdentity={mockWatermarkIdentity}
+                      pageHighlights={allHighlights.filter(
+                        h => h.chapterId === chapter.id && h.pageId === page.id
+                      )}
+                      pulsingHighlightId={pulsingHighlightId}
                     />
                   </div>
-
-                  {/* Page number badge */}
-                  <div style={{
-                    position:   'absolute',
-                    bottom:     '6px',
-                    right:      '8px',
-                    fontSize:   '9px',
-                    fontFamily: 'monospace',
-                    color:      isActive ? 'rgba(139,53,255,0.9)' : 'rgba(40,20,8,0.45)',
-                    fontWeight: 600,
-                  }}>
+                  <div style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9px', fontFamily: 'monospace', color: isActive ? 'rgba(139,53,255,0.9)' : 'rgba(40,20,8,0.45)', fontWeight: 600 }}>
                     {idx + 1}
                   </div>
                 </div>
               );
             })}
           </div>
-
-          {/* Close hint */}
-          <span
-            style={{
-              fontSize:      11,
-              color:         'rgba(255,255,255,0.20)',
-              letterSpacing: '0.04em',
-              cursor:        'pointer',
-            }}
-            onClick={() => setIsCarousel(false)}
-          >
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.20)', letterSpacing: '0.04em', cursor: 'pointer' }} onClick={() => setIsCarousel(false)}>
             toque fora para fechar
           </span>
         </div>
+      )}
+
+      {/* ── Highlights panel ────────────────────────────────────────────────── */}
+      {highlightsPanelOpen && (
+        <HighlightsPanel
+          chapterId={chapter.id}
+          chapterTitle={chapter.title}
+          onNavigate={handleNavigateToHighlight}
+          onClose={() => setHighlightsPanelOpen(false)}
+          onHighlightsChange={refreshHighlights}
+        />
       )}
     </div>
   );
