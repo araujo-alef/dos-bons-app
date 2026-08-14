@@ -64,7 +64,9 @@ export default function Home() {
         </div>
 
         <main className="animate-in fade-in duration-700 ease-out px-4 pb-4">
-          <JourneyCard />
+          <div className="grid grid-cols-2 gap-4">
+            <JourneyCard />
+          </div>
         </main>
       </div>
     </div>
