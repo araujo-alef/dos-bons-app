@@ -196,11 +196,90 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       }
     };
 
-    document.addEventListener('mouseup',  capture);
-    document.addEventListener('touchend', capture);
+    // ── Mobile long-press word selection ──────────────────────────────────────
+    // Mobile browsers don't support drag-to-select text — they require a long
+    // press. We detect the press ourselves (480 ms, slightly before the browser's
+    // native ~600 ms) and programmatically anchor a word selection using
+    // caretRangeFromPoint + Selection.modify. The existing touchend → capture →
+    // processSelection flow then reads the selection and shows the menu, including
+    // any extension the user makes by dragging the OS selection handles.
+
+    const selectWordAtPoint = (x: number, y: number) => {
+      // Build a collapsed range at the exact touch point
+      let range: Range | null = null;
+      if (typeof document.caretRangeFromPoint === 'function') {
+        range = document.caretRangeFromPoint(x, y);
+      } else if ('caretPositionFromPoint' in document) {
+        // Firefox (not present on mobile, but defensive)
+        const pos = (document as Document & {
+          caretPositionFromPoint(x: number, y: number): { offsetNode: Node; offset: number } | null;
+        }).caretPositionFromPoint(x, y);
+        if (pos) {
+          range = document.createRange();
+          range.setStart(pos.offsetNode, pos.offset);
+          range.collapse(true);
+        }
+      }
+      if (!range) return;
+
+      // Confirm the touch landed inside a text block
+      const startNode = range.startContainer;
+      const el: Element | null =
+        startNode.nodeType === Node.ELEMENT_NODE
+          ? (startNode as Element)
+          : (startNode as Text).parentElement;
+      if (!el || !findAncestorWithAttr(el, 'data-block-idx')) return;
+
+      const sel = window.getSelection();
+      if (!sel) return;
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      // Expand to word boundaries (supported on iOS Safari and Android Chrome)
+      if (typeof (sel as Selection & { modify?: (a: string, b: string, c: string) => void }).modify === 'function') {
+        (sel as Selection & { modify: (a: string, b: string, c: string) => void })
+          .modify('move', 'backward', 'word');
+        (sel as Selection & { modify: (a: string, b: string, c: string) => void })
+          .modify('extend', 'forward', 'word');
+      }
+      // Don't call processSelection here — wait for touchend so the user can
+      // drag the OS handles to extend the selection first.
+    };
+
+    let lpTimer: ReturnType<typeof setTimeout> | null = null;
+    let lpPos: { x: number; y: number } | null = null;
+
+    const onLpStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      // Only activate when the touch starts on a text block
+      const hit = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!hit || !findAncestorWithAttr(hit, 'data-block-idx')) return;
+      lpPos = { x: touch.clientX, y: touch.clientY };
+      lpTimer = setTimeout(() => {
+        if (!lpPos) return;
+        selectWordAtPoint(lpPos.x, lpPos.y);
+        lpTimer = null;
+      }, 480);
+    };
+
+    const onLpCancel = () => {
+      if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+      lpPos = null;
+    };
+
+    document.addEventListener('mouseup',    capture);
+    document.addEventListener('touchend',   capture);
+    document.addEventListener('touchstart', onLpStart,  { passive: true });
+    document.addEventListener('touchmove',  onLpCancel, { passive: true });
+    document.addEventListener('touchend',   onLpCancel, { passive: true });
     return () => {
-      document.removeEventListener('mouseup',  capture);
-      document.removeEventListener('touchend', capture);
+      document.removeEventListener('mouseup',    capture);
+      document.removeEventListener('touchend',   capture);
+      document.removeEventListener('touchstart', onLpStart);
+      document.removeEventListener('touchmove',  onLpCancel);
+      document.removeEventListener('touchend',   onLpCancel);
+      if (lpTimer) clearTimeout(lpTimer);
     };
   }, [readerMode, pages]);
 
