@@ -138,6 +138,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   useEffect(() => {
     if (readerMode !== 'highlighting') return;
 
+    // ── processSelection: read window.getSelection() and show the menu ────────
     const processSelection = () => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.rangeCount) return;
@@ -149,11 +150,9 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       const anchorBlock = findAncestorWithAttr(range.startContainer, 'data-block-idx');
       const focusBlock  = findAncestorWithAttr(range.endContainer,   'data-block-idx');
 
-      // Determine the single valid block — clamp if selection drifts into padding/margins
+      // Determine the single valid block — clamp if selection drifts into padding
       const block = anchorBlock ?? focusBlock;
-      // No valid text block found at all — leave selection visible, don't show menu
       if (!block) return;
-      // Cross-block selection — not supported; leave selection intact
       if (anchorBlock && focusBlock && anchorBlock !== focusBlock) return;
 
       const pageEl = findAncestorWithAttr(block, 'data-page-idx');
@@ -163,7 +162,6 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       const pageIdx  = parseInt(pageEl.getAttribute('data-page-idx') ?? '-1', 10);
       if (blockIdx < 0 || pageIdx < 0) return;
 
-      // Clamp endpoints when one side fell outside the block (into padding, etc.)
       const startOffset = anchorBlock
         ? getOffsetInBlock(range.startContainer, range.startOffset, block)
         : 0;
@@ -185,32 +183,15 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       });
     };
 
-    const capture = (e: Event) => {
-      if (e.type === 'touchend') {
-        // iOS Safari updates window.getSelection() asynchronously after touchend
-        setTimeout(processSelection, 120);
-      } else {
-        // Desktop mouseup: selection is synchronously available — read immediately
-        // before any subsequent click event can collapse it
-        processSelection();
-      }
-    };
-
-    // ── Mobile long-press word selection ──────────────────────────────────────
-    // Mobile browsers don't support drag-to-select text — they require a long
-    // press. We detect the press ourselves (480 ms, slightly before the browser's
-    // native ~600 ms) and programmatically anchor a word selection using
-    // caretRangeFromPoint + Selection.modify. The existing touchend → capture →
-    // processSelection flow then reads the selection and shows the menu, including
-    // any extension the user makes by dragging the OS selection handles.
-
-    const selectWordAtPoint = (x: number, y: number) => {
-      // Build a collapsed range at the exact touch point
+    // ── selectWordAtPoint: find the word under (x,y) without sel.modify ───────
+    // sel.modify() is unreliable on many iOS versions — it silently fails and
+    // leaves the selection collapsed. We find word boundaries ourselves using
+    // a regex walk on the text node's content, which works on every browser.
+    const selectWordAtPoint = (x: number, y: number): boolean => {
       let range: Range | null = null;
       if (typeof document.caretRangeFromPoint === 'function') {
         range = document.caretRangeFromPoint(x, y);
       } else if ('caretPositionFromPoint' in document) {
-        // Firefox (not present on mobile, but defensive)
         const pos = (document as Document & {
           caretPositionFromPoint(x: number, y: number): { offsetNode: Node; offset: number } | null;
         }).caretPositionFromPoint(x, y);
@@ -220,88 +201,81 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
           range.collapse(true);
         }
       }
-      if (!range) return;
+      if (!range) return false;
 
-      // Confirm the touch landed inside a text block
-      const startNode = range.startContainer;
+      const node = range.startContainer;
       const el: Element | null =
-        startNode.nodeType === Node.ELEMENT_NODE
-          ? (startNode as Element)
-          : (startNode as Text).parentElement;
-      if (!el || !findAncestorWithAttr(el, 'data-block-idx')) return;
+        node.nodeType === Node.ELEMENT_NODE
+          ? (node as Element)
+          : (node as Text).parentElement;
+      if (!el || !findAncestorWithAttr(el, 'data-block-idx')) return false;
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text   = node.textContent ?? '';
+        const offset = range.startOffset;
+        // Walk left/right to word boundaries (space, NBSP, punctuation edges)
+        let wStart = offset;
+        let wEnd   = offset;
+        while (wStart > 0 && !/[\s\u00A0]/.test(text[wStart - 1])) wStart--;
+        while (wEnd < text.length && !/[\s\u00A0]/.test(text[wEnd]))  wEnd++;
+        if (wStart >= wEnd) return false; // tapped on whitespace
+        range.setStart(node, wStart);
+        range.setEnd(node, wEnd);
+      }
 
       const sel = window.getSelection();
-      if (!sel) return;
+      if (!sel) return false;
       sel.removeAllRanges();
       sel.addRange(range);
-
-      // Expand to word boundaries (supported on iOS Safari and Android Chrome)
-      if (typeof (sel as Selection & { modify?: (a: string, b: string, c: string) => void }).modify === 'function') {
-        (sel as Selection & { modify: (a: string, b: string, c: string) => void })
-          .modify('move', 'backward', 'word');
-        (sel as Selection & { modify: (a: string, b: string, c: string) => void })
-          .modify('extend', 'forward', 'word');
-      }
-      // Don't call processSelection here — wait for touchend so the user can
-      // drag the OS handles to extend the selection first.
+      return !sel.isCollapsed;
     };
 
-    // Long-press thresholds
-    const LP_DELAY_MS   = 480;  // fire before native ~600 ms
-    const LP_MOVE_PX    = 8;    // finger trembles below this don't cancel
+    // ── Desktop: read selection immediately after mouse drag/click ────────────
+    const onMouseUp = () => processSelection();
+    document.addEventListener('mouseup', onMouseUp);
 
-    let lpTimer: ReturnType<typeof setTimeout> | null = null;
-    let lpPos: { x: number; y: number } | null = null;
+    // ── Mobile: pointer events on the container ───────────────────────────────
+    // A tap (pointerdown → pointerup with < 8 px drift) on a text block selects
+    // the word under the finger and shows the menu.
+    // We use Pointer Events (supported iOS 13+, all Android Chrome) rather than
+    // Touch Events because they fire even when touch-action:none is set and they
+    // unify desktop/mobile without needing separate code paths.
+    const container = containerRef.current;
 
-    const onLpStart = (e: TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      // Only activate when the touch starts on a text block
-      const hit = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (!hit || !findAncestorWithAttr(hit, 'data-block-idx')) return;
-      lpPos = { x: touch.clientX, y: touch.clientY };
-      lpTimer = setTimeout(() => {
-        if (!lpPos) return;
-        const { x, y } = lpPos;
-        lpTimer = null;
-        lpPos   = null;
-        selectWordAtPoint(x, y);
-        // Show the menu immediately after word selection instead of waiting
-        // for touchend — the user doesn't need to lift their finger first.
+    let pdPos: { x: number; y: number } | null = null;
+    const DRAG_SQ = 8 * 8; // pixels²
+
+    const onPD = (e: PointerEvent) => {
+      // Only track if the press started on a text block
+      const hit = e.target as Element | null;
+      if (!hit || !findAncestorWithAttr(hit, 'data-block-idx')) { pdPos = null; return; }
+      pdPos = { x: e.clientX, y: e.clientY };
+    };
+
+    const onPU = (e: PointerEvent) => {
+      if (!pdPos) return;
+      const dx  = e.clientX - pdPos.x;
+      const dy  = e.clientY - pdPos.y;
+      const pos = pdPos;
+      pdPos = null;
+      if (dx * dx + dy * dy > DRAG_SQ) return; // was a drag, not a tap
+      // Tap confirmed: select word at the press position, then show menu
+      if (selectWordAtPoint(pos.x, pos.y)) {
         setTimeout(processSelection, 30);
-      }, LP_DELAY_MS);
-    };
-
-    const onLpMove = (e: TouchEvent) => {
-      // Only cancel if finger moved beyond trembling threshold
-      if (!lpTimer || !lpPos) return;
-      const t  = e.touches[0];
-      const dx = t.clientX - lpPos.x;
-      const dy = t.clientY - lpPos.y;
-      if (dx * dx + dy * dy > LP_MOVE_PX * LP_MOVE_PX) {
-        clearTimeout(lpTimer);
-        lpTimer = null;
-        lpPos   = null;
       }
     };
 
-    const onLpEnd = () => {
-      if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
-      lpPos = null;
-    };
+    if (container) {
+      container.addEventListener('pointerdown', onPD);
+      container.addEventListener('pointerup',   onPU);
+    }
 
-    document.addEventListener('mouseup',    capture);
-    document.addEventListener('touchend',   capture);
-    document.addEventListener('touchstart', onLpStart, { passive: true });
-    document.addEventListener('touchmove',  onLpMove,  { passive: true });
-    document.addEventListener('touchend',   onLpEnd,   { passive: true });
     return () => {
-      document.removeEventListener('mouseup',    capture);
-      document.removeEventListener('touchend',   capture);
-      document.removeEventListener('touchstart', onLpStart);
-      document.removeEventListener('touchmove',  onLpMove);
-      document.removeEventListener('touchend',   onLpEnd);
-      if (lpTimer) clearTimeout(lpTimer);
+      document.removeEventListener('mouseup', onMouseUp);
+      if (container) {
+        container.removeEventListener('pointerdown', onPD);
+        container.removeEventListener('pointerup',   onPU);
+      }
     };
   }, [readerMode, pages]);
 
@@ -623,7 +597,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
           }}
         >
           {'ontouchstart' in window
-            ? 'Toque e segure o texto para selecionar'
+            ? 'Toque em uma palavra para selecioná-la'
             : 'Selecione o trecho que deseja destacar'}
         </div>
       )}
