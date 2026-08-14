@@ -95,7 +95,7 @@ export default function Chapter() {
               zIndex:      9000,
               background: 'linear-gradient(150deg, #f2e9d4 0%, #ece0c4 100%)',
               opacity:     bridgeFading ? 0 : 1,
-              transition:  bridgeFading ? 'opacity 500ms ease-out' : 'none',
+              transition:  bridgeFading ? 'opacity 180ms ease-out' : 'none',
               pointerEvents: 'none',
             }}
           />

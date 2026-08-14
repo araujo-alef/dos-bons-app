@@ -109,7 +109,7 @@ export function BookTransitionOverlay() {
     : 'translate(0px, 0px) scale(1)';
 
   const shellTransition = phase === 5
-    ? 'opacity 350ms ease-out'
+    ? 'opacity 150ms ease-out'
     : (phase === 1 || phase === 4)
     ? 'transform 420ms cubic-bezier(0.22,1,0.36,1)'
     : 'none';
