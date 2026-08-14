@@ -246,6 +246,10 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       // drag the OS handles to extend the selection first.
     };
 
+    // Long-press thresholds
+    const LP_DELAY_MS   = 480;  // fire before native ~600 ms
+    const LP_MOVE_PX    = 8;    // finger trembles below this don't cancel
+
     let lpTimer: ReturnType<typeof setTimeout> | null = null;
     let lpPos: { x: number; y: number } | null = null;
 
@@ -258,27 +262,45 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       lpPos = { x: touch.clientX, y: touch.clientY };
       lpTimer = setTimeout(() => {
         if (!lpPos) return;
-        selectWordAtPoint(lpPos.x, lpPos.y);
+        const { x, y } = lpPos;
         lpTimer = null;
-      }, 480);
+        lpPos   = null;
+        selectWordAtPoint(x, y);
+        // Show the menu immediately after word selection instead of waiting
+        // for touchend — the user doesn't need to lift their finger first.
+        setTimeout(processSelection, 30);
+      }, LP_DELAY_MS);
     };
 
-    const onLpCancel = () => {
+    const onLpMove = (e: TouchEvent) => {
+      // Only cancel if finger moved beyond trembling threshold
+      if (!lpTimer || !lpPos) return;
+      const t  = e.touches[0];
+      const dx = t.clientX - lpPos.x;
+      const dy = t.clientY - lpPos.y;
+      if (dx * dx + dy * dy > LP_MOVE_PX * LP_MOVE_PX) {
+        clearTimeout(lpTimer);
+        lpTimer = null;
+        lpPos   = null;
+      }
+    };
+
+    const onLpEnd = () => {
       if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
       lpPos = null;
     };
 
     document.addEventListener('mouseup',    capture);
     document.addEventListener('touchend',   capture);
-    document.addEventListener('touchstart', onLpStart,  { passive: true });
-    document.addEventListener('touchmove',  onLpCancel, { passive: true });
-    document.addEventListener('touchend',   onLpCancel, { passive: true });
+    document.addEventListener('touchstart', onLpStart, { passive: true });
+    document.addEventListener('touchmove',  onLpMove,  { passive: true });
+    document.addEventListener('touchend',   onLpEnd,   { passive: true });
     return () => {
       document.removeEventListener('mouseup',    capture);
       document.removeEventListener('touchend',   capture);
       document.removeEventListener('touchstart', onLpStart);
-      document.removeEventListener('touchmove',  onLpCancel);
-      document.removeEventListener('touchend',   onLpCancel);
+      document.removeEventListener('touchmove',  onLpMove);
+      document.removeEventListener('touchend',   onLpEnd);
       if (lpTimer) clearTimeout(lpTimer);
     };
   }, [readerMode, pages]);
@@ -515,7 +537,13 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     <div
       ref={containerRef}
       className="book-reader-root"
-      style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#050505', cursor: 'pointer' }}
+      style={{
+        flex: 1, position: 'relative', overflow: 'hidden',
+        background: '#050505', cursor: 'pointer',
+        // In highlight mode: block browser rubber-band/swipe gestures so the
+        // container doesn't show swipe feedback while the user is trying to select text.
+        touchAction: readerMode === 'highlighting' ? 'none' : 'auto',
+      }}
       onTouchStart={(!isCarousel && readerMode !== 'highlighting') ? handleTouchStart : undefined}
       onTouchMove={(!isCarousel && readerMode !== 'highlighting') ? handleTouchMove : undefined}
       onTouchEnd={(!isCarousel && readerMode !== 'highlighting') ? handleTouchEnd : undefined}
