@@ -21,14 +21,14 @@ export default function Home() {
               'radial-gradient(ellipse 80% 55% at 60% 0%, rgba(139,53,255,0.10) 0%, transparent 70%)',
           }}
         />
-        {/* Wine — products/cards zone, long soft fade */}
+        {/* Purple — bottom zone, mirrors top */}
         <div
           style={{
             position: 'absolute',
             bottom: 0, left: 0, right: 0,
             height: '65%',
             background:
-              'radial-gradient(ellipse 90% 60% at 40% 100%, rgba(140,10,10,0.11) 0%, transparent 72%)',
+              'radial-gradient(ellipse 90% 60% at 40% 100%, rgba(139,53,255,0.08) 0%, transparent 72%)',
           }}
         />
       </div>

@@ -1,0 +1,730 @@
+Quero corrigir um problema visual específico na transição do livro.
+
+A animação atual está conceitualmente correta, mas existe um **gap/piscada visível** entre duas fases:
+
+1. o livro 3D sai do card e vai para o centro da tela;
+2. depois ele é substituído pela estrutura intermediária responsável por animar a abertura da capa.
+
+O problema é que essas duas representações do livro não estão ocupando **exatamente a mesma posição, tamanho, escala e perspectiva**.
+
+Então acontece algo perceptível:
+
+**livro centraliza → pequena piscada/salto → livro reaparece ligeiramente diferente → começa a abrir**
+
+Isso quebra completamente a ilusão de continuidade.
+
+Quero eliminar esse gap.
+
+# OBJETIVO PRINCIPAL
+
+A estrutura que anima a abertura do livro deve nascer **pixel-perfect exatamente em cima da última posição ocupada pela imagem 3D centralizada**.
+
+No momento da troca, o usuário não pode perceber que houve mudança de:
+
+* elemento;
+* imagem;
+* componente;
+* DOM;
+* estrutura.
+
+Visualmente deve parecer o mesmo livro continuando a animação.
+
+A sequência desejada é:
+
+**livro centraliza → continua exatamente no mesmo lugar → capa começa a abrir**
+
+Sem salto intermediário.
+
+---
+
+# 1. NÃO FAZER A TROCA COM POSIÇÕES FIXAS INDEPENDENTES
+
+Não quero que:
+
+* a imagem centralizada use uma posição calculada;
+* e o `OpeningBookStage` use outra posição hardcoded.
+
+Isso é provavelmente a origem do problema.
+
+A segunda fase deve derivar suas dimensões e posição diretamente da primeira.
+
+---
+
+# 2. MEDIR O LIVRO NO EXATO MOMENTO DA TROCA
+
+Quando a animação de centralização terminar, capture o bounding box real do livro com:
+
+```ts
+element.getBoundingClientRect()
+```
+
+Precisamos obter pelo menos:
+
+* `top`
+* `left`
+* `width`
+* `height`
+
+e, se necessário:
+
+* transform atual;
+* scale;
+* rotação.
+
+Esse bounding box deve ser usado para posicionar o `OpeningBookStage`.
+
+---
+
+# 3. OPENINGBOOKSTAGE DEVE NASCER COM O MESMO BOUNDING BOX
+
+No primeiro frame em que o `OpeningBookStage` for exibido:
+
+ele deve usar exatamente:
+
+```text
+x = livro atual.left
+y = livro atual.top
+width = livro atual.width
+height = livro atual.height
+```
+
+Ou equivalente dentro da arquitetura usada.
+
+Não faça primeiro render em outro tamanho e depois anime até o tamanho correto.
+
+O primeiro frame já precisa estar correto.
+
+---
+
+# 4. PRIMEIRO FRAME SEM TRANSITION
+
+Muito importante:
+
+ao montar o `OpeningBookStage`, não aplicar imediatamente uma transition CSS que faça ele sair de um estado default para o estado correto.
+
+Isso pode gerar:
+
+frame 1:
+posição padrão
+
+frame 2:
+posição correta
+
+e causar justamente a piscada.
+
+A sequência deve ser:
+
+1. montar já na posição final da fase anterior;
+2. browser renderiza;
+3. somente depois iniciar a animação da capa abrindo.
+
+Se necessário, usar:
+
+* `requestAnimationFrame`;
+* double `requestAnimationFrame`;
+* `useLayoutEffect`;
+
+para garantir isso.
+
+---
+
+# 5. PREFERIR USELAYOUTEFFECT PARA SINCRONIZAÇÃO
+
+Se estiver em React, considere usar:
+
+`useLayoutEffect`
+
+para aplicar:
+
+* posição;
+* tamanho;
+* transform;
+
+antes do navegador pintar o novo frame.
+
+Não usar somente `useEffect` se isso estiver causando um frame intermediário visível.
+
+---
+
+# 6. SOBREPOR OS DOIS ELEMENTOS POR ALGUNS FRAMES
+
+Não remover a imagem 3D imediatamente.
+
+Durante aproximadamente:
+
+`80ms–150ms`
+
+manter:
+
+* imagem 3D original;
+* `OpeningBookStage`
+
+sobrepostos exatamente no mesmo lugar.
+
+Fazer um crossfade mínimo:
+
+imagem original:
+`opacity 1 → 0`
+
+OpeningBookStage:
+`opacity 0 → 1`
+
+Se o alinhamento estiver perfeito, essa troca deve ficar invisível.
+
+---
+
+# 7. NÃO USAR FADE PARA ESCONDER DESALINHAMENTO
+
+O crossfade deve ser apenas um refinamento.
+
+Não use um fade longo para mascarar uma diferença de posição.
+
+Primeiro:
+
+**alinhar geometricamente.**
+
+Depois:
+
+usar crossfade curto.
+
+---
+
+# 8. NORMALIZAR ASPECT RATIO
+
+Verificar se a imagem 3D e a capa/estrutura intermediária possuem aspect ratios diferentes.
+
+Isso pode estar causando o salto.
+
+Precisamos garantir que o container externo seja o mesmo.
+
+Sugestão:
+
+criar um wrapper único com tamanho fixado no momento da transição:
+
+```jsx
+<BookTransitionShell>
+   fase 1: imagem 3D
+   fase 2: OpeningBookStage
+</BookTransitionShell>
+```
+
+Esse wrapper mantém:
+
+* width;
+* height;
+* position;
+* transform.
+
+Somente o conteúdo interno muda.
+
+Essa abordagem é preferível se for compatível com a implementação atual.
+
+---
+
+# 9. IDEAL: NÃO TROCAR O WRAPPER
+
+Se possível, mantenha o mesmo elemento/wrapper desde:
+
+**imagem no centro**
+
+até:
+
+**livro abrindo**
+
+Ou seja:
+
+```text
+BookTransitionShell
+ ├── ClosedBookImage
+ └── OpeningBookStage
+```
+
+O `BookTransitionShell` continua exatamente no mesmo lugar.
+
+Apenas alternamos os filhos.
+
+Isso reduz muito o risco de layout shift.
+
+---
+
+# 10. MESMO TRANSFORM-ORIGIN
+
+Verifique também:
+
+`transform-origin`
+
+A imagem 3D e o estágio de abertura precisam usar referência compatível.
+
+Não quero:
+
+fase 1:
+transform-origin center
+
+fase 2:
+transform-origin left top
+
+fazendo o objeto deslocar ao começar a animação.
+
+O wrapper externo deve ter transform estável.
+
+Apenas a capa interna pode usar:
+
+`transform-origin: left center`
+
+para abrir.
+
+---
+
+# 11. NÃO APLICAR SCALE DUPLO
+
+Verificar se existe algo como:
+
+wrapper centralizado com `scale`
+
+e depois o `OpeningBookStage` também recebe outro `scale`.
+
+Isso pode causar pequenas diferenças de tamanho.
+
+Normalizar.
+
+Preferência:
+
+* wrapper define tamanho físico final;
+* conteúdo interno usa `width: 100%`;
+* sem scale extra para ajustar tamanho.
+
+---
+
+# 12. NÃO USAR OBJECT-FIT DIFERENTE ENTRE AS DUAS FASES
+
+Verifique:
+
+* `object-fit`
+* `object-position`
+* padding
+* margin
+* border
+* shadow
+
+A imagem centralizada e a representação inicial do `OpeningBookStage` precisam começar visualmente iguais.
+
+Se a imagem usa:
+
+`object-fit: contain`
+
+a estrutura intermediária também deve respeitar exatamente a mesma caixa visual.
+
+---
+
+# 13. VERIFICAR ESPAÇOS TRANSPARENTES DO PNG
+
+A imagem do livro pode conter padding/transparência interna no próprio PNG.
+
+Nesse caso:
+
+`getBoundingClientRect()` mede a imagem inteira, não somente os pixels visíveis do livro.
+
+Se o `OpeningBookStage` representar apenas o livro sem esse mesmo espaço interno, haverá diferença visual mesmo que os containers tenham o mesmo tamanho.
+
+Verifique isso especificamente.
+
+Se necessário:
+
+* reproduzir o mesmo inset interno no `OpeningBookStage`;
+* ou usar um wrapper visual que normalize o conteúdo.
+
+Não fazer crop arbitrário que altere a Home.
+
+---
+
+# 14. CRIAR UM “VISUAL BOUNDS OFFSET” SE NECESSÁRIO
+
+Se o PNG tiver espaço transparente, pode ser necessário definir algo como:
+
+```ts
+bookVisualInsets = {
+  top,
+  right,
+  bottom,
+  left
+}
+```
+
+e aplicar o mesmo enquadramento na estrutura de abertura.
+
+Mas somente faça isso se realmente houver diferença entre:
+
+bounding box do asset
+
+e
+
+bounding box visual do livro.
+
+---
+
+# 15. MESMA PERSPECTIVA ANTES DE ABRIR
+
+O `OpeningBookStage` deve começar com aproximadamente a mesma perspectiva/rotação visual da imagem 3D.
+
+Não quero:
+
+livro inclinado
+
+↓
+
+frame seguinte totalmente frontal
+
+↓
+
+abre.
+
+Se a abertura funciona melhor frontalmente, faça a correção de perspectiva como parte da animação contínua.
+
+Por exemplo:
+
+```text
+imagem centralizada inclinada
+        ↓
+crossfade invisível
+        ↓
+OpeningBookStage com mesma inclinação
+        ↓
+200ms de ajuste de perspectiva
+        ↓
+capa começa a abrir
+```
+
+---
+
+# 16. NÃO ZERAR TRANSFORM NA TROCA
+
+Verificar se ao montar a segunda fase existe algo como:
+
+```css
+transform: none;
+```
+
+antes de aplicar a animação.
+
+Isso pode causar um frame de salto.
+
+A segunda fase precisa herdar/receber explicitamente o transform visual atual.
+
+---
+
+# 17. USAR FLIP TECHNIQUE SE NECESSÁRIO
+
+Se a troca entre elementos continuar difícil de alinhar, utilizar a técnica FLIP:
+
+**First**
+capturar posição do elemento antigo.
+
+**Last**
+capturar posição natural do novo elemento.
+
+**Invert**
+calcular diferença:
+
+```text
+deltaX
+deltaY
+scaleX
+scaleY
+```
+
+**Play**
+aplicar transform invertido inicialmente e animar até zero.
+
+Mas nesse caso, como queremos praticamente nenhuma movimentação perceptível na troca, o novo elemento deve começar visualmente invertido exatamente sobre o antigo.
+
+---
+
+# 18. SE ESTIVER USANDO MOTION / FRAMER MOTION
+
+Se a biblioteca Motion já está sendo usada, considerar usar um `layoutId` compartilhado também nessa troca intermediária.
+
+Por exemplo, conceitualmente:
+
+```jsx
+<motion.div layoutId="book-transition-object">
+```
+
+tanto no livro centralizado quanto no stage de abertura.
+
+Porém:
+
+não use shared layout se ele criar interpolação indesejada.
+
+O objetivo é continuidade absoluta.
+
+---
+
+# 19. NÃO DESMONTAR A FASE ANTERIOR CEDO DEMAIS
+
+O livro centralizado não deve ser removido assim que sua animação termina.
+
+A ordem correta:
+
+1. termina centralização;
+2. medir livro;
+3. montar stage de abertura no mesmo local;
+4. confirmar render;
+5. crossfade;
+6. remover imagem antiga;
+7. iniciar abertura.
+
+Hoje aparentemente existe algo semelhante a:
+
+1. termina centralização;
+2. remove imagem;
+3. monta stage;
+4. abre.
+
+Isso gera o gap.
+
+Corrigir essa ordem.
+
+---
+
+# 20. PRÉ-MONTAR O OPENING STAGE
+
+Se possível, montar o `OpeningBookStage` previamente com:
+
+* `visibility: hidden`;
+* ou `opacity: 0`;
+
+para evitar custo de criação/layout justamente no momento da troca.
+
+Então, ao centralizar:
+
+* atualizar dimensões;
+* tornar visível;
+* crossfade.
+
+Isso pode remover também a pequena piscada de renderização.
+
+---
+
+# 21. PRÉ-CARREGAR TODOS OS ASSETS
+
+Garantir que:
+
+* capa;
+* imagens internas;
+* qualquer texture usada no stage;
+
+estejam carregadas ANTES de iniciar a animação.
+
+Não permitir que o browser carregue um asset entre as duas fases.
+
+Isso pode causar flash.
+
+Se necessário, preload dos assets no carregamento da Home ou antes da transição.
+
+---
+
+# 22. NÃO TER BACKGROUND DIFERENTE ENTRE AS FASES
+
+A área externa também precisa permanecer idêntica.
+
+Verifique se, no momento da troca:
+
+* overlay muda de cor;
+* glow muda abruptamente;
+* background muda;
+* sombra desaparece.
+
+Isso pode ser percebido como piscada mesmo que o livro esteja alinhado.
+
+Preservar o mesmo ambiente até a capa começar a abrir.
+
+---
+
+# 23. SOMBRA
+
+A sombra do livro também precisa manter continuidade.
+
+Se a primeira representação tem uma sombra e a segunda começa sem sombra, existe uma percepção de salto.
+
+Durante o crossfade:
+
+* manter sombra equivalente;
+* depois permitir que ela se transforme gradualmente.
+
+---
+
+# 24. GLOW
+
+Mesma regra para glow.
+
+Não resetar o glow ao trocar de componente.
+
+Preferência:
+
+o glow pertence ao `BookTransitionShell`, não ao asset interno.
+
+Assim:
+
+* imagem muda;
+* glow continua sendo o mesmo elemento DOM.
+
+Isso ajuda bastante na continuidade.
+
+---
+
+# 25. RAIOS E CORRENTE
+
+Se os efeitos de raio/corrente pertencem à transição:
+
+manter esses elementos fora da troca entre:
+
+`ClosedBookImage`
+
+e
+
+`OpeningBookStage`.
+
+Eles devem continuar montados no wrapper principal.
+
+Assim não existe flash causado por desmontagem/recriação desses efeitos.
+
+---
+
+# 26. ARQUITETURA RECOMENDADA
+
+Minha preferência é algo conceitualmente próximo de:
+
+```jsx
+<BookTransitionShell
+  style={{
+    position,
+    width,
+    height,
+    transform,
+  }}
+>
+  <BookGlow />
+  <BookLightning />
+  <BookChainEffect />
+
+  <ClosedBookImage
+    opacity={phase === "opening" ? 0 : 1}
+  />
+
+  <OpeningBookStage
+    opacity={phase === "opening" ? 1 : 0}
+  />
+</BookTransitionShell>
+```
+
+Assim:
+
+**posição e tamanho pertencem a um único wrapper.**
+
+A troca interna não mexe na geometria.
+
+---
+
+# 27. TIMING DA TROCA
+
+Depois que o livro chegar ao centro:
+
+`0ms`
+centralização termina.
+
+`0–50ms`
+garantir dimensões/fase preparada.
+
+`50–150ms`
+crossfade entre closed image e opening stage.
+
+`150ms+`
+iniciar abertura da capa.
+
+Não iniciar a abertura simultaneamente ao crossfade se isso estiver dificultando o alinhamento.
+
+Primeiro faça a troca ficar invisível.
+
+Depois abra.
+
+---
+
+# 28. NÃO PRECISA SER RÁPIDO DEMAIS
+
+É melhor gastar aproximadamente `100ms` estabilizando a troca do que ter uma piscada.
+
+Mas não criar uma pausa perceptível.
+
+O usuário deve sentir movimento contínuo.
+
+---
+
+# 29. TESTAR FRAME A FRAME
+
+Quero que você revise essa animação usando DevTools ou gravação em câmera lenta, se possível.
+
+Analise especificamente:
+
+* último frame da centralização;
+* primeiro frame do stage de abertura.
+
+Compare:
+
+* top;
+* left;
+* width;
+* height;
+* rotation;
+* scale.
+
+Eles precisam ser visualmente idênticos.
+
+---
+
+# 30. CRITÉRIO DE ACEITE
+
+Considere esse bug corrigido somente se, em mobile próximo de `390px`:
+
+1. livro sai do card;
+2. centraliza;
+3. permanece absolutamente estável;
+4. não pisca;
+5. não muda de tamanho;
+6. não muda de posição;
+7. não muda de inclinação instantaneamente;
+8. capa começa a abrir a partir exatamente daquele mesmo livro.
+
+Se colocarmos a animação em câmera lenta, a troca de componentes deve ser praticamente impossível de identificar.
+
+---
+
+# 31. NÃO ALTERAR OUTRAS PARTES DA ANIMAÇÃO
+
+Não mexer, salvo se necessário para corrigir esse gap, em:
+
+* velocidade da centralização;
+* abertura da capa;
+* leitor;
+* navegação;
+* efeitos finais;
+* Home.
+
+Esta tarefa é especificamente uma correção da **continuidade entre o livro centralizado e o OpeningBookStage**.
+
+---
+
+# 32. RESULTADO FINAL
+
+Hoje temos:
+
+**centraliza → PISCA/SALTA → abre**
+
+Quero:
+
+**centraliza → abre**
+
+Sem etapa visual intermediária perceptível.
+
+Tecnicamente podem continuar existindo dois elementos diferentes.
+
+Visualmente, eles precisam parecer **um único objeto contínuo**.
