@@ -2,24 +2,25 @@
  * BookTransitionOverlay — cinematic Home → BookReader transition
  *
  * Single-shell architecture: one fixed wrapper holds BOTH the PNG and the
- * OpeningBookStage. Only the shell moves (phase 1). The contents crossfade
- * internally (phase 2), so position/scale are always identical — no jump.
+ * OpeningBookStage. Only the shell moves/scales; internal content crossfades.
  *
- * Phase timeline (≈1280ms):
- *   0  snap      shell at card rect, PNG visible, stage hidden (opacity 0)
- *   1  (0→420ms) shell glides to centre + scales up; overlay darkens
- *   2  (440ms)   PNG fades out, Stage fades in — both inside same shell
- *   3  (560ms)   cover rotates: rotateY(0 → -115deg) over 550ms
- *   4  (950ms)   navigate; shell + overlay fade; BookReader uncovered
- *   5  (1280ms)  clearTransition
+ * Phase timeline:
+ *   0           snap:    shell at card rect, PNG visible, stage pre-mounted (opacity 0)
+ *   1  (0–420)  center:  shell glides + scales to centre; dark overlay fades in
+ *   2  (440)    swap:    PNG fades out, Stage fades in (140 ms each)
+ *   3  (560)    open:    cover rotateY 0 → -115 deg (550 ms)
+ *   4  (1150)   expand:  shell scales to fill viewport; cover+body fade; inner page
+ *                        expands to inset:0; dark overlay fades out (420 ms)
+ *   5  (1600)   reveal:  navigate; shell opacity 1 → 0 (350 ms)
+ *   6  (1950)   done:    clearTransition
  *
- * The Stage is pre-mounted at opacity:0 to avoid layout-cost on first show.
- * The PNG visual bounds (objectFit:contain letterboxes ≈8.3% each side) are
- * reproduced exactly in the Stage via matching insets — so the crossfade is
- * geometrically invisible even in slow-motion.
+ * Chapter.tsx picks up a "bookEntryTransition" flag from sessionStorage and
+ * renders its own cream overlay that fades out on mount, bridging the handoff.
  *
- * prefers-reduced-motion → immediate navigate, no animation.
+ * The inner page insets (8.33% H) match objectFit:contain letterboxing of the
+ * PNG (image 2:3, container 4:5) for pixel-perfect crossfade alignment.
  */
+
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import bookImg from '@/assets/book-3d-v3.png';
@@ -27,18 +28,9 @@ import { useBookTransition } from '@/context/BookTransitionContext';
 import { chapters } from '@/mocks/data';
 import { CURRENT_CHAPTER_ID } from '@/mocks/config';
 
-type Phase = 0 | 1 | 2 | 3 | 4 | 5;
+type Phase = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-/**
- * The book PNG is 1024×1536 (aspect 2:3).
- * The shell inherits the card rect (aspect 4:5 = 0.8).
- * objectFit:contain → image fills height, letterboxes horizontally.
- * Visual book width = shellH × (2/3) = shellW × 1.25 × (2/3) = shellW × 0.8333
- * Horizontal inset each side = (1 − 0.8333) / 2 × 100% ≈ 8.33%
- * Vertical inset = 0 (image fills full height)
- */
 const STAGE_INSET_X = '8.33%';
-const STAGE_INSET_Y = '0%';
 
 export function BookTransitionOverlay() {
   const { transition, clearTransition } = useBookTransition();
@@ -59,9 +51,8 @@ export function BookTransitionOverlay() {
   useEffect(() => {
     if (!transition) { setPhase(0); return; }
 
-    const prefersReduced =
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
       setLocation(transition.targetPath);
       clearTransition();
       return;
@@ -70,14 +61,19 @@ export function BookTransitionOverlay() {
     setPhase(0);
     killTimers();
 
-    // Double-rAF: phase-0 render must commit before transitions begin
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = requestAnimationFrame(() => {
-        setPhase(1);                                              // shell → centre
-        at(() => setPhase(2), 440);                              // crossfade
-        at(() => setPhase(3), 560);                              // open cover
-        at(() => { setLocation(transition.targetPath); setPhase(4); }, 950);
-        at(() => clearTransition(), 1280);
+        setPhase(1);
+        at(() => setPhase(2), 440);
+        at(() => setPhase(3), 560);
+        at(() => setPhase(4), 1150);
+        at(() => {
+          // Signal Chapter.tsx to show its own cream bridge overlay
+          sessionStorage.setItem('bookEntryTransition', '1');
+          setLocation(transition.targetPath);
+          setPhase(5);
+        }, 1600);
+        at(() => clearTransition(), 1950);
       });
     });
 
@@ -92,62 +88,87 @@ export function BookTransitionOverlay() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // Target width = 72% vw, capped at 310px (single page portrait)
+  // Centered state (phases 1–3)
   const targetW = Math.min(vw * 0.72, 310);
   const scale   = targetW / bookRect.width;
   const dx      = (vw - bookRect.width  * scale) / 2 - bookRect.left;
   const dy      = (vh - bookRect.height * scale) / 2 - bookRect.top;
 
+  // Expanded state (phases 4–5) — shell fills full viewport
+  const expandTotalScale = Math.max(vw / bookRect.width, vh / bookRect.height);
+  const expandDx = (vw - bookRect.width  * expandTotalScale) / 2 - bookRect.left;
+  const expandDy = (vh - bookRect.height * expandTotalScale) / 2 - bookRect.top;
+
   const chapter = chapters.find(c => c.id === CURRENT_CHAPTER_ID);
 
-  /* ── Per-phase derived values ─────────────────────────────────────────────*/
-
-  // Shell: translate + scale (only transitions in phase 1, then freezes)
-  const shellTransform  = phase >= 1
+  /* ── Shell ────────────────────────────────────────────────────────────────*/
+  const shellTransform = phase >= 4
+    ? `translate(${expandDx}px, ${expandDy}px) scale(${expandTotalScale})`
+    : phase >= 1
     ? `translate(${dx}px, ${dy}px) scale(${scale})`
     : 'translate(0px, 0px) scale(1)';
-  const shellTransition = phase === 1
-    ? 'transform 420ms cubic-bezier(0.22,1,0.36,1)'
-    : 'none';                       // ← frozen in place for phases 2–5
 
-  // PNG: visible in phases 0–1, fades out at phase 2
+  const shellTransition = phase === 5
+    ? 'opacity 350ms ease-out'
+    : (phase === 1 || phase === 4)
+    ? 'transform 420ms cubic-bezier(0.22,1,0.36,1)'
+    : 'none';
+
+  const shellOpacity = phase >= 5 ? 0 : 1;
+
+  /* ── Dark overlay ─────────────────────────────────────────────────────────*/
+  const bgOpacity    = phase >= 4 ? 0 : phase >= 1 ? 0.94 : 0;
+  const bgTransition = phase === 4
+    ? 'opacity 350ms ease-out'
+    : phase === 1
+    ? 'opacity 360ms ease-out'
+    : 'none';
+
+  /* ── Ambient glow ─────────────────────────────────────────────────────────*/
+  const glowOpacity    = phase >= 4 ? 0 : phase === 3 ? 0.65 : phase === 2 ? 0.30 : 0;
+  const glowTransition = phase === 4 ? 'opacity 200ms ease-out' : 'opacity 300ms ease-out';
+
+  /* ── PNG (phase 0-1 visible, fades in phase 2) ────────────────────────────*/
   const pngOpacity    = phase >= 2 ? 0 : 1;
   const pngTransition = phase === 2 ? 'opacity 140ms ease-out' : 'none';
 
-  // Stage: pre-mounted at opacity 0; fades in at phase 2, out at phase 4
-  const stageOpacity    = phase >= 4 ? 0 : phase >= 2 ? 1 : 0;
-  const stageTransition = phase >= 4
-    ? 'opacity 300ms ease-out'
-    : phase === 2
-    ? 'opacity 140ms ease-in'
-    : 'none';
+  /* ── Stage (pre-mounted at 0; fades in at phase 2, stays until shell fades)*/
+  const stageOpacity    = phase >= 2 ? 1 : 0;
+  const stageTransition = phase === 2 ? 'opacity 140ms ease-in' : 'none';
 
-  // Cover rotation (only in phase 3)
+  /* ── Book body (dark) — fades out in phase 4 ─────────────────────────────*/
+  const bodyOpacity    = phase >= 4 ? 0 : 1;
+  const bodyTransition = phase === 4 ? 'opacity 250ms ease-out' : 'none';
+
+  /* ── Cover rotation & fade ────────────────────────────────────────────────*/
   const coverDeg        = phase >= 3 ? -115 : 0;
-  const coverTransition = phase === 3
+  const coverOpacity    = phase >= 4 ? 0 : 1;
+  const coverTransition = phase === 4
+    ? 'opacity 200ms ease-out'
+    : phase === 3
     ? 'transform 550ms cubic-bezier(0.22,1,0.36,1)'
     : 'none';
 
-  // Shadow on inner page (sweeps away as cover opens)
+  /* ── Shadow on inner page (sweeps away as cover opens) ───────────────────*/
   const shadowOpacity    = phase >= 3 ? 0 : 1;
   const shadowTransition = phase === 3 ? 'opacity 500ms ease-out 60ms' : 'none';
 
-  // Spine light (purple/warm, appears as cover opens)
-  const spineLightOpacity    = phase === 3 ? 0.65 : 0;
-  const spineLightTransition = phase === 3
+  /* ── Spine light ─────────────────────────────────────────────────────────*/
+  const spineLightOpacity    = phase >= 4 ? 0 : phase === 3 ? 0.65 : 0;
+  const spineLightTransition = phase === 4
+    ? 'opacity 150ms ease-out'
+    : phase === 3
     ? 'opacity 350ms ease-in'
     : 'opacity 200ms ease-out';
 
-  // Ambient glow (peaks at phase 3)
-  const glowOpacity    = phase === 3 ? 0.65 : phase === 2 ? 0.30 : 0;
-  const glowTransition = 'opacity 300ms ease-out';
-
-  // Dark overlay
-  const bgOpacity    = phase >= 4 ? 0 : phase >= 1 ? 0.94 : 0;
-  const bgTransition = phase >= 4
-    ? 'opacity 400ms ease-out'
-    : phase === 1
-    ? 'opacity 360ms ease-out'
+  /* ── Inner page insets: padded (phases 0-3) → fills shell (phase 4+) ─────*/
+  const pageTop    = phase >= 4 ? 0   : '3%';
+  const pageBottom = phase >= 4 ? 0   : '3%';
+  const pageLeft   = phase >= 4 ? 0   : '5%';
+  const pageRight  = phase >= 4 ? 0   : '4%';
+  const ease       = 'cubic-bezier(0.22,1,0.36,1)';
+  const pageTransition = phase === 4
+    ? `top 420ms ${ease}, bottom 420ms ${ease}, left 420ms ${ease}, right 420ms ${ease}`
     : 'none';
 
   return (
@@ -157,15 +178,15 @@ export function BookTransitionOverlay() {
         aria-hidden="true"
         style={{
           position: 'fixed', inset: 0,
-          background: '#050505',
-          opacity:     bgOpacity,
-          transition:  bgTransition,
-          zIndex:      9990,
-          pointerEvents: phase >= 1 && phase < 4 ? 'all' : 'none',
+          background:    '#050505',
+          opacity:        bgOpacity,
+          transition:     bgTransition,
+          zIndex:         9990,
+          pointerEvents: phase >= 1 && phase < 5 ? 'all' : 'none',
         }}
       />
 
-      {/* ── Ambient purple glow ──────────────────────────────────────────── */}
+      {/* ── Ambient glow ─────────────────────────────────────────────────── */}
       <div
         aria-hidden="true"
         style={{
@@ -179,9 +200,7 @@ export function BookTransitionOverlay() {
         }}
       />
 
-      {/* ── Single shell — owns position & scale for all phases ──────────── */}
-      {/* Both PNG and Stage live here; only shell moves (phase 1).           */}
-      {/* After phase 1 shell freezes → zero position delta between children. */}
+      {/* ── Single shell ─────────────────────────────────────────────────── */}
       <div
         aria-hidden="true"
         style={{
@@ -190,57 +209,62 @@ export function BookTransitionOverlay() {
           left:             bookRect.left,
           width:            bookRect.width,
           height:           bookRect.height,
+          overflow:        'hidden',
           transform:        shellTransform,
           transition:       shellTransition,
           transformOrigin: 'top left',
+          opacity:          shellOpacity,
           zIndex:           9999,
           pointerEvents:   'none',
           willChange:      'transform',
         }}
       >
-        {/* PNG — objectFit:contain letterboxes ≈8.3% each side horizontally */}
+        {/* PNG — visible phases 0-1, fades out in phase 2 */}
         <img
           src={bookImg}
           alt=""
           style={{
             position:       'absolute', inset: 0,
-            width:          '100%',
-            height:         '100%',
-            objectFit:      'contain',
-            objectPosition: 'center center',
+            width:          '100%', height: '100%',
+            objectFit:      'contain', objectPosition: 'center center',
             display:        'block',
             opacity:         pngOpacity,
             transition:      pngTransition,
           }}
         />
 
-        {/* Opening Book Stage — pre-mounted at opacity:0, insets match PNG   */}
-        {/* visual bounds so both representations overlap pixel-perfectly.     */}
+        {/* Opening Book Stage — pre-mounted at opacity 0 */}
         <div
           style={{
             position:   'absolute',
-            top:         STAGE_INSET_Y, bottom: STAGE_INSET_Y,
-            left:        STAGE_INSET_X, right:  STAGE_INSET_X,
+            top: 0, bottom: 0,
+            left:  STAGE_INSET_X, right: STAGE_INSET_X,
             opacity:     stageOpacity,
             transition:  stageTransition,
             perspective: '1200px',
           }}
         >
-          {/* Book body — dark page interior */}
+          {/* Book body — dark background */}
           <div
             style={{
               position:     'absolute', inset: 0,
               background:   '#0d0b09',
               borderRadius: '3px 6px 6px 3px',
               boxShadow:    '6px 0 20px rgba(0,0,0,0.7)',
+              opacity:       bodyOpacity,
+              transition:    bodyTransition,
             }}
           />
 
-          {/* Inner page — cream, with chapter content */}
+          {/* Inner page — cream, expands to fill stage in phase 4 */}
           <div
             style={{
               position:     'absolute',
-              top: '3%', bottom: '3%', left: '5%', right: '4%',
+              top:           pageTop,
+              bottom:        pageBottom,
+              left:          pageLeft,
+              right:         pageRight,
+              transition:    pageTransition,
               background:   'linear-gradient(150deg, #f2e9d4 0%, #ece0c4 100%)',
               borderRadius: '2px 5px 5px 2px',
               overflow:     'hidden',
@@ -251,7 +275,7 @@ export function BookTransitionOverlay() {
               padding:      '16px 14px',
             }}
           >
-            {/* Spine light — purple/warm from left edge */}
+            {/* Spine light */}
             <div
               style={{
                 position:   'absolute', top: '20%', bottom: '20%', left: 0,
@@ -273,7 +297,7 @@ export function BookTransitionOverlay() {
               {chapter?.intro ?? ''}
             </p>
 
-            {/* Cover shadow — sweeps left→right as cover opens */}
+            {/* Shadow cast by cover */}
             <div
               style={{
                 position:     'absolute', inset: 0,
@@ -285,13 +309,14 @@ export function BookTransitionOverlay() {
             />
           </div>
 
-          {/* Cover — rotates around left edge (spine = dobradiça) */}
+          {/* Cover */}
           <div
             style={{
               position:        'absolute', inset: 0,
               transformStyle:  'preserve-3d',
               transformOrigin: 'left center',
               transform:       `rotateY(${coverDeg}deg)`,
+              opacity:          coverOpacity,
               transition:       coverTransition,
             }}
           >
@@ -307,15 +332,10 @@ export function BookTransitionOverlay() {
               <img
                 src={bookImg}
                 alt=""
-                style={{
-                  width: '100%', height: '100%',
-                  objectFit: 'cover', objectPosition: '60% center',
-                  display: 'block',
-                }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '60% center', display: 'block' }}
               />
             </div>
-
-            {/* Back face — matte inner side */}
+            {/* Back face */}
             <div
               style={{
                 position:          'absolute', inset: 0,

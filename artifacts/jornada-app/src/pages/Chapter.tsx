@@ -19,6 +19,25 @@ export default function Chapter() {
   const [, setLocation] = useLocation();
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // Cream bridge overlay — set by BookTransitionOverlay before navigating here.
+  // Starts opaque cream (matching the expanded inner page), fades out on mount
+  // so the reader materialises seamlessly from the cream fill.
+  const [showBridge] = useState(() => {
+    const flag = sessionStorage.getItem('bookEntryTransition');
+    if (flag) sessionStorage.removeItem('bookEntryTransition');
+    return flag === '1';
+  });
+  const [bridgeFading, setBridgeFading] = useState(false);
+
+  useEffect(() => {
+    if (!showBridge) return;
+    const r1 = requestAnimationFrame(() => {
+      const r2 = requestAnimationFrame(() => setBridgeFading(true));
+      return () => cancelAnimationFrame(r2);
+    });
+    return () => cancelAnimationFrame(r1);
+  }, [showBridge]);
+
   const chapterId = id ? parseInt(id, 10) : 0;
   const chapter = chapters.find(c => c.id === chapterId);
 
@@ -67,6 +86,20 @@ export default function Chapter() {
         className="flex flex-col"
         style={{ height: '100dvh', background: '#050505', overflow: 'hidden' }}
       >
+        {/* Cream bridge — fades out after book-opening transition */}
+        {showBridge && (
+          <div
+            aria-hidden="true"
+            style={{
+              position:   'fixed', inset: 0,
+              zIndex:      9000,
+              background: 'linear-gradient(150deg, #f2e9d4 0%, #ece0c4 100%)',
+              opacity:     bridgeFading ? 0 : 1,
+              transition:  bridgeFading ? 'opacity 500ms ease-out' : 'none',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
         {isCompleted && <ChapterCompletion onNext={handleNext} />}
 
         {/* Minimal header */}
