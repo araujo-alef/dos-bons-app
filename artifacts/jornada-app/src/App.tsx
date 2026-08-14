@@ -7,6 +7,7 @@ import NotFound from '@/pages/not-found';
 import Home from '@/pages/Home';
 import Chapter from '@/pages/Chapter';
 import UpToDate from '@/pages/UpToDate';
+import ComingSoon from '@/pages/ComingSoon';
 import { BookTransitionProvider } from '@/context/BookTransitionContext';
 import { BookTransitionOverlay } from '@/components/BookTransitionOverlay';
 import {
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/jornada"><Redirect to="/" /></Route>
         <Route path="/jornada/capitulo/:id" component={Chapter} />
         <Route path="/jornada/em-dia" component={UpToDate} />
+        <Route path="/em-breve/:slug" component={ComingSoon} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>
