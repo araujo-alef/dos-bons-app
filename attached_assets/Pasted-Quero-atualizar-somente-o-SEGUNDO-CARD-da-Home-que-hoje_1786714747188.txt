@@ -1,0 +1,292 @@
+Quero atualizar somente o SEGUNDO CARD da Home, que hoje representa o produto "Comunidade" / "Lábia de Cachorro".
+
+Tenho uma nova arte pronta para esse produto e quero substituir o conteúdo visual atual do segundo card por essa imagem.
+
+Use o arquivo de imagem:
+
+/mnt/data/lábia_de_cachorro_mascote_neon_gamer.png
+
+OBJETIVO
+
+Transformar o segundo card em um card visual de produto, usando essa arte como elemento principal.
+
+A imagem já contém:
+
+- mascote;
+- identidade visual roxa;
+- nome "LÁBIA DE CACHORRO";
+- subtítulo "COMUNIDADE + AULAS".
+
+Portanto, NÃO quero manter dentro desse card:
+
+- ícone de cadeado;
+- texto "COMUNIDADE";
+- badge "EM BREVE";
+- qualquer outro texto sobreposto.
+
+A própria imagem deve comunicar o produto.
+
+==================================================
+1. SUBSTITUIR APENAS O CONTEÚDO DO SEGUNDO CARD
+==================================================
+
+Não alterar:
+
+- primeiro card do livro;
+- terceiro card;
+- quarto card;
+- grid;
+- dimensões gerais dos cards;
+- espaçamentos da Home;
+- frase superior;
+- corrente;
+- animação do livro;
+- background geral.
+
+Modificar somente o segundo card.
+
+==================================================
+2. USAR A NOVA IMAGEM COMO ARTE PRINCIPAL
+==================================================
+
+Renderizar a imagem:
+
+/mnt/data/lábia_de_cachorro_mascote_neon_gamer.png
+
+dentro do segundo card.
+
+Ela deve ocupar praticamente toda a área visual disponível, mantendo boa leitura do mascote e do texto.
+
+==================================================
+3. NÃO USAR COMO BACKGROUND FULL-BLEED SEM CONTROLE
+==================================================
+
+Preferencialmente renderizar como uma imagem real dentro do card:
+
+<img />
+
+ou componente equivalente.
+
+Usar algo próximo de:
+
+width: 100%;
+height: 100%;
+object-fit: cover;
+
+Mas ajustar `object-position` e escala conforme necessário para garantir que:
+
+- cabeça do cachorro não seja cortada;
+- "LÁBIA DE CACHORRO" permaneça legível;
+- "COMUNIDADE + AULAS" permaneça visível.
+
+Se `cover` cortar partes importantes, usar `contain` ou uma solução híbrida com scale controlado.
+
+Prioridade é preservar a composição.
+
+==================================================
+4. PREENCHER O CARD SEM PARECER UMA IMAGEM COLADA
+==================================================
+
+Não quero uma miniatura pequena centralizada com muito espaço vazio.
+
+A arte deve parecer a própria identidade do card.
+
+Ela pode preencher aproximadamente 90–100% da superfície útil.
+
+O card deve parecer uma "capa de produto".
+
+==================================================
+5. PRESERVAR A PROPORÇÃO DA IMAGEM
+==================================================
+
+Não distorcer a imagem.
+
+Nunca fazer:
+
+width: 100%;
+height: 100%;
+
+se isso alterar o aspect ratio sem `object-fit`.
+
+Manter proporção original.
+
+==================================================
+6. INTEGRAR A IMAGEM AO FUNDO DO CARD
+==================================================
+
+A arte já possui fundo preto/roxo.
+
+Quero que ela se misture visualmente com o card.
+
+Se necessário, adicionar um mask/fade muito discreto nas bordas para evitar uma transição perceptível entre:
+
+imagem
+e
+background do card.
+
+Por exemplo:
+
+- máscara suave nas bordas;
+- pequeno gradient escuro;
+- ou overlay muito discreto.
+
+Não adicionar moldura interna branca ou contorno evidente.
+
+==================================================
+7. MANTER A BORDA EXTERNA DO CARD
+==================================================
+
+Preservar a geometria e borda existentes do segundo card.
+
+O card deve continuar coerente com os outros produtos.
+
+Não remover:
+
+- border radius;
+- borda sutil;
+- hover;
+- dimensões.
+
+==================================================
+8. REMOVER OS ELEMENTOS ANTIGOS
+==================================================
+
+No segundo card, remover visualmente:
+
+- cadeado roxo;
+- "COMUNIDADE";
+- "EM BREVE".
+
+Não deixar esses elementos escondidos atrás da imagem se não forem necessários.
+
+Limpar o DOM desse conteúdo, se possível.
+
+==================================================
+9. CONTINUAR CONSIDERANDO O PRODUTO "EM BREVE"
+==================================================
+
+Mesmo removendo o badge visual "EM BREVE", preservar a lógica atual do produto como indisponível, caso ela já exista.
+
+Ou seja:
+
+- não alterar rota;
+- não liberar conteúdo;
+- não alterar regras de clique.
+
+Estamos removendo apenas a representação textual do estado.
+
+Se hoje clicar no card não faz nada ou abre teaser, preservar o comportamento atual.
+
+==================================================
+10. HOVER
+==================================================
+
+Se os cards possuem hover no desktop, manter.
+
+No segundo card, o hover pode aplicar algo extremamente sutil na própria imagem:
+
+- scale 1 → 1.02;
+- pequeno aumento de brilho/glow;
+- borda roxa ligeiramente mais perceptível.
+
+Nada agressivo.
+
+==================================================
+11. NÃO ADICIONAR MAIS GLOW FORTE
+==================================================
+
+A imagem já possui bastante glow roxo.
+
+Não adicionar uma sombra neon gigante por fora.
+
+O card precisa continuar sofisticado.
+
+==================================================
+12. RESPONSIVIDADE
+==================================================
+
+Garantir bom enquadramento principalmente em:
+
+375px
+390px
+414px
+430px
+
+Como o card fica em um grid de duas colunas, verificar que os textos contidos na própria arte continuam minimamente legíveis.
+
+Se necessário, ajustar:
+
+- scale da imagem;
+- object-position;
+- crop;
+
+especificamente para telas pequenas.
+
+==================================================
+13. NÃO CORTAR O SUBTÍTULO
+==================================================
+
+É obrigatório preservar a região:
+
+"COMUNIDADE + AULAS"
+
+na parte inferior da arte.
+
+Não fazer um crop que deixe apenas:
+
+mascote + Lábia de Cachorro.
+
+==================================================
+14. RESULTADO VISUAL ESPERADO
+==================================================
+
+Depois da alteração, a Home deve ficar aproximadamente:
+
+[ CACHORRO DOS BONS ]
+livro 3D
+
+[ LÁBIA DE CACHORRO ]
+arte completa com mascote
++ nome do produto
++ "COMUNIDADE + AULAS"
+
+[ MENTORIAS ]
+continua como está
+
+[ IA ]
+continua como está
+
+O segundo card precisa parecer um PRODUTO REAL, e não mais um placeholder com cadeado.
+
+==================================================
+15. NÃO ALTERAR A IMAGEM
+==================================================
+
+Não editar:
+
+- textos da arte;
+- cores;
+- mascote;
+- composição;
+- tipografia.
+
+Usar o asset fornecido exatamente como arte-base.
+
+Apenas enquadrar corretamente dentro do card.
+
+==================================================
+16. CRITÉRIO DE ACEITE
+==================================================
+
+A implementação está correta se:
+
+- o segundo card usa a nova arte;
+- não aparece mais cadeado;
+- não aparece mais "COMUNIDADE";
+- não aparece mais badge "EM BREVE";
+- "LÁBIA DE CACHORRO" permanece legível;
+- "COMUNIDADE + AULAS" permanece visível;
+- a imagem não fica deformada;
+- o card mantém exatamente o mesmo tamanho do grid;
+- os outros três cards permanecem inalterados;
+- o resultado parece uma capa de produto integrada ao app.

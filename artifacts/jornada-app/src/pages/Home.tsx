@@ -2,11 +2,11 @@ import { Link } from 'wouter';
 import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
 import chainImg from '@/assets/chain-wide.png';
+import labiaImg from '@/assets/labia-de-cachorro.png';
 
 const COMING_SOON = [
-  { label: 'Comunidade', slug: 'comunidade' },
-  { label: 'Mentorias',  slug: 'mentorias'  },
-  { label: 'IA',         slug: 'ia'         },
+  { label: 'Mentorias', slug: 'mentorias' },
+  { label: 'IA',        slug: 'ia'        },
 ];
 
 export default function Home() {
@@ -42,6 +42,44 @@ export default function Home() {
         <main className="animate-in fade-in duration-700 ease-out px-4 pb-4">
           <div className="grid grid-cols-2 gap-4">
             <JourneyCard />
+
+            {/* Lábia de Cachorro — card de produto com arte real */}
+            <Link href="/em-breve/comunidade" className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
+              <div style={{
+                borderRadius:   16,
+                border:         '1px solid rgba(139,53,255,0.28)',
+                background:     '#08060b',
+                width:          '100%',
+                height:         '100%',
+                overflow:       'hidden',
+                position:       'relative',
+                cursor:         'pointer',
+              }}
+                className="group"
+              >
+                <img
+                  src={labiaImg}
+                  alt="Lábia de Cachorro — Comunidade + Aulas"
+                  style={{
+                    display:        'block',
+                    width:          '100%',
+                    height:         '100%',
+                    objectFit:      'contain',
+                    objectPosition: 'center',
+                    transition:     'transform 0.3s ease, filter 0.3s ease',
+                  }}
+                  className="group-hover:scale-[1.02] group-hover:brightness-110"
+                />
+                {/* subtle edge fade so the image merges with the dark card */}
+                <div aria-hidden="true" style={{
+                  position:   'absolute',
+                  inset:      0,
+                  borderRadius: 16,
+                  background: 'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 60%, rgba(8,6,11,0.55) 100%)',
+                  pointerEvents: 'none',
+                }} />
+              </div>
+            </Link>
 
             {COMING_SOON.map(({ label, slug }) => (
               <Link key={slug} href={`/em-breve/${slug}`} className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
