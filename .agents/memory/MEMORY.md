@@ -1,2 +1,3 @@
 - [react-pageflip mobile fix](react-pageflip-mobile.md) — single-page mode requires container-width breakpoint + key remount, not window.innerWidth
 - [react-pageflip flipPrev bug](react-pageflip-flipprev-bug.md) — flipPrev silently aborts with disableFlipByClick=true; requires temp-disabling the flag synchronously before the call
+- [Framer Motion — mount before animate](framer-motion-mount-before-animate.md) — controls.start() resolves immediately if element not mounted; causes all phases to fire at card position

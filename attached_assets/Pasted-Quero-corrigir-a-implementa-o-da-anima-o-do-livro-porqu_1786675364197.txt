@@ -1,0 +1,918 @@
+Quero corrigir a implementação da animação do livro porque a última alteração acabou quebrando a sequência principal.
+
+O folheio e a abertura foram implementados, porém agora eles estão acontecendo DENTRO DO CARD da Home.
+
+Isso está incorreto.
+
+A animação desejada precisa ter uma hierarquia muito clara:
+
+1. O livro começa dentro do card.
+2. Ao clicar, ele sai visualmente do card.
+3. Ele é promovido para uma camada global/fixed acima da Home.
+4. Faz uma trajetória curva pela tela.
+5. Cresce enquanto se aproxima do centro.
+6. Chega ao centro da viewport já significativamente maior.
+7. Somente DEPOIS disso começa a abertura da capa.
+8. Depois acontece o folheio rápido.
+9. Por fim, damos zoom na página e entramos no BookReader.
+
+O problema atual é que as fases de opening/flipping estão sendo executadas dentro do layout do card.
+
+Quero corrigir especificamente essa arquitetura.
+
+==================================================
+1. REGRA PRINCIPAL
+==================================================
+
+NENHUMA animação de:
+
+- abertura da capa;
+- folheio;
+- zoom para o leitor;
+
+deve acontecer enquanto o livro ainda estiver preso ao card.
+
+O card é apenas a origem visual.
+
+Assim que o usuário clicar, o livro deve ser "promovido" para um elemento independente da Home.
+
+Fluxo correto:
+
+CARD
+↓
+PROMOVE PARA OVERLAY GLOBAL
+↓
+TRAJETÓRIA CURVA
+↓
+CENTRALIZA + AUMENTA
+↓
+ABRE
+↓
+FOLHEIA
+↓
+ZOOM NA PÁGINA
+↓
+READER
+
+Não:
+
+CARD
+↓
+ABRE DENTRO DO CARD
+↓
+FOLHEIA DENTRO DO CARD
+
+==================================================
+2. NÃO EXECUTAR OPENINGBOOKSTAGE DENTRO DO CARD
+==================================================
+
+Verifique onde o OpeningBookStage / FlipStack está sendo renderizado hoje.
+
+Se ele estiver dentro do componente do ProductCard ou do card "Cachorro dos Bons", remova essa responsabilidade do card.
+
+O card deve conter apenas o livro no estado idle.
+
+Exemplo conceitual:
+
+<ProductCard>
+  <BookIdleVisual />
+</ProductCard>
+
+O componente de transição deve ser renderizado fora do card:
+
+<BookTransitionPortal />
+
+ou equivalente.
+
+==================================================
+3. AO CLICAR, CAPTURAR O BOUNDING RECT DO LIVRO
+==================================================
+
+No clique:
+
+const rect = bookRef.current.getBoundingClientRect();
+
+Capturar:
+
+rect.top
+rect.left
+rect.width
+rect.height
+
+Esse será o ponto inicial da animação global.
+
+==================================================
+4. CRIAR UM CLONE VISUAL SOBRE O LIVRO ORIGINAL
+==================================================
+
+Imediatamente depois do clique, criar o BookTransitionShell usando:
+
+position: fixed;
+
+e posicioná-lo exatamente sobre o livro original:
+
+top: rect.top;
+left: rect.left;
+width: rect.width;
+height: rect.height;
+
+No PRIMEIRO FRAME, o usuário não pode perceber diferença entre:
+
+- livro do card;
+- livro da transição.
+
+Depois que o shell estiver visível, esconder apenas a imagem do livro original dentro do card.
+
+O card continua ocupando seu espaço normalmente.
+
+==================================================
+5. PREFERIR PORTAL NO DOCUMENT.BODY
+==================================================
+
+Renderizar o elemento de transição em um portal global.
+
+Exemplo conceitual:
+
+createPortal(
+  <BookTransitionShell />,
+  document.body
+)
+
+Motivo:
+
+não quero que a animação seja limitada por:
+
+- tamanho do card;
+- overflow hidden;
+- border-radius;
+- stacking context;
+- grid;
+- transform de elementos pais.
+
+O livro precisa poder atravessar livremente a viewport.
+
+==================================================
+6. BOOKTRANSITIONSHELL DEVE SER GLOBAL
+==================================================
+
+Estrutura recomendada:
+
+<BookTransitionPortal>
+  <BookTransitionShell>
+    <GlowLayer />
+    <EnergyLayer />
+
+    <ClosedBookVisual />
+    <OpeningBookStage />
+    <FlipStack />
+    <ReaderProxyPage />
+  </BookTransitionShell>
+</BookTransitionPortal>
+
+O shell é responsável pela posição global do livro.
+
+O card não controla mais essa posição depois do clique.
+
+==================================================
+7. FASES OBRIGATÓRIAS
+==================================================
+
+Quero estados explícitos:
+
+type BookTransitionPhase =
+  | "idle"
+  | "detaching"
+  | "launching"
+  | "centering"
+  | "opening"
+  | "flippingBack"
+  | "zooming"
+  | "revealingReader"
+  | "complete";
+
+A ordem precisa ser EXATAMENTE lógica:
+
+idle
+↓
+detaching
+↓
+launching
+↓
+centering
+↓
+opening
+↓
+flippingBack
+↓
+zooming
+↓
+revealingReader
+↓
+complete
+
+Não permitir:
+
+idle → opening
+
+nem:
+
+launching e opening simultaneamente.
+
+==================================================
+8. A FASE DETACHING
+==================================================
+
+A fase "detaching" existe apenas para garantir que:
+
+- o shell global seja criado;
+- ele esteja exatamente sobre o livro;
+- o livro original seja ocultado;
+- não exista flicker.
+
+Duração visual:
+
+aproximadamente 1–2 frames.
+
+Não precisa parecer uma animação.
+
+==================================================
+9. TRAJETÓRIA CURVA É OBRIGATÓRIA
+==================================================
+
+A fase "launching" precisa conter movimento real.
+
+Hoje ela não está acontecendo.
+
+Quero explicitamente que o livro faça uma curva.
+
+Não usar apenas:
+
+x: start → center
+y: start → center
+
+Usar pelo menos 4 keyframes.
+
+Exemplo conceitual:
+
+x: [
+  0,
+  20,
+  targetX - 30,
+  targetX
+]
+
+y: [
+  0,
+  80,
+  targetY + 45,
+  targetY
+]
+
+IMPORTANTE:
+
+x/y devem ser relativos ao bounding box inicial do livro.
+
+A trajetória deve dar a sensação de:
+
+- sair do card;
+- descer;
+- avançar;
+- subir suavemente;
+- chegar ao centro.
+
+==================================================
+10. CALCULAR O CENTRO REAL DA VIEWPORT
+==================================================
+
+Não usar valores hardcoded.
+
+Calcular:
+
+const viewportCenterX = window.innerWidth / 2;
+const viewportCenterY = window.innerHeight / 2;
+
+Calcular o centro inicial do livro:
+
+const bookCenterX = rect.left + rect.width / 2;
+const bookCenterY = rect.top + rect.height / 2;
+
+Então:
+
+targetX = viewportCenterX - bookCenterX;
+targetY = viewportCenterY - bookCenterY;
+
+Assim o livro termina realmente no centro.
+
+==================================================
+11. MOVIMENTO DEVE SER VISÍVEL
+==================================================
+
+O movimento atual aparentemente foi perdido.
+
+Quero que a curva seja visualmente perceptível.
+
+Mas ainda elegante.
+
+Sugestão de duração:
+
+550ms–750ms.
+
+Não usar uma duração de 150ms que faça o movimento parecer inexistente.
+
+==================================================
+12. ADICIONAR ESCALA DURANTE A CURVA
+==================================================
+
+O livro precisa crescer ao sair do card.
+
+Exemplo:
+
+scale: [
+  1,
+  1.05,
+  1.25,
+  1.55
+]
+
+O valor final deve ser calculado conforme o viewport.
+
+No mobile, quero o livro central ocupando aproximadamente algo como:
+
+55%–70% da largura disponível
+
+antes da abertura.
+
+Não precisa usar literalmente esse percentual se a proporção do asset exigir outro valor.
+
+==================================================
+13. NÃO USAR WIDTH/HEIGHT PARA ANIMAR O ZOOM
+==================================================
+
+Manter as dimensões base do shell e usar transform:
+
+translate + scale
+
+durante o voo.
+
+Isso tende a ser muito mais suave.
+
+==================================================
+14. ADICIONAR GIRO DURANTE A CURVA
+==================================================
+
+Quero um movimento mais vivo.
+
+Adicionar leve rotação:
+
+rotateZ: [
+  0,
+  -4,
+  3,
+  0
+]
+
+rotateY: [
+  currentPerspective,
+  -8,
+  5,
+  0
+]
+
+Pode ajustar os valores.
+
+IMPORTANTE:
+
+não fazer pirueta completa.
+
+É um giro curto, elegante e cinematográfico.
+
+==================================================
+15. PERSPECTIVA
+==================================================
+
+Adicionar perspective no container apropriado:
+
+perspective: 1200px;
+
+O giro deve comunicar profundidade.
+
+==================================================
+16. O LIVRO PRECISA PASSAR "PARA FRENTE"
+==================================================
+
+Além do x/y, usar scale para dar sensação de que ele está vindo em direção ao usuário.
+
+Pode existir também uma leve mudança de sombra/glow durante a aproximação.
+
+Mas NÃO depender apenas de glow para vender o movimento.
+
+A geometria precisa se mover claramente.
+
+==================================================
+17. A HOME DEVE ESCURECER DURANTE O VOO
+==================================================
+
+Enquanto o livro sai do card:
+
+overlay da Home:
+
+opacity 0 → aproximadamente 0.65 / 0.80
+
+de forma sincronizada.
+
+Mas a Home deve continuar visível no fundo enquanto o livro voa.
+
+Não trocar de rota nesse momento.
+
+==================================================
+18. NÃO COMEÇAR A ABERTURA DURANTE O VOO
+==================================================
+
+Isto é crucial.
+
+Enquanto phase === "launching":
+
+ClosedBookVisual = visível
+OpeningBookStage = fechado/invisível
+FlipStack = parado
+
+Somente depois de `launching` terminar:
+
+phase = "centering"
+
+e depois:
+
+phase = "opening"
+
+==================================================
+19. FASE CENTERING
+==================================================
+
+Depois da curva:
+
+o livro deve estar:
+
+- centralizado;
+- ampliado;
+- rotação estabilizada;
+- sobre o overlay global.
+
+Manter por aproximadamente:
+
+80ms–140ms
+
+antes da abertura.
+
+Essa pequena estabilização ajuda o usuário a perceber:
+
+"o livro chegou".
+
+==================================================
+20. OPENINGBOOKSTAGE COMEÇA NO MESMO TAMANHO/POSIÇÃO
+==================================================
+
+A abertura deve acontecer no MESMO BookTransitionShell.
+
+Não criar outro container dentro do card.
+
+ClosedBookVisual e OpeningBookStage devem ser filhos do mesmo shell global:
+
+<BookTransitionShell>
+  <ClosedBookVisual />
+  <OpeningBookStage />
+</BookTransitionShell>
+
+Usar:
+
+position: absolute;
+inset: 0;
+
+para ambos.
+
+==================================================
+21. CROSSFADE PNG → LIVRO ARTICULADO
+==================================================
+
+Depois de centralizar:
+
+ClosedBookVisual:
+opacity 1 → 0
+
+OpeningBookStage:
+opacity 0 → 1
+
+em aproximadamente:
+
+80ms–130ms.
+
+O shell NÃO muda de:
+
+- x;
+- y;
+- escala;
+- tamanho;
+
+durante essa troca.
+
+==================================================
+22. SÓ ENTÃO ABRIR A CAPA
+==================================================
+
+Depois que OpeningBookStage estiver alinhado e visível:
+
+começar:
+
+rotateY da capa.
+
+Exemplo:
+
+0deg → -105deg
+
+Duração:
+
+350ms–500ms.
+
+==================================================
+23. FOLHEIO SÓ ACONTECE DEPOIS DA ABERTURA
+==================================================
+
+Hoje o folheio existe, mas precisa ser reposicionado na timeline.
+
+Correto:
+
+voo
+→ centraliza
+→ abre capa
+→ folheia
+
+Não:
+
+abre/f要求 inside card
+→ depois tenta mover.
+
+==================================================
+24. FLIPSTACK TAMBÉM É FILHO DO SHELL GLOBAL
+==================================================
+
+FlipStack deve permanecer dentro do mesmo BookTransitionShell.
+
+Assim todas as páginas continuam no centro da tela.
+
+Não renderizar FlipStack dentro do ProductCard.
+
+==================================================
+25. APÓS ABRIR, FOLHEAR DE VOLTA AO INÍCIO
+==================================================
+
+Manter a implementação de folheio que já funciona, mas executá-la somente neste estágio centralizado.
+
+Pode continuar com 5–8 páginas temporárias e stagger.
+
+A única correção principal aqui é a posição e a ordem das fases.
+
+==================================================
+26. DEPOIS DO FOLHEIO, FAZER ZOOM DE VERDADE
+==================================================
+
+A animação ainda precisa ter uma última fase de aproximação.
+
+Quando o folheio terminar:
+
+deixar a ReaderProxyPage visível.
+
+Depois fazer zoom para o tamanho/posição do reader real.
+
+Quero perceber claramente que:
+
+a página dentro do livro está vindo em minha direção e ocupando a tela.
+
+==================================================
+27. ZOOM NÃO É APENAS FADE
+==================================================
+
+Não substituir:
+
+folheio
+→ fade
+→ reader
+
+Quero:
+
+folheio
+→ página final estabiliza
+→ página aumenta
+→ conteúdo ao redor do livro sai do enquadramento
+→ página ocupa o espaço do reader
+→ crossfade mínimo
+→ reader assume
+
+==================================================
+28. TARGET DO ZOOM
+==================================================
+
+Pré-renderizar o container do BookReader com:
+
+opacity: 0;
+visibility: visible;
+pointer-events: none;
+
+Capturar:
+
+const readerRect = readerRef.current.getBoundingClientRect();
+
+Usar esse rect como alvo da animação final.
+
+==================================================
+29. FLIP PARA O ZOOM FINAL
+==================================================
+
+Pode usar FLIP:
+
+proxyRect = ReaderProxyPage.getBoundingClientRect()
+readerRect = BookReader.getBoundingClientRect()
+
+Calcular:
+
+deltaX
+deltaY
+scaleX
+scaleY
+
+E animar proxy até coincidir exatamente com o reader.
+
+==================================================
+30. NÃO REMOVER A SENSAÇÃO DE LIVRO ABERTO CEDO DEMAIS
+==================================================
+
+No começo do zoom, ainda quero perceber:
+
+- capa;
+- espessura;
+- algumas páginas;
+- estrutura de livro.
+
+Durante a aproximação, esses elementos podem:
+
+- sair para fora do viewport;
+- perder opacity;
+- ser cortados pelo enquadramento.
+
+Assim parece que a câmera está entrando na página.
+
+Não simplesmente esconder o livro antes do zoom.
+
+==================================================
+31. TIMELINE DE REFERÊNCIA
+==================================================
+
+Quero algo aproximadamente assim:
+
+0–40ms
+detaching / cria shell sobre o card
+
+40–700ms
+launching / curva + scale + rotação
+
+700–820ms
+centering / estabiliza
+
+820–940ms
+crossfade ClosedBook → OpeningBookStage
+
+940–1350ms
+opening / capa abre
+
+1200–1750ms
+flippingBack / folheio rápido
+
+1750–2100ms
+zooming / aproximação da página
+
+2000–2250ms
+revealingReader / crossfade final
+
+Total:
+
+aproximadamente 2.0–2.3 segundos.
+
+Não precisa seguir os valores literalmente, mas manter essa ordem.
+
+==================================================
+32. O MOVIMENTO DE CURVA PRECISA VIR ANTES DOS EFEITOS DE LIVRO
+==================================================
+
+Prioridade visual:
+
+1. sair do card;
+2. movimento curvo;
+3. aproximação;
+4. centralização;
+5. abertura;
+6. folheio;
+7. zoom.
+
+Se for necessário simplificar alguma coisa, NÃO remova as etapas 1–4.
+
+Essas são exatamente as etapas que estão faltando agora.
+
+==================================================
+33. DIAGNOSTICAR POR QUE ESTÁ FICANDO DENTRO DO CARD
+==================================================
+
+Antes de alterar, revisar:
+
+- OpeningBookStage está dentro de ProductCard?
+- algum parent possui overflow: hidden?
+- existe transform no card criando novo containing block para position: fixed?
+- o portal foi removido?
+- o shell perdeu `position: fixed`?
+- algum `layoutId` está mantendo o livro dentro do grid?
+- a fase `opening` está sendo disparada diretamente no onClick?
+
+Corrigir a CAUSA, não apenas aumentar z-index.
+
+==================================================
+34. Z-INDEX
+==================================================
+
+O transition portal deve ficar acima de toda a Home.
+
+Exemplo:
+
+z-index: 9999;
+
+Mas não usar z-index como solução para geometria.
+
+O ponto principal continua sendo:
+
+portal global + position fixed.
+
+==================================================
+35. OVERFLOW
+==================================================
+
+O shell de transição não pode ser clipado pelo card.
+
+Verificar qualquer:
+
+overflow: hidden;
+
+em elementos pais.
+
+Se usar portal no body, isso deixa de ser problema.
+
+==================================================
+36. NÃO RECRIAR O LIVRO NO CENTRO A PARTIR DO ZERO
+==================================================
+
+O livro precisa literalmente começar a animação global sobre a posição original.
+
+Não fazer:
+
+clique
+→ some livro do card
+→ aparece livro novo no centro
+→ abre
+
+Isso também quebra a ilusão.
+
+Precisa ser:
+
+clique
+→ shell nasce sobre o livro
+→ shell se move em curva
+→ chega ao centro
+→ abre
+
+==================================================
+37. NÃO ALTERAR A HOME
+==================================================
+
+Quando idle:
+
+Home permanece exatamente como está.
+
+Não alterar:
+
+- grid;
+- cards;
+- tamanhos;
+- textos;
+- SVGs;
+- cores.
+
+A mudança acontece somente depois do clique.
+
+==================================================
+38. MOBILE FIRST
+==================================================
+
+Testar principalmente em:
+
+375px
+390px
+414px
+430px
+
+No mobile:
+
+o livro deve ter espaço suficiente para:
+
+- sair do card;
+- fazer a curva;
+- crescer;
+- centralizar;
+- abrir.
+
+Não permitir que ele fique clipado lateralmente durante a curva.
+
+==================================================
+39. DESKTOP
+==================================================
+
+No desktop, adaptar a amplitude da curva proporcionalmente.
+
+Não usar os mesmos 80px fixos do mobile se isso deixar o movimento imperceptível numa tela grande.
+
+Pode usar valores baseados em viewport:
+
+window.innerHeight
+window.innerWidth
+
+ou clamp.
+
+==================================================
+40. REDUCED MOTION
+==================================================
+
+Preservar fallback para:
+
+prefers-reduced-motion: reduce
+
+Nesse caso, não precisa curva/rotação/folheio complexo.
+
+Pode fazer transição curta.
+
+==================================================
+41. CRITÉRIO VISUAL DE ACEITE
+==================================================
+
+A correção só está pronta se a sequência ficar claramente assim:
+
+1. livro está dentro do card;
+2. clico;
+3. livro se destaca do card;
+4. ele percorre a tela em uma curva visível;
+5. cresce durante o caminho;
+6. gira levemente;
+7. chega ao centro da viewport;
+8. estabiliza;
+9. abre;
+10. folheia rapidamente;
+11. a página final dá zoom;
+12. o reader assume.
+
+Se o livro começar a abrir enquanto visualmente ainda está dentro do card:
+
+A IMPLEMENTAÇÃO ESTÁ ERRADA.
+
+==================================================
+42. RESUMO DA CORREÇÃO PRINCIPAL
+==================================================
+
+O bug arquitetural atual é:
+
+OpeningBookStage / FlipStack estão sendo tratados como animações do card.
+
+Quero transformar isso em:
+
+uma animação GLOBAL DE TRANSIÇÃO.
+
+O card só fornece:
+
+- asset;
+- posição inicial;
+- evento de clique.
+
+Depois do clique, todo o restante pertence ao:
+
+BookTransitionPortal / BookTransitionShell.
+
+Resultado esperado:
+
+CARD
+     ↘
+       ↘  trajetória curva
+         ↓
+     [ LIVRO GRANDE ]
+       NO CENTRO
+          ↓
+        ABRE
+          ↓
+       FOLHEIA
+          ↓
+        ZOOM
+          ↓
+       BOOKREADER
+
+Corrija primeiro essa arquitetura e preserve o folheio/abertura que já estão funcionando.
