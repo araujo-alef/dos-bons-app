@@ -1,0 +1,834 @@
+Quero melhorar a transição cinematográfica entre o card **Cachorro dos Bons** na Home e o leitor virtual.
+
+A animação atual já faz uma parte correta:
+
+1. o usuário toca no card/livro;
+2. o livro cresce;
+3. o livro vai para o centro da tela.
+
+O problema é o que acontece depois:
+
+**o livro simplesmente desaparece e a tela de leitura abre.**
+
+Isso quebra a ilusão.
+
+Quero adicionar uma etapa intermediária em que **o livro realmente parece abrir antes do leitor assumir a tela**.
+
+A sensação desejada é:
+
+**card → livro centralizado → capa abre → primeira página aparece → leitor assume**
+
+Não quero:
+
+**card → livro centralizado → fade → leitor**
+
+---
+
+# 1. PRESERVAR TUDO QUE JÁ FUNCIONA
+
+Não reimplementar a transição inicial.
+
+Preservar:
+
+* livro saindo do card;
+* movimento para o centro;
+* crescimento;
+* overlay/fade da Home;
+* glow roxo;
+* raios;
+* corrente;
+* timings que já estiverem funcionando;
+* responsividade;
+* `prefers-reduced-motion`.
+
+A nova tarefa começa **depois que o livro chega ao centro da viewport**.
+
+---
+
+# 2. NOVO FLUXO COMPLETO
+
+Quero que a animação passe a seguir aproximadamente:
+
+### Estado A — Home
+
+Livro dentro do card.
+
+↓
+
+### Estado B — expansão
+
+Livro cresce e vai ao centro.
+
+↓
+
+### Estado C — livro fechado centralizado
+
+Pequena estabilização.
+
+↓
+
+### Estado D — abertura do livro
+
+A capa frontal gira para a esquerda.
+
+↓
+
+### Estado E — página interna revelada
+
+A primeira página aparece atrás da capa.
+
+↓
+
+### Estado F — transformação no leitor
+
+Crossfade muito suave para o `BookReader`.
+
+↓
+
+### Estado G — leitura
+
+Controle passa totalmente para o leitor existente.
+
+---
+
+# 3. NÃO TENTAR ANIMAR O PNG COMO SE ELE TIVESSE CAPA ARTICULADA
+
+A imagem 3D atual é um PNG único.
+
+Não tente deformar esse PNG inteiro para simular uma abertura física real.
+
+Em vez disso, quando o livro chegar ao centro, faça uma **troca controlada para uma representação temporária do livro composta por camadas HTML/CSS**.
+
+Essa representação intermediária só precisa existir durante aproximadamente 500–800ms.
+
+---
+
+# 4. CRIAR UM “OPENING BOOK STAGE”
+
+Criar um componente ou estado temporário, algo conceitualmente como:
+
+`OpeningBookStage`
+
+Esse estágio deve conter:
+
+* corpo/base do livro;
+* página interna;
+* capa frontal;
+* sombra;
+* glow.
+
+Estrutura conceitual:
+
+```jsx
+<div className="book-opening-stage">
+  <div className="book-body" />
+
+  <div className="book-page">
+    ...
+  </div>
+
+  <div className="book-cover">
+    <img src={coverImage} />
+  </div>
+</div>
+```
+
+Os nomes podem seguir o padrão do projeto.
+
+---
+
+# 5. USAR A CAPA REAL
+
+Para a capa frontal temporária, reutilizar a arte real de:
+
+**Cachorro dos Bons**
+
+Não gerar uma capa genérica.
+
+Não substituir por uma superfície preta.
+
+A pessoa deve reconhecer claramente que é o mesmo livro que estava no card.
+
+---
+
+# 6. TROCA PNG 3D → OPENING STAGE
+
+Quando o PNG 3D terminar de ir para o centro:
+
+não faça ele simplesmente desaparecer.
+
+Crie uma transição muito curta em que:
+
+* PNG 3D permanece visível;
+* `OpeningBookStage` entra exatamente por cima dele;
+* ambos possuem tamanho e posição próximos;
+* em aproximadamente `100–180ms`, fazer crossfade.
+
+A troca deve ser praticamente invisível.
+
+O usuário deve acreditar que continua vendo o mesmo objeto.
+
+---
+
+# 7. PERSPECTIVA 3D
+
+No `OpeningBookStage`, usar perspectiva CSS real.
+
+Algo conceitualmente próximo de:
+
+```css
+.book-opening-stage {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+```
+
+A capa frontal deve ter:
+
+```css
+transform-origin: left center;
+transform-style: preserve-3d;
+```
+
+A ideia é permitir que ela gire como uma capa física.
+
+---
+
+# 8. ANIMAÇÃO DA CAPA
+
+No início:
+
+```css
+rotateY(0deg)
+```
+
+Depois:
+
+```css
+rotateY(-100deg)
+```
+
+a
+
+```css
+rotateY(-115deg)
+```
+
+Ajuste conforme o resultado visual.
+
+Não precisa abrir até `-180deg`.
+
+Quero que a capa vire o suficiente para revelar claramente a página interna.
+
+---
+
+# 9. DURAÇÃO DA ABERTURA
+
+A abertura da capa deve durar aproximadamente:
+
+`450ms–650ms`
+
+Usar easing suave.
+
+Sugestão conceitual:
+
+```css
+cubic-bezier(0.22, 1, 0.36, 1)
+```
+
+A capa deve começar um pouco mais rápida e desacelerar no final.
+
+---
+
+# 10. PEQUENO MOVIMENTO DO LIVRO DURANTE A ABERTURA
+
+Quando a capa abrir:
+
+o corpo do livro pode deslocar muito levemente para a direita.
+
+Algo como:
+
+`4px–10px`
+
+Isso ajuda a dar sensação de peso físico.
+
+Não deslocar demais.
+
+---
+
+# 11. PÁGINA INTERNA
+
+Atrás da capa, deve existir uma página real.
+
+No mobile, essa página já deve se parecer muito com a primeira página do leitor atual.
+
+Usar:
+
+* mesmo background da página;
+* mesma border;
+* mesma tipografia base;
+* mesma proporção.
+
+A ideia é que essa página temporária consiga se transformar visualmente no leitor.
+
+---
+
+# 12. CONTEÚDO DA PÁGINA TEMPORÁRIA
+
+Não precisa renderizar o capítulo inteiro nesse estágio.
+
+Pode mostrar apenas uma representação coerente da página de abertura:
+
+`CAPÍTULO 01`
+
+**Título do capítulo**
+
+ou, se o usuário estiver retomando:
+
+o conteúdo equivalente à página que será aberta.
+
+O importante é que não exista um salto visual absurdo quando o `BookReader` entrar.
+
+---
+
+# 13. MOBILE FIRST
+
+No mobile, a animação deve terminar em:
+
+**uma única página centralizada**
+
+Isso é muito importante.
+
+Não criar um livro aberto com duas páginas no celular.
+
+A sequência deve ser:
+
+livro fechado
+
+↓
+
+capa abre para esquerda
+
+↓
+
+uma página interna fica visível
+
+↓
+
+essa página vira o leitor single-page.
+
+---
+
+# 14. NÃO RESERVAR ESPAÇO PARA DUAS PÁGINAS NO MOBILE
+
+Não repetir o problema anterior do leitor.
+
+Durante a animação de abertura no mobile:
+
+* o elemento final ocupa a largura de UMA página;
+* não existe spread;
+* não existe metade vazia;
+* não existe página direita escondida ocupando layout.
+
+A capa pode girar para fora da área visual temporariamente, mas o corpo do livro/página final deve continuar centralizado.
+
+---
+
+# 15. DESKTOP
+
+No desktop, se houver espaço suficiente, pode criar uma abertura um pouco mais ampla.
+
+Exemplo:
+
+livro fechado
+
+↓
+
+capa abre
+
+↓
+
+duas páginas internas começam a ser sugeridas
+
+↓
+
+`BookReader` assume em modo spread.
+
+Mas isso é secundário.
+
+Priorize primeiro uma implementação perfeita no mobile.
+
+---
+
+# 16. CROSSFADE PARA O BOOKREADER
+
+Quando a capa estiver aproximadamente 80–100% aberta:
+
+iniciar a entrada do `BookReader`.
+
+Durante aproximadamente:
+
+`200ms–350ms`
+
+teremos:
+
+* `OpeningBookStage` ainda visível;
+* `BookReader` aparecendo por baixo/por cima;
+* página interna alinhada com a página real.
+
+Depois:
+
+* `OpeningBookStage` desaparece;
+* `BookReader` assume totalmente.
+
+---
+
+# 17. NÃO MOSTRAR FLASH DE ROTA
+
+Muito importante:
+
+não quero ver:
+
+* tela preta vazia;
+* loading;
+* background piscando;
+* conteúdo da rota aparecendo antes do final da animação.
+
+Se necessário, monte a tela de destino previamente em background e mantenha `opacity: 0` até a hora certa.
+
+A navegação visual precisa parecer contínua.
+
+---
+
+# 18. MOMENTO DA NAVEGAÇÃO
+
+Revise a implementação atual.
+
+Se hoje a rota muda logo quando o livro chega ao centro, altere isso.
+
+A navegação só deve ser considerada visualmente concluída depois da abertura.
+
+Existem duas abordagens aceitáveis:
+
+### Opção A
+
+manter a Home montada durante toda a animação e navegar depois;
+
+ou
+
+### Opção B
+
+mudar a rota antes, mas manter um overlay de transição persistente acima das duas telas.
+
+Use a solução que melhor se encaixar na arquitetura atual.
+
+O importante é não desmontar o livro antes da abertura terminar.
+
+---
+
+# 19. EFEITOS ROXOS DURANTE A ABERTURA
+
+A abertura deve ser o pico visual da transição.
+
+Nesse momento:
+
+### Glow
+
+aumentar discretamente.
+
+### Raios
+
+permitir 1 ou 2 flashes rápidos.
+
+### Corrente
+
+pode receber um pequeno movimento/tensão.
+
+Depois que a capa terminar de abrir:
+
+* reduzir glow;
+* remover raios;
+* remover efeitos extras.
+
+O leitor deve começar calmo.
+
+---
+
+# 20. EFEITO DE LUZ INTERNA
+
+Ao abrir a capa, adicionar uma pequena luz roxa/branca vindo da região entre capa e página.
+
+Algo muito discreto.
+
+Por exemplo:
+
+* radial gradient estreito;
+* opacity crescendo durante a abertura;
+* depois desaparecendo.
+
+A ideia é reforçar visualmente que estamos “entrando” no livro.
+
+Não criar uma explosão de luz.
+
+---
+
+# 21. SOMBRA DA CAPA
+
+Enquanto a capa gira, adicionar uma sombra sobre a página interna.
+
+Essa sombra deve mudar conforme o `rotateY`.
+
+Isso ajuda muito a vender o efeito 3D.
+
+Pode usar:
+
+* pseudo-element;
+* gradient;
+* opacity animada.
+
+Não exagerar.
+
+---
+
+# 22. FACE TRASEIRA DA CAPA
+
+Como a capa gira mais de 90°, cuide do verso visual.
+
+Não quero enxergar a capa espelhada ao contrário.
+
+Use:
+
+```css
+backface-visibility: hidden;
+```
+
+e, se necessário, uma segunda face simples representando a parte interna da capa.
+
+Essa face pode ser:
+
+* preto/grafite;
+* leve textura;
+* sem texto.
+
+---
+
+# 23. TRANSFORM ORIGIN
+
+A capa deve abrir a partir da lombada.
+
+Portanto, o `transform-origin` precisa ficar corretamente no lado esquerdo da capa.
+
+Não fazer a capa girar pelo centro.
+
+A sensação precisa ser de dobradiça/lombada.
+
+---
+
+# 24. AJUSTAR O PNG PARA ESSA TRANSIÇÃO
+
+O PNG 3D atual já possui perspectiva.
+
+Ao passar para `OpeningBookStage`, tente reproduzir aproximadamente:
+
+* tamanho;
+* rotação;
+* posição.
+
+Não precisa ficar matematicamente idêntico.
+
+O crossfade rápido esconderá pequenas diferenças.
+
+Mas evite:
+
+PNG inclinado
+
+↓
+
+livro CSS totalmente frontal
+
+de forma instantânea.
+
+Faça uma pequena correção de perspectiva durante o crossfade.
+
+---
+
+# 25. TIMELINE SUGERIDA
+
+Usar aproximadamente:
+
+### 0–450ms
+
+card → livro centralizado
+
+### 450–600ms
+
+estabilização + troca PNG → OpeningBookStage
+
+### 600–1150ms
+
+capa abrindo
+
+### 950–1200ms
+
+luz interna + página aparecendo
+
+### 1100–1400ms
+
+BookReader entra
+
+### 1400ms
+
+transição finalizada
+
+Não precisa seguir os valores literalmente.
+
+Quero algo em torno de:
+
+**1.3–1.5 segundos totais**
+
+desde o clique até o leitor utilizável.
+
+---
+
+# 26. NÃO DEIXAR A ANIMAÇÃO LENTA DEMAIS
+
+Apesar de cinematográfica, a transição ainda é navegação.
+
+O usuário não deve esperar 3 segundos para começar a ler.
+
+Se precisar escolher entre:
+
+* longa e impressionante;
+* curta e fluida;
+
+prefira curta e fluida.
+
+---
+
+# 27. BLOQUEAR INTERAÇÃO DURANTE A TRANSIÇÃO
+
+Enquanto o livro estiver abrindo:
+
+* bloquear segundo clique;
+* bloquear interação com Home;
+* bloquear flip do leitor antes dele estar pronto.
+
+Assim que `BookReader` assumir:
+
+liberar interação imediatamente.
+
+---
+
+# 28. ESTADOS RECOMENDADOS
+
+Organizar a animação com estados claros.
+
+Exemplo conceitual:
+
+```ts
+type BookTransitionPhase =
+  | "idle"
+  | "expanding"
+  | "centered"
+  | "opening"
+  | "revealingReader"
+  | "complete";
+```
+
+Não precisa usar exatamente essa estrutura, mas evite controlar toda a transição com vários `setTimeout` espalhados pelo componente.
+
+Centralize a sequência.
+
+---
+
+# 29. EVITAR SETTIMEOUTS FRÁGEIS
+
+Prefira:
+
+* callbacks de animação;
+* `onAnimationComplete`;
+* `transitionend`;
+* Motion variants/sequences;
+
+em vez de depender exclusivamente de números mágicos em vários `setTimeout`.
+
+Se usar Motion, considere sequence/variants para organizar as fases.
+
+---
+
+# 30. PRESERVAR O PROGRESSO DO LEITOR
+
+Ao terminar a animação, abrir:
+
+* página salva, se for retomada;
+* primeira página, se estiver começando.
+
+Não abrir sempre a página 1 apenas por causa da animação.
+
+A página temporária deve, quando possível, corresponder ao destino real.
+
+---
+
+# 31. VOLTANDO À HOME
+
+Não é obrigatório implementar a animação reversa agora.
+
+Mas organize o código para futuramente conseguirmos:
+
+leitor
+
+↓
+
+livro fecha
+
+↓
+
+encolhe
+
+↓
+
+retorna ao card.
+
+Não acople a animação de entrada de maneira que torne a reversa impossível.
+
+---
+
+# 32. PREFERS-REDUCED-MOTION
+
+Se:
+
+`prefers-reduced-motion: reduce`
+
+não executar:
+
+* expansão 3D;
+* abertura da capa;
+* raios;
+* grandes movimentos.
+
+Nesse caso:
+
+Home fade out
+
+↓
+
+BookReader fade in
+
+de forma rápida.
+
+---
+
+# 33. PERFORMANCE
+
+A animação precisa rodar bem em celular.
+
+Priorizar:
+
+* `transform`;
+* `opacity`.
+
+Usar `will-change` apenas nos elementos que realmente precisam durante a transição.
+
+Evitar múltiplos blurs gigantes.
+
+Remover/desativar camadas temporárias depois do final da animação.
+
+---
+
+# 34. NÃO REIMPLEMENTAR O LEITOR
+
+Não alterar:
+
+* `react-pageflip`;
+* StPageFlip;
+* páginas;
+* gestos;
+* responsividade;
+* single-page mobile;
+* double-page desktop.
+
+O `BookReader` existente é o destino.
+
+Estamos apenas adicionando uma ponte visual até ele.
+
+---
+
+# 35. NÃO ALTERAR A HOME EM ESTADO NORMAL
+
+Quando nenhuma transição estiver acontecendo:
+
+a Home deve continuar exatamente como está.
+
+Não alterar:
+
+* card do livro;
+* cards Comunidade/Mentorias/IA;
+* layout;
+* textos;
+* branding.
+
+---
+
+# 36. TESTE ESPECÍFICO MOBILE
+
+Testar principalmente em:
+
+`390px`
+
+Ao tocar no livro:
+
+1. ele sai do card;
+2. cresce;
+3. centraliza;
+4. NÃO desaparece;
+5. capa começa a girar pela lombada;
+6. página interna aparece;
+7. ocorre crossfade;
+8. página única do leitor ocupa o mesmo espaço;
+9. usuário pode virar a próxima página.
+
+Não pode ocorrer:
+
+* spread de duas páginas;
+* overflow;
+* flash preto;
+* salto visual;
+* capa abrindo fora da viewport de maneira quebrada.
+
+---
+
+# 37. CRITÉRIO MAIS IMPORTANTE
+
+Hoje a sensação é:
+
+**“o livro foi até o centro e depois abriu outra tela.”**
+
+Quero mudar para:
+
+**“o livro foi até o centro, abriu fisicamente e a própria página de dentro virou o leitor.”**
+
+Mesmo que tecnicamente exista uma troca entre:
+
+PNG 3D
+
+→ componente CSS intermediário
+
+→ BookReader,
+
+essa troca não deve ser perceptível pelo usuário.
+
+---
+
+# 38. IMPLEMENTAÇÃO INCREMENTAL
+
+Antes de alterar o código:
+
+1. identifique onde termina atualmente a animação de centralização;
+2. identifique onde ocorre o fade/remove do PNG;
+3. identifique em que momento a rota/leitor é montado;
+4. insira `OpeningBookStage` entre esses momentos;
+5. preserve tudo que já está funcionando.
+
+Não reescreva a animação inteira se não for necessário.
+
+O foco desta tarefa é **eliminar o desaparecimento do livro e criar a etapa de abertura física antes do leitor assumir**.
