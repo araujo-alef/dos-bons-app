@@ -437,9 +437,9 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       ref={containerRef}
       className="book-reader-root"
       style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#050505', cursor: 'pointer' }}
-      onTouchStart={!isCarousel ? handleTouchStart : undefined}
-      onTouchMove={!isCarousel ? handleTouchMove : undefined}
-      onTouchEnd={!isCarousel ? handleTouchEnd : undefined}
+      onTouchStart={(!isCarousel && readerMode !== 'highlighting') ? handleTouchStart : undefined}
+      onTouchMove={(!isCarousel && readerMode !== 'highlighting') ? handleTouchMove : undefined}
+      onTouchEnd={(!isCarousel && readerMode !== 'highlighting') ? handleTouchEnd : undefined}
       onClick={!isCarousel ? handleAreaClick : undefined}
     >
 
@@ -515,7 +515,9 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
             backdropFilter: 'blur(10px)',
           }}
         >
-          Selecione o trecho que deseja destacar
+          {'ontouchstart' in window
+            ? 'Toque e segure o texto para selecionar'
+            : 'Selecione o trecho que deseja destacar'}
         </div>
       )}
 
