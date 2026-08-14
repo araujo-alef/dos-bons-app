@@ -102,29 +102,8 @@ export default function Chapter() {
         )}
         {isCompleted && <ChapterCompletion onNext={handleNext} />}
 
-        {/* Floating back arrow */}
-        <Link
-          href="/"
-          className="no-underline"
-          style={{
-            position: 'absolute',
-            top: '14px',
-            left: '14px',
-            zIndex: 50,
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'rgba(0,0,0,0.45)',
-          }}
-          aria-label="Voltar"
-        >
-          <ArrowLeft style={{ width: '20px', height: '20px' }} />
-        </Link>
-
         {/* Book — fills full height */}
-        <BookReader chapter={chapter} onComplete={handleComplete} />
+        <BookReader chapter={chapter} onComplete={handleComplete} onBack={() => setLocation('/')} />
       </div>
     );
   }
