@@ -76,23 +76,22 @@ export default function Home() {
               <div
                 key={label}
                 style={{
-                  opacity:      0.35,
                   borderRadius: 16,
-                  border:       '1px solid rgba(255,255,255,0.08)',
-                  background:   'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(139,53,255,0.07) 0%, transparent 70%), #0C0C0E',
+                  border:       '1px solid rgba(139,53,255,0.22)',
+                  background:   'radial-gradient(ellipse 90% 70% at 50% 20%, rgba(139,53,255,0.18) 0%, transparent 70%), #0f0d12',
                   minHeight:    220,
                   display:      'flex',
                   flexDirection:'column',
                   alignItems:   'center',
                   justifyContent:'center',
-                  gap:          10,
+                  gap:          12,
                   padding:      '24px 16px',
                 }}
               >
                 {/* Lock icon */}
                 <svg
-                  width="24" height="24" viewBox="0 0 24 24"
-                  fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"
+                  width="26" height="26" viewBox="0 0 24 24"
+                  fill="none" stroke="rgba(178,102,255,0.7)" strokeWidth="1.5"
                   strokeLinecap="round" strokeLinejoin="round"
                   aria-hidden="true"
                 >
@@ -103,7 +102,7 @@ export default function Home() {
                 <span style={{
                   fontSize:    13,
                   fontWeight:  600,
-                  color:       'rgba(255,255,255,0.55)',
+                  color:       'rgba(255,255,255,0.80)',
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                 }}>
@@ -111,11 +110,15 @@ export default function Home() {
                 </span>
 
                 <span style={{
-                  fontSize:    11,
-                  color:       'rgba(139,53,255,0.7)',
-                  fontWeight:  500,
-                  letterSpacing:'0.12em',
-                  textTransform:'uppercase',
+                  fontSize:      10,
+                  color:         'rgba(178,102,255,0.9)',
+                  fontWeight:    600,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  background:    'rgba(139,53,255,0.15)',
+                  border:        '1px solid rgba(139,53,255,0.30)',
+                  borderRadius:  20,
+                  padding:       '3px 10px',
                 }}>
                   Em breve
                 </span>
