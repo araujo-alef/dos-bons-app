@@ -399,35 +399,39 @@ function BookTransitionShell() {
           [0.16, 1, 0.3,  1],  // 0.84→1.00 ease-out: soft landing at centre
         ];
 
-        await Promise.all([
-          // ── Position / scale ────────────────────────────────────────────
-          shellCtrl.start({
-            x:     [0,        dipX * 0.6, dipX,       dipX * 0.4, tx * 0.35,  tx * 0.78, tx],
-            y:     [0,        dipY * 0.3, dipY * 0.8, dipY,       dipY * 0.4, ty * 0.6,  ty],
-            scale: [1,        0.97,       0.93,       1.02,       1.18,       targetScale * 0.96, targetScale],
-            transition: {
-              duration: 1.40,
-              times:    KF_TIMES,
-              ease:     flightEase,
-            },
-          }),
-          // ── 3D rotation ─────────────────────────────────────────────────
-          bookRotCtrl.start({
-            rotateY: [0,   30,   90,   180,  270,  330,  360],
-            rotateX: [0,   10,   22,   24,   14,   4,    0  ],
-            rotateZ: [0,   -6,   -13,  -14,  -7,   3,    0  ],
-            transition: {
-              duration: 1.40,
-              times:    KF_TIMES,
-              ease:     flightEase,
-            },
-          }),
-          // ── Dark overlay fades in ────────────────────────────────────────
-          overlayCtrl.start({
-            opacity:    0.85,
-            transition: { duration: 0.60, ease: 'easeOut' },
-          }),
-        ]);
+        // Fire all flight animations simultaneously.
+        // We do NOT await the controls.start() promises directly —
+        // Framer Motion can fail to resolve them for complex keyframe arrays,
+        // which would hang the entire phase machine.
+        // Instead we manually sleep for the flight duration.
+        const FLIGHT_MS = 1400;
+
+        shellCtrl.start({
+          x:     [0,        dipX * 0.6, dipX,       dipX * 0.4, tx * 0.35,  tx * 0.78, tx],
+          y:     [0,        dipY * 0.3, dipY * 0.8, dipY,       dipY * 0.4, ty * 0.6,  ty],
+          scale: [1,        0.97,       0.93,       1.02,       1.18,       targetScale * 0.96, targetScale],
+          transition: {
+            duration: FLIGHT_MS / 1000,
+            times:    KF_TIMES,
+            ease:     flightEase,
+          },
+        });
+        bookRotCtrl.start({
+          rotateY: [0,   30,   90,   180,  270,  330,  360],
+          rotateX: [0,   10,   22,   24,   14,   4,    0  ],
+          rotateZ: [0,   -6,   -13,  -14,  -7,   3,    0  ],
+          transition: {
+            duration: FLIGHT_MS / 1000,
+            times:    KF_TIMES,
+            ease:     flightEase,
+          },
+        });
+        overlayCtrl.start({
+          opacity:    0.85,
+          transition: { duration: 0.60, ease: 'easeOut' },
+        });
+
+        await sleep(FLIGHT_MS);
         if (cancelledRef.current) return;
 
         /* ── centering (100ms) ─────────────────────────────────────────── */
