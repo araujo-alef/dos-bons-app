@@ -1,0 +1,274 @@
+Quero corrigir um bug específico na funcionalidade de destaques do BookReader.
+
+O fluxo de seleção já está funcionando:
+
+- entro no modo "Destacar";
+- seleciono um trecho;
+- a seleção é reconhecida;
+- depois a seleção nativa do navegador desaparece.
+
+O problema é que, após salvar/confirmar o destaque, NÃO aparece nenhum indicador visual permanente no texto.
+
+Isso está incorreto.
+
+O comportamento esperado é:
+
+selecionar trecho
+→ salvar destaque
+→ limpar seleção nativa
+→ renderizar imediatamente um highlight persistente sobre exatamente aquele trecho.
+
+==================================================
+1. O DESTAQUE NÃO PODE DEPENDER DA SELEÇÃO NATIVA
+==================================================
+
+A seleção azul do browser é apenas o mecanismo temporário utilizado para escolher o trecho.
+
+Depois de salvar:
+
+window.getSelection()?.removeAllRanges()
+
+pode ser executado normalmente.
+
+PORÉM, antes/depois disso, o app precisa renderizar uma marca visual própria correspondente ao highlight salvo.
+
+A seleção nativa desaparecer é esperado.
+
+O highlight do aplicativo desaparecer NÃO é.
+
+==================================================
+2. RENDERIZAR O HIGHLIGHT IMEDIATAMENTE
+==================================================
+
+Assim que o usuário tocar em "Salvar destaque":
+
+1. persistir os dados;
+2. atualizar o estado local de highlights;
+3. renderizar o destaque na página atual imediatamente;
+4. somente então limpar a seleção nativa.
+
+Não exigir reload ou troca de página para aparecer.
+
+==================================================
+3. VISUAL DO HIGHLIGHT
+==================================================
+
+Quero aparência de marca-texto.
+
+Usar a identidade roxa do app.
+
+Referência:
+
+background:
+rgba(178, 102, 255, 0.20);
+
+ou equivalente.
+
+Pode adicionar uma segunda nuance mais suave para parecer marca-texto real.
+
+Não usar:
+
+- underline;
+- strike-through;
+- border ao redor do parágrafo inteiro.
+
+O fundo deve acompanhar somente as palavras selecionadas.
+
+==================================================
+4. PRECISA FUNCIONAR EM TRECHOS DE MÚLTIPLAS LINHAS
+==================================================
+
+Se o destaque atravessar duas ou três linhas:
+
+a marca precisa acompanhar o texto em cada linha.
+
+Não criar um único retângulo grande atrás do bloco.
+
+==================================================
+5. REUTILIZAR OS DADOS JÁ SALVOS
+==================================================
+
+Verifique como o highlight está sendo persistido atualmente.
+
+Se já temos algo como:
+
+pageId
+blockId
+startOffset
+endOffset
+selectedText
+
+usar esses dados para reconstruir o destaque visual.
+
+Não criar uma segunda estrutura separada apenas para o visual.
+
+==================================================
+6. ATUALIZAR ESTADO LOCAL AO SALVAR
+==================================================
+
+Verifique se atualmente o código faz apenas:
+
+await highlightsRepository.save(...)
+
+mas não atualiza o state do componente.
+
+Precisamos de algo equivalente a:
+
+setHighlights(prev => [...prev, newHighlight])
+
+ou refetch imediato.
+
+Caso contrário, o dado pode estar salvo corretamente mas a UI nunca re-renderiza.
+
+==================================================
+7. RESTAURAR DESTAQUES AO RENDERIZAR A PÁGINA
+==================================================
+
+Quando uma página for montada:
+
+buscar os highlights daquela página e aplicá-los automaticamente.
+
+Então este fluxo também precisa funcionar:
+
+salvo destaque
+→ saio do livro
+→ volto
+→ página abre
+→ trecho continua marcado.
+
+==================================================
+8. NÃO SALVAR APENAS selectedText
+==================================================
+
+Se hoje a implementação estiver tentando localizar o destaque apenas procurando o texto novamente na página, revisar.
+
+Preferir referência estrutural estável:
+
+pageId
+blockId
+startOffset
+endOffset
+
+ou equivalente.
+
+selectedText pode existir como informação auxiliar.
+
+==================================================
+9. IMPLEMENTAÇÃO VISUAL
+==================================================
+
+Escolha a abordagem mais adequada à estrutura atual.
+
+Opções aceitáveis:
+
+A) envolver o trecho com <mark> ou span de highlight;
+
+B) CSS Custom Highlight API, se for compatível com os browsers alvo;
+
+C) reconstrução segura dos Text Nodes usando offsets salvos.
+
+Não usar innerHTML arbitrário.
+
+Não quebrar a estrutura do texto.
+
+==================================================
+10. SE USAR <mark>
+==================================================
+
+O estilo pode ser aproximadamente:
+
+.reader-highlight {
+  background: rgba(178, 102, 255, 0.20);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0;
+}
+
+Não alterar a cor do texto.
+
+Não transformar o trecho em botão.
+
+==================================================
+11. NÃO QUEBRAR A WATERMARK
+==================================================
+
+A marca d'água existente deve continuar funcionando.
+
+Ela deve permanecer:
+
+pointer-events: none;
+
+e não pode ficar na frente da seleção/highlight de forma que esconda a marca.
+
+==================================================
+12. NÃO QUEBRAR PROTEÇÃO CONTRA CÓPIA
+==================================================
+
+Continuar bloqueando:
+
+copy;
+cut;
+Ctrl/Cmd + C.
+
+A correção é apenas na visualização do highlight.
+
+==================================================
+13. NÃO CONFUNDIR ESTADOS
+==================================================
+
+Temos três conceitos diferentes:
+
+1. seleção nativa temporária;
+2. highlight persistido;
+3. modo de destaque ativo.
+
+São estados diferentes.
+
+Ao salvar:
+
+seleção nativa → some
+modo destaque → encerra
+highlight persistido → PERMANECE.
+
+==================================================
+14. TESTE OBRIGATÓRIO
+==================================================
+
+Testar exatamente:
+
+1. entrar em "Destacar";
+2. selecionar "um homem sem direção";
+3. salvar;
+4. a seleção azul desaparece;
+5. "um homem sem direção" continua com fundo roxo translúcido;
+6. ir para outra página;
+7. voltar;
+8. o trecho continua marcado;
+9. sair do livro;
+10. abrir novamente;
+11. o trecho continua marcado.
+
+==================================================
+15. CRITÉRIO DE ACEITE
+==================================================
+
+O bug só está resolvido quando o usuário consegue distinguir visualmente, depois de salvar, exatamente quais palavras foram destacadas.
+
+Hoje:
+
+seleciona
+→ salva
+→ tudo volta ao texto normal
+
+ERRADO.
+
+Esperado:
+
+seleciona
+→ salva
+→ seleção nativa desaparece
+→ highlight roxo permanece no trecho
+
+CORRETO.
+
+Não alterar outras partes da funcionalidade nesta tarefa.

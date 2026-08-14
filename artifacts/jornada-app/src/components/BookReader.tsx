@@ -361,7 +361,9 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       createdAt:    new Date().toISOString(),
     };
     addHighlight(h);
-    refreshHighlights();
+    // Optimistic update: append directly to state so the mark renders
+    // immediately without depending on a localStorage round-trip.
+    setAllHighlights(prev => [...prev, h]);
     clearSelection();
     exitHighlightMode();
     setToolbarExpanded(false);
@@ -387,7 +389,8 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       createdAt:    new Date().toISOString(),
     };
     addHighlight(h);
-    refreshHighlights();
+    // Optimistic update: same pattern as handleSaveHighlight.
+    setAllHighlights(prev => [...prev, h]);
     setNoteEditorOpen(false);
     clearSelection();
     exitHighlightMode();
