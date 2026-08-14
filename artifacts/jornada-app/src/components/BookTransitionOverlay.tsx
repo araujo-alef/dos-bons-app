@@ -372,78 +372,66 @@ function BookTransitionShell() {
         await sleep(40);
         if (cancelledRef.current) return;
 
-        /* ── launching (750ms) — 3D flight maneuver ─────────────────────
+        /* ── launching — 3D flight maneuver ────────────────────────────────
          *
-         *  Position (shellCtrl): x/y/scale — the book's path through space.
-         *  Rotation (bookRotCtrl): rotateY/X/Z — the book's orientation.
+         *  KEY DESIGN DECISIONS:
          *
-         *  POSITION keyframes: dip down (30% vh) then rise to centre.
-         *  Small lateral arc adds sense of a banked turn.
+         *  1. Single ease value (not an array) for the whole keyframe sequence.
+         *     Per-segment ease arrays cause Framer Motion to create separate
+         *     internal sub-animations, producing visible micro-stutters at
+         *     every keyframe boundary. A single cubic-bezier runs one continuous
+         *     interpolation across all keyframes — no joints, no hitches.
          *
-         *  ROTATION keyframes:
-         *    rotateY: 0 → 30 → 90 → 180 → 270 → 330 → 360
-         *    (front → lean → pages-edge → back → spine → lean-back → front)
+         *  2. No centering pause. The ease already decelerates at the end.
+         *     A static pause after motion reads as a freeze/bug.
          *
-         *    rotateX: nose-dive then pull-up (max ~22° at bottom)
-         *    rotateZ: banking tilt (max ~-14° into the curve)
+         *  3. Crossfade starts 200ms before flight ends (overlap).
+         *     OpeningBookStage fades in while the book is still settling,
+         *     creating a seamless handoff with no dead moment between phases.
+         *
+         *  POSITION:  dip down 28% vh, lateral drift, rise to centre.
+         *  ROTATION:  rotateY 0→360: front→pages-edge→back→spine→front.
+         *             rotateX: nose-dive (max 24°) then pull-up.
+         *             rotateZ: banking tilt (max -14°).
          * ─────────────────────────────────────────────────────────────── */
         setPhase('launching');
 
-        // 6 per-segment easings (length = KF_TIMES.length - 1)
-        const flightEase: [number,number,number,number][] = [
-          [0.42, 0, 0.58, 1],  // 0→0.15 ease-in-out: leaves card smoothly
-          [0.33, 0, 0.55, 1],  // 0.15→0.35 ease-in: accelerates into the dip
-          [0.45, 0, 0.55, 1],  // 0.35→0.50 ease-in-out: through the bottom
-          [0.45, 0.55, 0.58, 1],// 0.50→0.68 ease-out: slingshotting back up
-          [0.22, 1, 0.36, 1],  // 0.68→0.84 ease-out: decelerating upward
-          [0.16, 1, 0.3,  1],  // 0.84→1.00 ease-out: soft landing at centre
-        ];
-
-        // Fire all flight animations simultaneously.
-        // We do NOT await the controls.start() promises directly —
-        // Framer Motion can fail to resolve them for complex keyframe arrays,
-        // which would hang the entire phase machine.
-        // Instead we manually sleep for the flight duration.
-        const FLIGHT_MS = 1400;
+        // Single smooth cubic-bezier for the entire flight.
+        // Slow out of the card, full speed through the maneuver,
+        // decelerates as it arrives at centre.
+        const flightEase: [number, number, number, number] = [0.37, 0, 0.63, 1];
+        const FLIGHT_MS  = 1400;
+        const CROSSFADE_OVERLAP_MS = 200; // crossfade starts this many ms before flight ends
 
         shellCtrl.start({
           x:     [0,        dipX * 0.6, dipX,       dipX * 0.4, tx * 0.35,  tx * 0.78, tx],
           y:     [0,        dipY * 0.3, dipY * 0.8, dipY,       dipY * 0.4, ty * 0.6,  ty],
           scale: [1,        0.97,       0.93,       1.02,       1.18,       targetScale * 0.96, targetScale],
-          transition: {
-            duration: FLIGHT_MS / 1000,
-            times:    KF_TIMES,
-            ease:     flightEase,
-          },
+          transition: { duration: FLIGHT_MS / 1000, times: KF_TIMES, ease: flightEase },
         });
         bookRotCtrl.start({
           rotateY: [0,   30,   90,   180,  270,  330,  360],
           rotateX: [0,   10,   22,   24,   14,   4,    0  ],
           rotateZ: [0,   -6,   -13,  -14,  -7,   3,    0  ],
-          transition: {
-            duration: FLIGHT_MS / 1000,
-            times:    KF_TIMES,
-            ease:     flightEase,
-          },
+          transition: { duration: FLIGHT_MS / 1000, times: KF_TIMES, ease: flightEase },
         });
         overlayCtrl.start({
           opacity:    0.85,
-          transition: { duration: 0.60, ease: 'easeOut' },
+          transition: { duration: 0.55, ease: 'easeOut' },
         });
 
-        await sleep(FLIGHT_MS);
+        // Wait until 200ms before flight ends, then start crossfade (overlap)
+        await sleep(FLIGHT_MS - CROSSFADE_OVERLAP_MS);
         if (cancelledRef.current) return;
 
-        /* ── centering (100ms) ─────────────────────────────────────────── */
-        // Brief beat — book is at centre, fully frontal, user registers it.
-        setPhase('centering');
-        await sleep(100);
-        if (cancelledRef.current) return;
-
-        /* ── crossfading 3D book → OpeningBookStage (120ms) ─────────────── */
-        // BookFlightObject fades via phase change; stageCtrl fades in.
+        /* ── crossfading 3D book → OpeningBookStage (overlaps flight tail) ─
+         *  OpeningBookStage fades in while book is still arriving at centre.
+         *  BookFlightObject fades out via phase change (CSS opacity transition). */
         setPhase('crossfading');
-        await stageCtrl.start({ opacity: 1, transition: { duration: 0.12, ease: 'easeIn' } });
+        stageCtrl.start({ opacity: 1, transition: { duration: 0.20, ease: 'easeIn' } });
+
+        // Wait for flight to fully finish before opening cover
+        await sleep(CROSSFADE_OVERLAP_MS + 60);
         if (cancelledRef.current) return;
 
         /* ── opening — cover swings open (400ms); NOT awaited ───────────── */
