@@ -31,8 +31,8 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
       isPortrait ? 'right' : pageIndex % 2 === 0 ? 'left' : 'right';
 
     const typo = isPortrait
-      ? { body: 19, lineHeight: 1.85, px: 28, py: 28 }
-      : { body: 17, lineHeight: 1.75, px: 22, py: 22 };
+      ? { body: 19, lineHeight: 1.85, px: 28, py: 28, pyTop: 54 }
+      : { body: 17, lineHeight: 1.75, px: 22, py: 22, pyTop: 22 };
 
     return (
       <div
@@ -90,7 +90,7 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
             bottom: '24px',
             overflow: 'hidden',
             zIndex: 2,
-            padding: `${typo.py}px ${typo.px}px 0`,
+            padding: `${typo.pyTop}px ${typo.px}px 0`,
             display: 'flex',
             flexDirection: 'column',
           }}
