@@ -243,7 +243,7 @@
 }
 
 .stf__item {
-  background-color: #0A090C !important;
+  background-color: #f2e9d4 !important;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   /* Simulates the paper edge visible when the page turns */

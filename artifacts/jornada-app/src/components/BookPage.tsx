@@ -1,7 +1,20 @@
 import React from 'react';
 import { Play } from 'lucide-react';
-import pageTexture from '@/assets/page-texture.png';
 import type { Chapter, ChapterPage, ContentBlock } from '@/mocks/data';
+
+// Cream palette — matches the inner page of the opening animation
+const C = {
+  bg:          'linear-gradient(150deg, #f2e9d4 0%, #ece0c4 100%)',
+  ink:         'rgba(40,20,8,0.85)',
+  inkMid:      'rgba(40,20,8,0.60)',
+  inkFaint:    'rgba(40,20,8,0.38)',
+  inkGhost:    'rgba(40,20,8,0.22)',
+  inkHair:     'rgba(40,20,8,0.12)',
+  purple:      'rgba(139,53,255,0.85)',
+  purpleFaint: 'rgba(139,53,255,0.20)',
+  purpleHair:  'rgba(139,53,255,0.10)',
+  shadow:      'rgba(30,12,0,0.12)',
+};
 
 interface BookPageProps {
   chapter: Chapter;
@@ -14,14 +27,9 @@ interface BookPageProps {
 
 export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
   ({ chapter, page, pageIndex, totalPages, isPortrait = true, onComplete }, ref) => {
-    // In portrait (single page), the page number sits bottom-right.
-    // In landscape (spread), even index = left page (number bottom-left),
-    // odd index = right page (number bottom-right).
     const numSide: 'left' | 'right' =
       isPortrait ? 'right' : pageIndex % 2 === 0 ? 'left' : 'right';
 
-    // Typography scale: portrait pages are wider (full mobile width) so we
-    // can afford comfortable reading sizes. Landscape pages are narrower.
     const typo = isPortrait
       ? { body: 19, lineHeight: 1.85, px: 28, py: 28 }
       : { body: 17, lineHeight: 1.75, px: 22, py: 22 };
@@ -30,10 +38,6 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
       <div
         ref={ref}
         style={{
-          /* The CSS fix sets background-color !important on .stf__item (which is
-             this element). We intentionally leave the background here alone so the
-             CSS provides the solid dark fallback. The actual texture is rendered by
-             the child div below, which is not affected by the parent's !important rule. */
           width: '100%',
           height: '100%',
           overflow: 'hidden',
@@ -42,31 +46,41 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
           userSelect: 'text',
         }}
       >
-        {/* Background texture — child div is free from the !important CSS on the parent */}
+        {/* Cream background — same gradient as animation's inner page */}
         <div
           aria-hidden="true"
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `url(${pageTexture})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            background: C.bg,
             zIndex: 0,
           }}
         />
 
-        {/* Top accent line */}
+        {/* Subtle warm vignette at edges */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(ellipse 110% 110% at 50% 50%, transparent 60%, rgba(30,12,0,0.08) 100%)',
+            zIndex: 0,
+          }}
+        />
+
+        {/* Top accent line — purple, same as animation spine light */}
         <div
           style={{
             position: 'relative',
             zIndex: 1,
             height: '1px',
             background:
-              'linear-gradient(to right, transparent, rgba(178,102,255,0.3) 30%, rgba(178,102,255,0.3) 70%, transparent)',
+              'linear-gradient(to right, transparent, rgba(139,53,255,0.25) 30%, rgba(139,53,255,0.25) 70%, transparent)',
           }}
         />
 
-        {/* Main content — z-index 2 sits above the dark overlay (z-index 0) */}
+        {/* Main content */}
         <div
           style={{
             position: 'absolute',
@@ -98,8 +112,9 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
             [numSide]: '16px',
             fontSize: '9px',
             fontFamily: 'monospace',
-            color: 'rgba(255,255,255,0.2)',
+            color: C.inkGhost,
             letterSpacing: '0.05em',
+            zIndex: 3,
           }}
         >
           {pageIndex + 1}
@@ -121,13 +136,7 @@ interface TypoTokens {
 
 // ─── Cover ────────────────────────────────────────────────────────────────────
 
-function CoverContent({
-  chapter,
-  isPortrait,
-}: {
-  chapter: Chapter;
-  isPortrait: boolean;
-}) {
+function CoverContent({ chapter, isPortrait }: { chapter: Chapter; isPortrait: boolean }) {
   const titleSize = isPortrait ? 'clamp(1.6rem, 6vw, 2.4rem)' : 'clamp(1.3rem, 4vw, 1.9rem)';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
@@ -137,7 +146,7 @@ function CoverContent({
           fontSize: '9px',
           fontWeight: 700,
           letterSpacing: '0.24em',
-          color: 'rgba(178,102,255,0.8)',
+          color: C.purple,
           marginBottom: '28px',
         }}
       >
@@ -148,7 +157,7 @@ function CoverContent({
         style={{
           fontFamily: "'Playfair Display', serif",
           fontSize: titleSize,
-          color: '#F5F5F5',
+          color: '#251508',
           lineHeight: 1.2,
           margin: '0 0 20px 0',
         }}
@@ -160,7 +169,7 @@ function CoverContent({
         style={{
           width: '28px',
           height: '1px',
-          background: 'rgba(178,102,255,0.45)',
+          background: C.purpleFaint,
           margin: '0 0 22px 0',
         }}
       />
@@ -171,7 +180,7 @@ function CoverContent({
             fontFamily: "'Playfair Display', serif",
             fontStyle: 'italic',
             fontSize: isPortrait ? '18px' : '16px',
-            color: 'rgba(245,245,245,0.52)',
+            color: C.inkMid,
             lineHeight: 1.75,
             margin: 0,
           }}
@@ -185,13 +194,7 @@ function CoverContent({
 
 // ─── Closing ──────────────────────────────────────────────────────────────────
 
-function ClosingContent({
-  onComplete,
-  isPortrait,
-}: {
-  onComplete?: () => void;
-  isPortrait: boolean;
-}) {
+function ClosingContent({ onComplete, isPortrait }: { onComplete?: () => void; isPortrait: boolean }) {
   return (
     <div
       style={{
@@ -207,7 +210,7 @@ function ClosingContent({
         style={{
           width: '20px',
           height: '1px',
-          background: 'rgba(255,255,255,0.10)',
+          background: C.inkHair,
           marginBottom: '24px',
         }}
       />
@@ -218,7 +221,7 @@ function ClosingContent({
           fontSize: '9px',
           fontWeight: 700,
           letterSpacing: '0.2em',
-          color: 'rgba(255,255,255,0.28)',
+          color: C.inkFaint,
           marginBottom: '26px',
         }}
       >
@@ -230,7 +233,7 @@ function ClosingContent({
           fontFamily: "'Playfair Display', serif",
           fontStyle: 'italic',
           fontSize: isPortrait ? '18px' : '16px',
-          color: 'rgba(245,245,245,0.55)',
+          color: C.inkMid,
           lineHeight: 1.78,
           marginBottom: '32px',
           maxWidth: '82%',
@@ -244,10 +247,10 @@ function ClosingContent({
         onClick={onComplete}
         style={{
           background: 'transparent',
-          border: '1px solid rgba(255,255,255,0.13)',
+          border: `1px solid ${C.inkHair}`,
           borderRadius: '100px',
           padding: '10px 24px',
-          color: 'rgba(245,245,245,0.78)',
+          color: C.inkMid,
           fontSize: '12px',
           fontWeight: 500,
           letterSpacing: '0.04em',
@@ -255,12 +258,12 @@ function ClosingContent({
           transition: 'border-color 0.25s, color 0.25s',
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.borderColor = 'rgba(178,102,255,0.5)';
-          e.currentTarget.style.color = '#F5F5F5';
+          e.currentTarget.style.borderColor = C.purpleFaint;
+          e.currentTarget.style.color = '#251508';
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.13)';
-          e.currentTarget.style.color = 'rgba(245,245,245,0.78)';
+          e.currentTarget.style.borderColor = C.inkHair;
+          e.currentTarget.style.color = C.inkMid;
         }}
       >
         Concluir capítulo
@@ -271,15 +274,7 @@ function ClosingContent({
 
 // ─── Content blocks ───────────────────────────────────────────────────────────
 
-function PageBlocks({
-  blocks,
-  typo,
-  isPortrait,
-}: {
-  blocks: ContentBlock[];
-  typo: TypoTokens;
-  isPortrait: boolean;
-}) {
+function PageBlocks({ blocks, typo, isPortrait }: { blocks: ContentBlock[]; typo: TypoTokens; isPortrait: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {blocks.map((block, idx) => (
@@ -289,15 +284,7 @@ function PageBlocks({
   );
 }
 
-function PageBlock({
-  block,
-  typo,
-  isPortrait,
-}: {
-  block: ContentBlock;
-  typo: TypoTokens;
-  isPortrait: boolean;
-}) {
+function PageBlock({ block, typo, isPortrait }: { block: ContentBlock; typo: TypoTokens; isPortrait: boolean }) {
   switch (block.type) {
     // ── Text ─────────────────────────────────────────────────────────────────
     case 'text':
@@ -306,7 +293,7 @@ function PageBlock({
           style={{
             fontSize: `${typo.body}px`,
             lineHeight: typo.lineHeight,
-            color: 'rgba(245,245,245,0.82)',
+            color: C.ink,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 300,
             letterSpacing: '0.012em',
@@ -327,7 +314,7 @@ function PageBlock({
               aspectRatio: '4/3',
               borderRadius: '8px',
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: `1px solid ${C.inkHair}`,
               position: 'relative',
             }}
           >
@@ -341,7 +328,7 @@ function PageBlock({
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to top, rgba(5,5,5,0.3) 0%, transparent 55%)',
+                background: 'linear-gradient(to top, rgba(30,12,0,0.18) 0%, transparent 55%)',
               }}
             />
           </div>
@@ -358,9 +345,9 @@ function PageBlock({
             flexDirection: 'column',
             justifyContent: 'center',
             padding: isPortrait ? '24px 20px' : '18px 16px',
-            background: 'rgba(12,12,14,0.6)',
+            background: C.inkHair,
             borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.05)',
+            border: `1px solid ${C.inkGhost}`,
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -372,7 +359,7 @@ function PageBlock({
               left: 0,
               right: 0,
               height: '1px',
-              background: 'linear-gradient(to right, transparent, rgba(178,102,255,0.32), transparent)',
+              background: `linear-gradient(to right, transparent, ${C.purpleFaint}, transparent)`,
             }}
           />
           <span
@@ -381,7 +368,7 @@ function PageBlock({
               fontSize: '9px',
               fontWeight: 700,
               letterSpacing: '0.24em',
-              color: 'rgba(178,102,255,0.8)',
+              color: C.purple,
               textAlign: 'center',
               marginBottom: '18px',
             }}
@@ -393,7 +380,7 @@ function PageBlock({
               fontFamily: "'Playfair Display', serif",
               fontStyle: 'italic',
               fontSize: isPortrait ? '20px' : '18px',
-              color: 'rgba(245,245,245,0.9)',
+              color: '#251508',
               lineHeight: 1.6,
               textAlign: 'center',
               margin: '0 0 16px 0',
@@ -404,7 +391,7 @@ function PageBlock({
           <p
             style={{
               fontSize: '13px',
-              color: 'rgba(255,255,255,0.18)',
+              color: C.inkFaint,
               textAlign: 'center',
               fontStyle: 'italic',
               margin: 0,
@@ -425,9 +412,9 @@ function PageBlock({
             flexDirection: 'column',
             justifyContent: 'center',
             padding: isPortrait ? '24px 20px' : '18px 16px',
-            border: '1px solid rgba(178,102,255,0.2)',
+            border: `1px solid ${C.purpleFaint}`,
             borderRadius: '10px',
-            background: 'rgba(178,102,255,0.04)',
+            background: C.purpleHair,
           }}
         >
           <span
@@ -436,7 +423,7 @@ function PageBlock({
               fontSize: '9px',
               fontWeight: 700,
               letterSpacing: '0.24em',
-              color: 'rgba(178,102,255,0.85)',
+              color: C.purple,
               textAlign: 'center',
               marginBottom: '16px',
             }}
@@ -447,7 +434,7 @@ function PageBlock({
             style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: isPortrait ? '20px' : '18px',
-              color: 'rgba(245,245,245,0.9)',
+              color: '#251508',
               lineHeight: 1.65,
               textAlign: 'center',
               margin: 0,
@@ -468,9 +455,9 @@ function PageBlock({
               alignItems: 'center',
               gap: '16px',
               padding: isPortrait ? '18px 20px' : '14px 16px',
-              background: 'rgba(17,16,20,0.85)',
+              background: C.inkHair,
               borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: `1px solid ${C.inkGhost}`,
               cursor: 'pointer',
             }}
           >
@@ -479,17 +466,15 @@ function PageBlock({
                 width: '44px',
                 height: '44px',
                 borderRadius: '50%',
-                background: 'rgba(178,102,255,0.12)',
-                border: '1px solid rgba(178,102,255,0.22)',
+                background: C.purpleHair,
+                border: `1px solid ${C.purpleFaint}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
               }}
             >
-              <Play
-                style={{ width: '15px', height: '15px', color: '#B266FF', marginLeft: '2px' }}
-              />
+              <Play style={{ width: '15px', height: '15px', color: '#8B35FF', marginLeft: '2px' }} />
             </div>
             <div>
               <span
@@ -498,7 +483,7 @@ function PageBlock({
                   fontSize: '9px',
                   fontWeight: 700,
                   letterSpacing: '0.18em',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: C.inkFaint,
                   marginBottom: '5px',
                 }}
               >
@@ -508,7 +493,7 @@ function PageBlock({
                 style={{
                   display: 'block',
                   fontSize: isPortrait ? '17px' : '15px',
-                  color: 'rgba(245,245,245,0.9)',
+                  color: '#251508',
                   fontWeight: 500,
                   lineHeight: 1.3,
                 }}
@@ -529,8 +514,8 @@ function PageBlock({
               width: '100%',
               aspectRatio: '16/9',
               borderRadius: '10px',
-              background: 'rgba(12,12,14,0.85)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: C.inkHair,
+              border: `1px solid ${C.inkGhost}`,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -544,7 +529,7 @@ function PageBlock({
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'radial-gradient(ellipse at 50% 40%, rgba(178,102,255,0.07) 0%, transparent 70%)',
+                background: `radial-gradient(ellipse at 50% 40%, ${C.purpleHair} 0%, transparent 70%)`,
               }}
             />
             <div
@@ -552,8 +537,8 @@ function PageBlock({
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.10)',
+                background: C.inkHair,
+                border: `1px solid ${C.inkGhost}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -562,7 +547,7 @@ function PageBlock({
               }}
             >
               <Play
-                style={{ width: '15px', height: '15px', color: 'rgba(245,245,245,0.7)', marginLeft: '2px' }}
+                style={{ width: '15px', height: '15px', color: C.inkMid, marginLeft: '2px' }}
                 fill="currentColor"
               />
             </div>
@@ -571,7 +556,7 @@ function PageBlock({
                 fontSize: '9px',
                 fontWeight: 700,
                 letterSpacing: '0.18em',
-                color: 'rgba(255,255,255,0.3)',
+                color: C.inkFaint,
                 marginBottom: '5px',
                 position: 'relative',
               }}
@@ -582,7 +567,7 @@ function PageBlock({
               style={{
                 fontFamily: "'Playfair Display', serif",
                 fontSize: isPortrait ? '14px' : '13px',
-                color: 'rgba(245,245,245,0.72)',
+                color: C.inkMid,
                 position: 'relative',
               }}
             >
