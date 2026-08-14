@@ -1,4 +1,5 @@
 import { Check, FileText, X } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 interface HighlightSelectionMenuProps {
   /** Position (viewport coordinates) for the menu */
@@ -17,14 +18,24 @@ export function HighlightSelectionMenu({
 }: HighlightSelectionMenuProps) {
   // On small screens anchor to the bottom to avoid clipping
   const isMobile = window.innerWidth < 600;
-  const top = isMobile ? undefined : Math.max(60, anchorY - 60);
+  const top    = isMobile ? undefined : Math.max(60, anchorY - 60);
   const bottom = isMobile ? 'calc(90px + env(safe-area-inset-bottom, 0px))' : undefined;
+
+  // The dismiss overlay must ignore the click/pointerup that *opened* the menu.
+  // On mobile the same tap's `click` event (which fires after `pointerup`) would
+  // immediately call onCancel before the user sees anything. We block pointer
+  // events for 200 ms after mount so that residual event passes through harmlessly.
+  const dismissReady = useRef(false);
+  useEffect(() => {
+    const t = setTimeout(() => { dismissReady.current = true; }, 200);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <>
-      {/* Invisible dismiss layer — does NOT stop propagation so underlying click still fires */}
+      {/* Invisible dismiss layer */}
       <div
-        onClick={onCancel}
+        onClick={() => { if (dismissReady.current) onCancel(); }}
         style={{ position: 'fixed', inset: 0, zIndex: 150 }}
       />
 
