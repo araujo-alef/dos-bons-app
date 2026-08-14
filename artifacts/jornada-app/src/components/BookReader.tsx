@@ -138,29 +138,26 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   useEffect(() => {
     if (readerMode !== 'highlighting') return;
 
-    // ── processSelection: read window.getSelection() and show the menu ────────
-    const processSelection = () => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
-
-      const range = sel.getRangeAt(0);
-      const selectedText = sel.toString().trim();
-      if (!selectedText) return;
+    // ── pendingFromRange: extract PendingSelection from a Range directly ────────
+    // Used by both desktop and mobile paths so we never rely on getSelection()
+    // being available asynchronously (iOS clears it on touchend).
+    const pendingFromRange = (range: Range): PendingSelection | null => {
+      const selectedText = range.toString().trim();
+      if (!selectedText) return null;
 
       const anchorBlock = findAncestorWithAttr(range.startContainer, 'data-block-idx');
       const focusBlock  = findAncestorWithAttr(range.endContainer,   'data-block-idx');
 
-      // Determine the single valid block — clamp if selection drifts into padding
       const block = anchorBlock ?? focusBlock;
-      if (!block) return;
-      if (anchorBlock && focusBlock && anchorBlock !== focusBlock) return;
+      if (!block) return null;
+      if (anchorBlock && focusBlock && anchorBlock !== focusBlock) return null;
 
       const pageEl = findAncestorWithAttr(block, 'data-page-idx');
-      if (!pageEl) return;
+      if (!pageEl) return null;
 
       const blockIdx = parseInt(block.getAttribute('data-block-idx') ?? '-1', 10);
       const pageIdx  = parseInt(pageEl.getAttribute('data-page-idx') ?? '-1', 10);
-      if (blockIdx < 0 || pageIdx < 0) return;
+      if (blockIdx < 0 || pageIdx < 0) return null;
 
       const startOffset = anchorBlock
         ? getOffsetInBlock(range.startContainer, range.startOffset, block)
@@ -169,10 +166,10 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
         ? getOffsetInBlock(range.endContainer, range.endOffset, block)
         : (block.textContent?.length ?? 0);
 
-      if (startOffset < 0 || endOffset < 0 || startOffset >= endOffset) return;
+      if (startOffset < 0 || endOffset < 0 || startOffset >= endOffset) return null;
 
       const rect = range.getBoundingClientRect();
-      setPendingSelection({
+      return {
         text: selectedText,
         blockIdx,
         pageIdx,
@@ -180,14 +177,24 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
         startOffset,
         endOffset,
         anchorY: rect.top + rect.height / 2,
-      });
+      };
     };
 
-    // ── selectWordAtPoint: find the word under (x,y) without sel.modify ───────
-    // sel.modify() is unreliable on many iOS versions — it silently fails and
-    // leaves the selection collapsed. We find word boundaries ourselves using
-    // a regex walk on the text node's content, which works on every browser.
-    const selectWordAtPoint = (x: number, y: number): boolean => {
+    // ── Desktop: read selection synchronously after mouseup ───────────────────
+    const onMouseUp = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+      const pending = pendingFromRange(sel.getRangeAt(0));
+      if (pending) setPendingSelection(pending);
+    };
+    document.addEventListener('mouseup', onMouseUp);
+
+    // ── Mobile: pointer-event tap → word under finger ─────────────────────────
+    // selectWordAtPoint builds a word-boundary Range without sel.modify()
+    // (unreliable on iOS). pendingFromRange extracts all data from the Range
+    // immediately — we never read window.getSelection() asynchronously because
+    // iOS clears it as soon as the touch ends.
+    const selectWordAtPoint = (x: number, y: number): Range | null => {
       let range: Range | null = null;
       if (typeof document.caretRangeFromPoint === 'function') {
         range = document.caretRangeFromPoint(x, y);
@@ -201,52 +208,41 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
           range.collapse(true);
         }
       }
-      if (!range) return false;
+      if (!range) return null;
 
       const node = range.startContainer;
       const el: Element | null =
         node.nodeType === Node.ELEMENT_NODE
           ? (node as Element)
           : (node as Text).parentElement;
-      if (!el || !findAncestorWithAttr(el, 'data-block-idx')) return false;
+      if (!el || !findAncestorWithAttr(el, 'data-block-idx')) return null;
 
       if (node.nodeType === Node.TEXT_NODE) {
         const text   = node.textContent ?? '';
         const offset = range.startOffset;
-        // Walk left/right to word boundaries (space, NBSP, punctuation edges)
         let wStart = offset;
         let wEnd   = offset;
         while (wStart > 0 && !/[\s\u00A0]/.test(text[wStart - 1])) wStart--;
         while (wEnd < text.length && !/[\s\u00A0]/.test(text[wEnd]))  wEnd++;
-        if (wStart >= wEnd) return false; // tapped on whitespace
+        if (wStart >= wEnd) return null; // tapped on whitespace
         range.setStart(node, wStart);
         range.setEnd(node, wEnd);
       }
 
-      const sel = window.getSelection();
-      if (!sel) return false;
-      sel.removeAllRanges();
-      sel.addRange(range);
-      return !sel.isCollapsed;
+      // Apply to selection so the OS shows handles (best-effort — may clear on touchend)
+      try {
+        const sel = window.getSelection();
+        if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+      } catch (_) { /* ignore */ }
+
+      return range;
     };
 
-    // ── Desktop: read selection immediately after mouse drag/click ────────────
-    const onMouseUp = () => processSelection();
-    document.addEventListener('mouseup', onMouseUp);
-
-    // ── Mobile: pointer events on the container ───────────────────────────────
-    // A tap (pointerdown → pointerup with < 8 px drift) on a text block selects
-    // the word under the finger and shows the menu.
-    // We use Pointer Events (supported iOS 13+, all Android Chrome) rather than
-    // Touch Events because they fire even when touch-action:none is set and they
-    // unify desktop/mobile without needing separate code paths.
     const container = containerRef.current;
-
     let pdPos: { x: number; y: number } | null = null;
     const DRAG_SQ = 8 * 8; // pixels²
 
     const onPD = (e: PointerEvent) => {
-      // Only track if the press started on a text block
       const hit = e.target as Element | null;
       if (!hit || !findAncestorWithAttr(hit, 'data-block-idx')) { pdPos = null; return; }
       pdPos = { x: e.clientX, y: e.clientY };
@@ -258,11 +254,13 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       const dy  = e.clientY - pdPos.y;
       const pos = pdPos;
       pdPos = null;
-      if (dx * dx + dy * dy > DRAG_SQ) return; // was a drag, not a tap
-      // Tap confirmed: select word at the press position, then show menu
-      if (selectWordAtPoint(pos.x, pos.y)) {
-        setTimeout(processSelection, 30);
-      }
+      if (dx * dx + dy * dy > DRAG_SQ) return;
+      // Build the word range and extract pending data BEFORE the browser can
+      // clear getSelection() on touchend — no setTimeout needed.
+      const range = selectWordAtPoint(pos.x, pos.y);
+      if (!range) return;
+      const pending = pendingFromRange(range);
+      if (pending) setPendingSelection(pending);
     };
 
     if (container) {
