@@ -2,56 +2,51 @@ import { Check, FileText, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 interface HighlightSelectionMenuProps {
-  /** Position (viewport coordinates) for the menu */
-  anchorY: number;
+  anchorY: number; // kept in props for API compat — not used for positioning
   onSave:   () => void;
   onNote:   () => void;
   onCancel: () => void;
 }
 
 /**
- * Small action menu that appears after a text selection in highlight mode.
- * Positioned near the selection on desktop, fixed at bottom on mobile.
+ * Action menu shown after a text selection in highlight mode.
+ * Always anchored just above the bottom bar so it never clips on mobile.
+ * The toolbar collapsed button sits at calc(26px + safe-area) from bottom
+ * and is ~40 px tall, so we place the menu 16 px above that.
  */
 export function HighlightSelectionMenu({
-  anchorY, onSave, onNote, onCancel,
+  onSave, onNote, onCancel,
 }: HighlightSelectionMenuProps) {
-  // On small screens anchor to the bottom to avoid clipping
-  const isMobile = window.innerWidth < 600;
-  const top    = isMobile ? undefined : Math.max(60, anchorY - 60);
-  const bottom = isMobile ? 'calc(90px + env(safe-area-inset-bottom, 0px))' : undefined;
-
-  // The dismiss overlay must ignore the click/pointerup that *opened* the menu.
-  // On mobile the same tap's `click` event (which fires after `pointerup`) would
-  // immediately call onCancel before the user sees anything. We block pointer
-  // events for 200 ms after mount so that residual event passes through harmlessly.
+  // Ignore the first click after mount — the same tap that triggered the
+  // selection fires a trailing `click` which would instantly dismiss the menu.
   const dismissReady = useRef(false);
   useEffect(() => {
-    const t = setTimeout(() => { dismissReady.current = true; }, 200);
+    const t = setTimeout(() => { dismissReady.current = true; }, 250);
     return () => clearTimeout(t);
   }, []);
 
   return (
     <>
-      {/* Invisible dismiss layer */}
+      {/* Full-screen dismiss backdrop */}
       <div
         onClick={() => { if (dismissReady.current) onCancel(); }}
         style={{ position: 'fixed', inset: 0, zIndex: 150 }}
       />
 
+      {/* Menu pill — always above the bottom toolbar */}
       <div
         onClick={e => e.stopPropagation()}
         style={{
           position:  'fixed',
-          top,
-          bottom,
+          bottom:    'calc(82px + env(safe-area-inset-bottom, 0px))',
           left:      '50%',
           transform: 'translateX(-50%)',
           zIndex:    151,
           display:   'flex',
-          gap:       6,
-          padding:   '6px 8px',
-          background: 'rgba(14,10,20,0.94)',
+          alignItems: 'center',
+          gap:       4,
+          padding:   '5px 6px',
+          background: 'rgba(14,10,20,0.95)',
           border:     '1px solid rgba(255,255,255,0.14)',
           borderRadius: 100,
           backdropFilter: 'blur(14px)',
@@ -61,11 +56,11 @@ export function HighlightSelectionMenu({
           whiteSpace: 'nowrap',
         }}
       >
-        <MenuBtn icon={<Check size={12} />} label="Salvar destaque" onClick={onSave} accent />
+        <MenuBtn icon={<Check size={13} />} label="Destacar" onClick={onSave} accent />
         <MenuSep />
-        <MenuBtn icon={<FileText size={12} />} label="Adicionar nota" onClick={onNote} />
+        <MenuBtn icon={<FileText size={13} />} label="Anotar" onClick={onNote} />
         <MenuSep />
-        <MenuBtn icon={<X size={12} />} label="Cancelar" onClick={onCancel} />
+        <MenuBtn icon={<X size={13} />} label="Cancelar" onClick={onCancel} />
       </div>
     </>
   );
@@ -82,13 +77,13 @@ function MenuBtn({
         display:       'flex',
         alignItems:    'center',
         gap:           5,
-        padding:       '7px 10px',
+        padding:       '8px 12px',
         background:    accent ? 'rgba(139,53,255,0.18)' : 'transparent',
         border:        accent ? '1px solid rgba(178,102,255,0.30)' : '1px solid transparent',
         borderRadius:  100,
         cursor:        'pointer',
         color:         accent ? 'rgba(210,160,255,0.95)' : 'rgba(255,255,255,0.75)',
-        fontSize:      11,
+        fontSize:      12,
         fontWeight:    600,
         letterSpacing: '0.02em',
       }}
@@ -100,5 +95,5 @@ function MenuBtn({
 }
 
 function MenuSep() {
-  return <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', alignSelf: 'center' }} />;
+  return <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />;
 }
