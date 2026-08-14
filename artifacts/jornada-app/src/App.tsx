@@ -12,6 +12,7 @@ import { BookTransitionOverlay } from '@/components/BookTransitionOverlay';
 import {
   Route,
   Switch,
+  Redirect,
   useLocation,
   Router as WouterRouter,
 } from 'wouter';
@@ -23,6 +24,7 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/jornada"><Redirect to="/" /></Route>
         <Route path="/jornada/capitulo/:id" component={Chapter} />
         <Route path="/jornada/em-dia" component={UpToDate} />
         <Route component={NotFound} />
