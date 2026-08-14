@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { BookPage } from './BookPage';
 import type { Chapter } from '@/mocks/data';
 
@@ -8,9 +8,40 @@ interface BookReaderProps {
 }
 
 export function BookReader({ chapter, onComplete }: BookReaderProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const pages = chapter.pages ?? [];
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const locking    = useRef(false);   // prevent multi-page jump per gesture
+  const pages      = chapter.pages ?? [];
   const totalPages = pages.length;
+
+  // Convert vertical wheel / trackpad delta → horizontal page snap on desktop
+  const handleWheel = useCallback((e: WheelEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    // Let pure horizontal trackpad swipes pass through (browser handles them)
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+    e.preventDefault();
+    if (locking.current) return;
+
+    const pageW      = el.clientWidth;
+    const current    = Math.round(el.scrollLeft / pageW);
+    const direction  = e.deltaY > 0 ? 1 : -1;
+    const next       = Math.max(0, Math.min(current + direction, totalPages - 1));
+
+    if (next === current) return;
+
+    locking.current = true;
+    el.scrollTo({ left: next * pageW, behavior: 'smooth' });
+    setTimeout(() => { locking.current = false; }, 550);
+  }, [totalPages]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
 
   if (totalPages === 0) {
     return <div style={{ flex: 1 }} />;
