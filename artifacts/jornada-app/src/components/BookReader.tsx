@@ -138,9 +138,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   useEffect(() => {
     if (readerMode !== 'highlighting') return;
 
-    // ── pendingFromRange: extract PendingSelection from a Range directly ────────
-    // Used by both desktop and mobile paths so we never rely on getSelection()
-    // being available asynchronously (iOS clears it on touchend).
+    // ── pendingFromRange: extract PendingSelection from a Range ──────────────
     const pendingFromRange = (range: Range): PendingSelection | null => {
       const selectedText = range.toString().trim();
       if (!selectedText) return null;
@@ -180,100 +178,28 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       };
     };
 
-    // ── Desktop: read selection synchronously after mouseup ───────────────────
-    const onMouseUp = () => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !sel.rangeCount) return;
-      const pending = pendingFromRange(sel.getRangeAt(0));
-      if (pending) setPendingSelection(pending);
-    };
-    document.addEventListener('mouseup', onMouseUp);
+    // ── selectionchange: the only reliable cross-browser/iOS event ────────────
+    // Instead of intercepting pointer/touch events and calling caretRangeFromPoint,
+    // we simply listen to selectionchange — which iOS fires natively after any
+    // long-press or drag selection. A short debounce lets the user finish
+    // extending the selection before the menu appears.
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // ── Mobile: pointer-event tap → word under finger ─────────────────────────
-    // selectWordAtPoint builds a word-boundary Range without sel.modify()
-    // (unreliable on iOS). pendingFromRange extracts all data from the Range
-    // immediately — we never read window.getSelection() asynchronously because
-    // iOS clears it as soon as the touch ends.
-    const selectWordAtPoint = (x: number, y: number): Range | null => {
-      let range: Range | null = null;
-      if (typeof document.caretRangeFromPoint === 'function') {
-        range = document.caretRangeFromPoint(x, y);
-      } else if ('caretPositionFromPoint' in document) {
-        const pos = (document as Document & {
-          caretPositionFromPoint(x: number, y: number): { offsetNode: Node; offset: number } | null;
-        }).caretPositionFromPoint(x, y);
-        if (pos) {
-          range = document.createRange();
-          range.setStart(pos.offsetNode, pos.offset);
-          range.collapse(true);
-        }
-      }
-      if (!range) return null;
-
-      const node = range.startContainer;
-      const el: Element | null =
-        node.nodeType === Node.ELEMENT_NODE
-          ? (node as Element)
-          : (node as Text).parentElement;
-      if (!el || !findAncestorWithAttr(el, 'data-block-idx')) return null;
-
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text   = node.textContent ?? '';
-        const offset = range.startOffset;
-        let wStart = offset;
-        let wEnd   = offset;
-        while (wStart > 0 && !/[\s\u00A0]/.test(text[wStart - 1])) wStart--;
-        while (wEnd < text.length && !/[\s\u00A0]/.test(text[wEnd]))  wEnd++;
-        if (wStart >= wEnd) return null; // tapped on whitespace
-        range.setStart(node, wStart);
-        range.setEnd(node, wEnd);
-      }
-
-      // Apply to selection so the OS shows handles (best-effort — may clear on touchend)
-      try {
+    const onSelectionChange = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
         const sel = window.getSelection();
-        if (sel) { sel.removeAllRanges(); sel.addRange(range); }
-      } catch (_) { /* ignore */ }
-
-      return range;
+        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+        const pending = pendingFromRange(sel.getRangeAt(0));
+        if (pending) setPendingSelection(pending);
+      }, 300);
     };
 
-    const container = containerRef.current;
-    let pdPos: { x: number; y: number } | null = null;
-    const DRAG_SQ = 8 * 8; // pixels²
-
-    const onPD = (e: PointerEvent) => {
-      const hit = e.target as Element | null;
-      if (!hit || !findAncestorWithAttr(hit, 'data-block-idx')) { pdPos = null; return; }
-      pdPos = { x: e.clientX, y: e.clientY };
-    };
-
-    const onPU = (e: PointerEvent) => {
-      if (!pdPos) return;
-      const dx  = e.clientX - pdPos.x;
-      const dy  = e.clientY - pdPos.y;
-      const pos = pdPos;
-      pdPos = null;
-      if (dx * dx + dy * dy > DRAG_SQ) return;
-      // Build the word range and extract pending data BEFORE the browser can
-      // clear getSelection() on touchend — no setTimeout needed.
-      const range = selectWordAtPoint(pos.x, pos.y);
-      if (!range) return;
-      const pending = pendingFromRange(range);
-      if (pending) setPendingSelection(pending);
-    };
-
-    if (container) {
-      container.addEventListener('pointerdown', onPD);
-      container.addEventListener('pointerup',   onPU);
-    }
+    document.addEventListener('selectionchange', onSelectionChange);
 
     return () => {
-      document.removeEventListener('mouseup', onMouseUp);
-      if (container) {
-        container.removeEventListener('pointerdown', onPD);
-        container.removeEventListener('pointerup',   onPU);
-      }
+      document.removeEventListener('selectionchange', onSelectionChange);
+      if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [readerMode, pages]);
 
@@ -512,9 +438,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       style={{
         flex: 1, position: 'relative', overflow: 'hidden',
         background: '#050505', cursor: 'pointer',
-        // In highlight mode: block browser rubber-band/swipe gestures so the
-        // container doesn't show swipe feedback while the user is trying to select text.
-        touchAction: readerMode === 'highlighting' ? 'none' : 'auto',
+        touchAction: 'auto',
       }}
       onTouchStart={(!isCarousel && readerMode !== 'highlighting') ? handleTouchStart : undefined}
       onTouchMove={(!isCarousel && readerMode !== 'highlighting') ? handleTouchMove : undefined}
@@ -595,7 +519,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
           }}
         >
           {'ontouchstart' in window
-            ? 'Toque em uma palavra para selecioná-la'
+            ? 'Toque e segure para selecionar o texto'
             : 'Selecione o trecho que deseja destacar'}
         </div>
       )}
