@@ -406,7 +406,7 @@ function BookTransitionShell() {
             y:     [0,        dipY * 0.3, dipY * 0.8, dipY,       dipY * 0.4, ty * 0.6,  ty],
             scale: [1,        0.97,       0.93,       1.02,       1.18,       targetScale * 0.96, targetScale],
             transition: {
-              duration: 0.75,
+              duration: 1.40,
               times:    KF_TIMES,
               ease:     flightEase,
             },
@@ -417,7 +417,7 @@ function BookTransitionShell() {
             rotateX: [0,   10,   22,   24,   14,   4,    0  ],
             rotateZ: [0,   -6,   -13,  -14,  -7,   3,    0  ],
             transition: {
-              duration: 0.75,
+              duration: 1.40,
               times:    KF_TIMES,
               ease:     flightEase,
             },
