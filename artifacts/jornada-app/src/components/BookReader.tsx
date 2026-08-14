@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { BookPage } from './BookPage';
 import type { Chapter } from '@/mocks/data';
 
@@ -9,22 +8,6 @@ interface BookReaderProps {
   onBack:     () => void;
 }
 
-const ARROW_BTN: React.CSSProperties = {
-  position:       'absolute',
-  top:            '14px',
-  zIndex:         50,
-  width:          '32px',
-  height:         '32px',
-  display:        'flex',
-  alignItems:     'center',
-  justifyContent: 'center',
-  background:     'transparent',
-  border:         'none',
-  padding:        0,
-  cursor:         'pointer',
-  color:          'rgba(0,0,0,0.45)',
-  transition:     'color 0.15s',
-};
 
 export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   const containerRef   = useRef<HTMLDivElement>(null);
@@ -115,41 +98,31 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
 
   if (totalPages === 0) return <div style={{ flex: 1 }} />;
 
-  const atStart   = currentPage === 0;
-  const atEnd     = currentPage >= totalPages - 1;
   const translateX = -(currentPage * pageWidth) + dragOffset;
+
+  // Click anywhere on the page: left half = prev/back, right half = next.
+  // Skips interactive elements so buttons inside BookPage still work.
+  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, input, textarea, select')) return;
+    const { left, width } = e.currentTarget.getBoundingClientRect();
+    const isLeft = e.clientX < left + width / 2;
+    if (isLeft) {
+      currentPage === 0 ? onBack() : goTo(currentPage - 1);
+    } else {
+      goTo(currentPage + 1);
+    }
+  };
 
   return (
     <div
       ref={containerRef}
-      style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#050505' }}
+      style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#050505', cursor: 'pointer' }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onClick={handleAreaClick}
     >
-      {/* Left arrow */}
-      <button
-        aria-label={atStart ? 'Voltar' : 'Página anterior'}
-        onClick={() => atStart ? onBack() : goTo(currentPage - 1)}
-        style={{ ...ARROW_BTN, left: '14px' }}
-        onMouseEnter={e => (e.currentTarget.style.color = 'rgba(0,0,0,0.75)')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(0,0,0,0.45)')}
-      >
-        <ArrowLeft style={{ width: '20px', height: '20px' }} />
-      </button>
-
-      {/* Right arrow */}
-      {!atEnd && (
-        <button
-          aria-label="Próxima página"
-          onClick={() => goTo(currentPage + 1)}
-          style={{ ...ARROW_BTN, right: '14px' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(0,0,0,0.75)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(0,0,0,0.45)')}
-        >
-          <ArrowRight style={{ width: '20px', height: '20px' }} />
-        </button>
-      )}
 
       {/* Page strip — translate-based, no scroll */}
       <div
