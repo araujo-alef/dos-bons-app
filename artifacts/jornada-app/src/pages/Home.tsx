@@ -44,12 +44,12 @@ export default function Home() {
             <JourneyCard />
 
             {COMING_SOON.map(({ label, slug }) => (
-              <Link key={slug} href={`/em-breve/${slug}`} style={{ textDecoration: 'none', display: 'block' }}>
+              <Link key={slug} href={`/em-breve/${slug}`} className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
                 <div style={{
                   borderRadius:    16,
                   border:          '1px solid rgba(139,53,255,0.22)',
                   background:      'radial-gradient(ellipse 90% 70% at 50% 20%, rgba(139,53,255,0.18) 0%, transparent 70%), #0f0d12',
-                  minHeight:       220,
+                  width:           '100%',
                   height:          '100%',
                   display:         'flex',
                   flexDirection:   'column',
