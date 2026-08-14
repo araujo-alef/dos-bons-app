@@ -44,16 +44,21 @@ function findAncestorWithAttr(node: Node, attr: string): Element | null {
   return null;
 }
 
+/**
+ * Returns the character offset of (node, offset) measured from the start of
+ * blockEl's text content. Works whether node is a Text node or an Element
+ * (browsers sometimes return an Element + child-index as a range endpoint,
+ * e.g. when the selection ends at a line boundary).
+ */
 function getOffsetInBlock(node: Node, offset: number, blockEl: Element): number {
-  const walker = document.createTreeWalker(blockEl, NodeFilter.SHOW_TEXT);
-  let total = 0;
-  let current: Node | null = walker.nextNode();
-  while (current) {
-    if (current === node) return total + offset;
-    total += current.textContent?.length ?? 0;
-    current = walker.nextNode();
+  try {
+    const pre = document.createRange();
+    pre.selectNodeContents(blockEl);
+    pre.setEnd(node, offset);
+    return pre.toString().length;
+  } catch {
+    return -1;
   }
-  return -1;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
