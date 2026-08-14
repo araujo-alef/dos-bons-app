@@ -1,6 +1,8 @@
 import React from 'react';
 import { Play } from 'lucide-react';
 import type { Chapter, ChapterPage, ContentBlock } from '@/mocks/data';
+import { PageWatermark } from './PageWatermark';
+import type { WatermarkIdentity } from '@/lib/watermark';
 
 // Cream palette — matches the inner page of the opening animation
 const C = {
@@ -23,10 +25,11 @@ interface BookPageProps {
   totalPages: number;
   isPortrait?: boolean;
   onComplete?: () => void;
+  watermarkIdentity?: WatermarkIdentity;
 }
 
 export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
-  ({ chapter, page, pageIndex, totalPages, isPortrait = true, onComplete }, ref) => {
+  ({ chapter, page, pageIndex, totalPages, isPortrait = true, onComplete, watermarkIdentity }, ref) => {
     const numSide: 'left' | 'right' =
       isPortrait ? 'right' : pageIndex % 2 === 0 ? 'left' : 'right';
 
@@ -43,7 +46,11 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
           overflow: 'hidden',
           boxSizing: 'border-box',
           position: 'relative',
-          userSelect: 'text',
+          userSelect: 'none',
+          // Prevent iOS long-press callout for copy
+          WebkitUserSelect: 'none',
+          // @ts-expect-error non-standard iOS property
+          WebkitTouchCallout: 'none',
         }}
       >
         {/* Cream background — same gradient as animation's inner page */}
@@ -120,6 +127,11 @@ export const BookPage = React.forwardRef<HTMLDivElement, BookPageProps>(
         >
           {pageIndex + 1}
         </div>
+
+        {/* Watermark — above all content, never interferes with interaction */}
+        {watermarkIdentity && (
+          <PageWatermark identity={watermarkIdentity} />
+        )}
       </div>
     );
   }

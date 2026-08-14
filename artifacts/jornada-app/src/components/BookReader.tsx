@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { BookPage } from './BookPage';
 import type { Chapter } from '@/mocks/data';
+import { useReaderContentProtection } from '@/hooks/useReaderContentProtection';
+import { mockWatermarkIdentity } from '@/lib/watermark';
 
 interface BookReaderProps {
   chapter:    Chapter;
@@ -10,6 +12,9 @@ interface BookReaderProps {
 
 export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
   const containerRef   = useRef<HTMLDivElement>(null);
+
+  // Copy-protection: blocks copy/cut/contextmenu/dragstart/Ctrl+C while reader is mounted
+  useReaderContentProtection(containerRef);
   const carouselRef    = useRef<HTMLDivElement>(null);
   const pageWidthRef   = useRef(0);
   const pageHeightRef  = useRef(0);
@@ -163,6 +168,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
               totalPages={totalPages}
               isPortrait={true}
               onComplete={onComplete}
+              watermarkIdentity={mockWatermarkIdentity}
             />
           </div>
         ))}
@@ -276,6 +282,7 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
                       pageIndex={idx}
                       totalPages={totalPages}
                       isPortrait={true}
+                      watermarkIdentity={mockWatermarkIdentity}
                     />
                   </div>
 

@@ -1,0 +1,804 @@
+Quero implementar duas proteções específicas na tela de leitura do BookReader:
+
+1. impedir cópia direta do conteúdo;
+2. adicionar marca d'água persistente nas páginas, para que qualquer print/screenshot contenha identificação visual do usuário.
+
+IMPORTANTE:
+não quero tentar “bloquear screenshot” no navegador, porque isso não é confiável.
+
+A proteção desejada é:
+
+- dificultar cópia direta;
+- tornar prints identificáveis.
+
+Não alterar o funcionamento do page flip, navegação, responsividade ou conteúdo do leitor.
+
+==================================================
+1. ESCOPO
+==================================================
+
+Aplicar essas proteções SOMENTE dentro do BookReader.
+
+Não bloquear seleção/cópia em:
+
+- Home;
+- Jornada;
+- menus;
+- outros produtos;
+- inputs;
+- formulários;
+- outras áreas do app.
+
+A proteção deve ser isolada ao conteúdo de leitura.
+
+==================================================
+2. DESABILITAR SELEÇÃO DE TEXTO
+==================================================
+
+Dentro do BookReader, impedir seleção usando CSS.
+
+Aplicar algo equivalente a:
+
+.book-reader,
+.book-reader * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+Ajustar seletores conforme a estrutura atual.
+
+O usuário não deve conseguir:
+
+- clicar e arrastar para selecionar frases;
+- selecionar parágrafos;
+- selecionar conteúdo pelo touch-hold em dispositivos móveis.
+
+==================================================
+3. NÃO QUEBRAR ELEMENTOS INTERATIVOS
+==================================================
+
+Muito importante:
+
+se dentro do reader existirem elementos que precisam de interação, como:
+
+- botões;
+- controles de áudio;
+- vídeo;
+- links;
+- controles de navegação;
+- inputs futuros;
+
+eles devem continuar funcionando.
+
+O bloqueio é para seleção/cópia de conteúdo textual.
+
+Não bloquear pointer events do reader inteiro.
+
+==================================================
+4. BLOQUEAR EVENTO COPY
+==================================================
+
+No container do BookReader, interceptar:
+
+copy
+
+e executar:
+
+event.preventDefault()
+
+Assim, mesmo que algum texto consiga ser selecionado por comportamento específico do browser, a ação de copiar deve ser bloqueada.
+
+==================================================
+5. BLOQUEAR CUT
+==================================================
+
+Também interceptar:
+
+cut
+
+e executar:
+
+event.preventDefault()
+
+Embora não seja comum no reader, manter comportamento consistente.
+
+==================================================
+6. BLOQUEAR MENU DE CONTEXTO NO CONTEÚDO
+==================================================
+
+Dentro da área das páginas, impedir context menu:
+
+contextmenu
+
+com:
+
+event.preventDefault()
+
+Isso evita fluxo simples de:
+
+botão direito → copiar.
+
+Não aplicar globalmente no app.
+
+==================================================
+7. BLOQUEAR DRAG DE TEXTO/IMAGEM
+==================================================
+
+Interceptar:
+
+dragstart
+
+dentro do reader.
+
+Isso evita arrastar conteúdo diretamente para:
+
+- desktop;
+- outra aba;
+- outro aplicativo.
+
+==================================================
+8. BLOQUEAR CMD/Ctrl + C SOMENTE NO READER
+==================================================
+
+Enquanto o foco/interação estiver dentro do reader, bloquear:
+
+Cmd + C
+Ctrl + C
+
+Não bloquear atalhos globais quando o usuário estiver fora da tela de leitura.
+
+Pode usar:
+
+keydown
+
+verificando:
+
+event.metaKey || event.ctrlKey
+
+e:
+
+event.key.toLowerCase() === "c"
+
+Então:
+
+event.preventDefault()
+
+==================================================
+9. NÃO TENTAR BLOQUEAR TODOS OS ATALHOS DO SISTEMA
+==================================================
+
+Não tente bloquear:
+
+- screenshot do macOS;
+- Print Screen;
+- ferramentas externas;
+- gravação de tela.
+
+Isso não é o objetivo.
+
+==================================================
+10. MARCA D'ÁGUA
+==================================================
+
+Quero adicionar uma marca d'água discreta sobre TODAS as páginas do BookReader.
+
+Essa marca deve fazer parte do conteúdo visual da página e aparecer também em screenshots.
+
+A marca não pode depender de hover ou estado temporário.
+
+Ela deve estar sempre presente enquanto a página estiver visível.
+
+==================================================
+11. CONTEÚDO DA MARCA D'ÁGUA
+==================================================
+
+Preparar a estrutura para usar identificação real do usuário.
+
+Preferência de conteúdo:
+
+nome do usuário + e-mail
+
+Por exemplo:
+
+Alef Araújo
+alef@email.com
+
+ou em uma única linha:
+
+Alef Araújo • alef@email.com
+
+Caso o frontend ainda não possua autenticação/dados reais disponíveis, usar temporariamente um mock centralizado em configuração.
+
+Exemplo:
+
+const watermarkUser = {
+  name: "Usuário",
+  email: "usuario@email.com"
+}
+
+IMPORTANTE:
+não espalhar esse mock diretamente pelos componentes.
+
+Criar uma fonte de dados clara para depois substituirmos pelo usuário autenticado.
+
+==================================================
+12. NÃO USAR INFORMAÇÃO SENSÍVEL DESNECESSÁRIA
+==================================================
+
+Na marca d'água usar somente informação suficiente para identificar a conta.
+
+Não usar:
+
+- CPF;
+- telefone;
+- endereço;
+- IDs internos longos;
+- tokens;
+- dados técnicos.
+
+Nome + e-mail já é suficiente.
+
+==================================================
+13. PADRÃO VISUAL DA MARCA
+==================================================
+
+Quero a marca d'água:
+
+- discreta;
+- elegante;
+- baixa opacidade;
+- integrada ao dark reader.
+
+Não quero uma marca branca enorme atrapalhando a leitura.
+
+Sugestão:
+
+color:
+rgba(255,255,255,0.045)
+
+ou aproximadamente:
+
+opacity: 0.04–0.08
+
+Ajustar visualmente conforme o fundo.
+
+==================================================
+14. MARCA REPETIDA, NÃO APENAS UMA NO RODAPÉ
+==================================================
+
+Não colocar apenas:
+
+"Usuário • email"
+
+pequeno no rodapé.
+
+Isso é fácil de cortar em um screenshot.
+
+Quero uma textura de watermark repetida pela página.
+
+Exemplo conceitual:
+
+Usuário • email        Usuário • email
+
+       Usuário • email
+
+Usuário • email        Usuário • email
+
+Distribuir pela superfície da página.
+
+==================================================
+15. DIAGONAL
+==================================================
+
+Preferência visual:
+
+texto levemente inclinado.
+
+Algo próximo de:
+
+transform: rotate(-25deg)
+
+ou equivalente.
+
+A marca deve atravessar visualmente a página sem parecer um banner.
+
+==================================================
+16. CAMADA DE WATERMARK
+==================================================
+
+Criar uma camada exclusiva dentro de cada página.
+
+Estrutura conceitual:
+
+<Page>
+  <WatermarkLayer />
+  <PageContent />
+</Page>
+
+WatermarkLayer:
+
+position: absolute;
+inset: 0;
+overflow: hidden;
+pointer-events: none;
+
+O conteúdo continua acima/abaixo conforme necessário.
+
+==================================================
+17. POINTER EVENTS
+==================================================
+
+A camada da marca d'água deve sempre ter:
+
+pointer-events: none;
+
+Ela não pode interferir em:
+
+- page flip;
+- swipe;
+- botões;
+- links;
+- áudio;
+- vídeo.
+
+==================================================
+18. Z-INDEX
+==================================================
+
+A watermark precisa aparecer sobre o background da página e continuar visível num screenshot.
+
+Pode ficar visualmente acima do conteúdo, desde que a opacidade seja extremamente baixa.
+
+Estrutura possível:
+
+background
+↓
+page content
+↓
+watermark overlay
+
+ou:
+
+background
+↓
+watermark
+↓
+content
+
+Escolher o que ficar mais legível.
+
+Minha preferência é watermark levemente acima de tudo, com opacidade baixa, pois dificulta remover simplesmente recortando uma região vazia.
+
+==================================================
+19. NÃO DIMINUIR LEGIBILIDADE
+==================================================
+
+A marca nunca deve disputar atenção com o texto.
+
+A leitura do capítulo precisa continuar confortável.
+
+Testar principalmente em parágrafos longos.
+
+Se a watermark ficar evidente durante leitura normal, reduzir opacidade.
+
+Ela deve ser percebida principalmente quando alguém olha com atenção ou tira screenshot.
+
+==================================================
+20. DENSIDADE DA MARCA
+==================================================
+
+Não colocar centenas de textos.
+
+Algo como:
+
+6–12 ocorrências visíveis por página
+
+dependendo do tamanho da página.
+
+No mobile pode usar menos ocorrências.
+
+No desktop/spread pode usar mais.
+
+==================================================
+21. NÃO DEIXAR TODAS AS MARCAS ALINHADAS
+==================================================
+
+Evitar grid perfeito demais.
+
+Pode criar pequenas variações de:
+
+- posição;
+- offset horizontal;
+- offset vertical.
+
+Mas manter uma composição limpa.
+
+==================================================
+22. MOBILE
+==================================================
+
+No mobile single-page:
+
+a watermark deve cobrir toda a página atual.
+
+Precisa continuar legível o suficiente em screenshots de aproximadamente:
+
+375px
+390px
+414px
+430px.
+
+Não criar textos minúsculos demais.
+
+==================================================
+23. DESKTOP
+==================================================
+
+Se o BookReader estiver exibindo duas páginas:
+
+cada página precisa ter sua própria watermark.
+
+Não usar uma única watermark grande atravessando o spread inteiro.
+
+Assim, qualquer página capturada individualmente continua identificável.
+
+==================================================
+24. PAGE FLIP
+==================================================
+
+A marca d'água deve virar junto com a página.
+
+Ela precisa ser parte da estrutura visual da própria folha utilizada pelo page flip.
+
+Não criar uma watermark fixa na viewport inteira.
+
+Se a página estiver virando:
+
+a marca deve acompanhar a transformação 3D da folha.
+
+Isso é importante para manter a sensação de livro físico.
+
+==================================================
+25. COMPONENTIZAÇÃO
+==================================================
+
+Criar um componente reutilizável, algo como:
+
+<PageWatermark />
+
+Exemplo conceitual:
+
+<PageWatermark
+  userName={user.name}
+  userEmail={user.email}
+/>
+
+Não duplicar markup manualmente em cada tipo de página.
+
+==================================================
+26. TODOS OS TIPOS DE PÁGINA
+==================================================
+
+Aplicar watermark em:
+
+- página de título;
+- página de texto;
+- reflexão;
+- prática;
+- imagem;
+- áudio;
+- vídeo;
+- página final;
+- qualquer outro page type existente.
+
+Não aplicar apenas às páginas de texto.
+
+==================================================
+27. PÁGINAS COM IMAGENS
+==================================================
+
+Em páginas com imagens, a watermark deve continuar visível.
+
+Pode ser necessário usar uma pequena sombra no texto da watermark ou ajustar blend/opacidade para não desaparecer totalmente sobre imagens escuras.
+
+Não exagerar.
+
+==================================================
+28. NÃO USAR MIX-BLEND-MODE DE FORMA AGRESSIVA
+==================================================
+
+Se usar blend mode, testar bem.
+
+Preferência é uma cor simples com baixa opacidade.
+
+Evitar efeitos que fiquem brilhantes ou imprevisíveis dependendo da imagem.
+
+==================================================
+29. CSS DE IMPRESSÃO
+==================================================
+
+Como camada complementar, bloquear impressão do conteúdo.
+
+Adicionar:
+
+@media print {
+  .book-reader {
+    display: none !important;
+  }
+}
+
+ou uma solução equivalente que substitua a área por uma mensagem simples.
+
+Isso não é o foco principal, mas é uma proteção simples e útil.
+
+==================================================
+30. NÃO IMPLEMENTAR "SEGURANÇA FALSA"
+==================================================
+
+Não adicionar código tentando detectar:
+
+- Print Screen;
+- screenshots;
+- DevTools;
+- mudança de foco;
+- APIs inexistentes.
+
+Não quero comportamento quebrado ou hacks frágeis.
+
+A estratégia é deliberadamente:
+
+1. bloquear cópia casual;
+2. watermark em qualquer captura.
+
+==================================================
+31. PREPARAR PARA AUTENTICAÇÃO FUTURA
+==================================================
+
+Hoje podemos não ter autenticação real integrada nesta etapa.
+
+Mesmo assim, estruturar de forma que depois possamos trocar:
+
+mockUser
+
+por:
+
+currentUser
+
+sem alterar o BookReader.
+
+Idealmente receber:
+
+watermarkIdentity
+
+como propriedade/context.
+
+==================================================
+32. EXEMPLO CONCEITUAL
+==================================================
+
+Algo semelhante a:
+
+interface WatermarkIdentity {
+  name: string;
+  email: string;
+}
+
+<PageWatermark
+  identity={watermarkIdentity}
+/>
+
+E internamente gerar as repetições.
+
+==================================================
+33. NÃO EXPOR MAIS DADOS NO DOM DO QUE JÁ PRECISA
+==================================================
+
+A watermark naturalmente terá nome/e-mail no DOM porque precisa renderizá-los.
+
+Mas não adicionar outros dados da conta em:
+
+data-attributes;
+HTML;
+comentários;
+metadata.
+
+==================================================
+34. ACESSIBILIDADE
+==================================================
+
+A watermark é decorativa.
+
+Adicionar:
+
+aria-hidden="true"
+
+para que leitores de tela não repitam nome/e-mail dezenas de vezes.
+
+==================================================
+35. TEXT SELECTION
+==================================================
+
+Garantir que o próprio texto da watermark também não seja selecionável.
+
+Ela deve herdar:
+
+user-select: none.
+
+==================================================
+36. NÃO QUEBRAR O SWIPE
+==================================================
+
+Testar especificamente page flip por:
+
+- swipe;
+- drag;
+- clique.
+
+O bloqueio de `dragstart` não pode impedir o gesto utilizado pelo react-pageflip/StPageFlip.
+
+Se o page flip depender de drag events específicos, limitar o bloqueio de drag apenas a:
+
+img
+texto/elementos nativos
+
+e NÃO ao container que recebe o gesto do page flip.
+
+Essa parte precisa ser testada.
+
+==================================================
+37. NÃO BLOQUEAR POINTERDOWN GERAL
+==================================================
+
+Não usar:
+
+pointerdown.preventDefault()
+
+no reader inteiro.
+
+Isso provavelmente quebraria:
+
+- swipe;
+- flip;
+- controles.
+
+Bloquear apenas os eventos diretamente relacionados à cópia.
+
+==================================================
+38. HOOK OPCIONAL
+==================================================
+
+Se facilitar a organização, criar algo como:
+
+useReaderContentProtection(readerRef)
+
+Responsabilidades:
+
+- copy;
+- cut;
+- contextmenu;
+- atalhos;
+- limpeza dos event listeners.
+
+Mas manter watermark como componente separado.
+
+==================================================
+39. CLEANUP
+==================================================
+
+Se adicionar listeners manualmente:
+
+sempre remover no cleanup do componente.
+
+Evitar listeners duplicados quando o usuário:
+
+- entra;
+- sai;
+- volta ao reader.
+
+==================================================
+40. CRITÉRIO DE TESTE — CÓPIA
+==================================================
+
+No desktop:
+
+1. abrir capítulo;
+2. tentar selecionar um parágrafo com o mouse;
+3. não deve selecionar;
+4. botão direito dentro do texto não abre menu;
+5. Cmd/Ctrl + C não copia conteúdo;
+6. conteúdo continua navegável normalmente.
+
+==================================================
+41. CRITÉRIO DE TESTE — MOBILE
+==================================================
+
+Em celular:
+
+1. pressionar texto por alguns segundos;
+2. não deve aparecer seleção/callout para copiar;
+3. swipe continua virando página;
+4. botões continuam funcionando.
+
+==================================================
+42. CRITÉRIO DE TESTE — WATERMARK
+==================================================
+
+Ao visualizar qualquer página:
+
+devo perceber muito discretamente:
+
+nome + e-mail
+
+repetidos pela superfície.
+
+Ao tirar screenshot:
+
+a identificação precisa aparecer em múltiplos pontos da imagem.
+
+Não deve ser possível cortar simplesmente:
+
+topo;
+rodapé;
+
+e remover toda a identificação.
+
+==================================================
+43. CRITÉRIO DE TESTE — QUALIDADE VISUAL
+==================================================
+
+Durante leitura normal:
+
+a watermark deve ser quase imperceptível.
+
+Não quero que o usuário sinta que está lendo um documento corporativo com marca d'água enorme.
+
+A interface deve continuar:
+
+- premium;
+- editorial;
+- dark;
+- confortável.
+
+==================================================
+44. PRESERVAR TUDO QUE JÁ EXISTE
+==================================================
+
+Não alterar nesta tarefa:
+
+- animação de entrada no livro;
+- trajetória do livro;
+- abertura;
+- folheio;
+- zoom;
+- layout da Home;
+- Jornada;
+- lógica de capítulos;
+- progressão;
+- page flip;
+- single page mobile;
+- spread desktop;
+- conteúdo.
+
+Foco exclusivamente em:
+
+PROTEÇÃO DE CÓPIA + WATERMARK.
+
+==================================================
+45. RESULTADO FINAL ESPERADO
+==================================================
+
+Quero chegar a este comportamento:
+
+LEITURA NORMAL
+→ limpa, confortável e praticamente igual à atual.
+
+TENTATIVA DE COPIAR
+→ não consegue selecionar/copiar diretamente.
+
+SCREENSHOT
+→ funciona normalmente, porém contém várias marcas discretas com identificação da conta.
+
+Esse é o nível de proteção desejado.
+
+Não precisamos implementar DRM complexo.
