@@ -1,0 +1,894 @@
+Quero corrigir especificamente a rotação do livro durante a trajetória curva.
+
+Hoje a animação já faz o livro descer e depois subir até o centro da tela, mas ele permanece praticamente sempre de frente para o usuário.
+
+Isso faz o movimento parecer artificial.
+
+Quero que essa trajetória tenha sensação de “decolagem”, como uma nave fazendo uma manobra:
+
+- o livro sai do card;
+- começa a descer;
+- inclina;
+- gira durante a curva;
+- em um momento mostra a lombada/costas para a câmera;
+- completa a curva;
+- volta a ficar de frente;
+- sobe;
+- chega ao centro;
+- estabiliza;
+- só então começa a abertura.
+
+A referência de movimento é mais próxima de uma nave fazendo uma curva de voo do que de um objeto apenas sendo arrastado pela tela.
+
+==================================================
+1. PROBLEMA ATUAL
+==================================================
+
+A trajetória atual é aproximadamente:
+
+livro de frente
+↓
+desce
+↓
+sobe
+↓
+centro
+
+Mas a orientação visual permanece praticamente igual.
+
+Isso gera a sensação de:
+
+“um card sendo movido por translate”
+
+em vez de:
+
+“um objeto tridimensional fazendo uma trajetória”.
+
+Quero corrigir isso.
+
+==================================================
+2. NOVA SENSAÇÃO DE MOVIMENTO
+==================================================
+
+A trajetória desejada é:
+
+ESTADO INICIAL
+livro de frente
+
+↓
+
+COMEÇA A DESCER
+livro inclina para acompanhar a curva
+
+↓
+
+FUNDO DA CURVA
+livro gira bastante em Y e/ou X
+
+↓
+
+MOMENTO DE COSTAS
+por alguns frames podemos enxergar principalmente:
+- lombada;
+- lateral;
+- verso/costas do livro;
+
+↓
+
+COMEÇA A SUBIR
+ele continua o giro
+
+↓
+
+APROXIMAÇÃO DO CENTRO
+volta progressivamente para a orientação frontal
+
+↓
+
+CENTRO
+livro totalmente estabilizado e de frente
+
+↓
+
+ABERTURA
+só então a capa começa a abrir.
+
+==================================================
+3. NÃO FAZER UM FLIP 2D
+==================================================
+
+Não quero algo como:
+
+rotateZ(180deg)
+
+Isso pareceria uma imagem girando na tela.
+
+O efeito precisa ser 3D.
+
+Priorizar:
+
+rotateY
+rotateX
+
+e usar rotateZ apenas como complemento pequeno.
+
+==================================================
+4. PERSPECTIVA REAL
+==================================================
+
+O container externo da animação precisa ter perspectiva.
+
+Exemplo:
+
+perspective: 1200px;
+
+ou equivalente ajustado ao projeto.
+
+O elemento do livro precisa usar:
+
+transform-style: preserve-3d;
+
+Sem perspectiva, o giro vai parecer uma simples deformação 2D.
+
+==================================================
+5. ROTATEY DEVE SER O PRINCIPAL
+==================================================
+
+Durante a parte mais baixa da curva, quero que o livro faça uma rotação grande no eixo Y.
+
+Exemplo conceitual:
+
+rotateY: [
+  0,
+  35,
+  95,
+  155,
+  205,
+  300,
+  350,
+  360
+]
+
+Esses valores são apenas referência.
+
+O ponto importante é:
+
+em algum momento, o livro deve passar por uma orientação onde a frente deixa de ficar visível.
+
+Pode fazer uma volta quase completa, mas precisa parecer parte da trajetória e não um giro gratuito.
+
+==================================================
+6. NÃO PRECISA SER EXATAMENTE 360°
+==================================================
+
+Se uma rotação de aproximadamente:
+
+0 → 220 → 360
+
+ficar mais natural, use.
+
+Se:
+
+0 → 180 → 360
+
+ficar melhor, use.
+
+A prioridade é o movimento visual.
+
+Quero claramente perceber:
+
+frente
+→ lateral
+→ costas
+→ lateral
+→ frente.
+
+==================================================
+7. ROTATEX PARA DAR SENSAÇÃO DE MERGULHO
+==================================================
+
+Adicionar também uma rotação menor em X.
+
+Durante a descida, o livro pode inclinar para frente.
+
+Exemplo:
+
+rotateX: [
+  0,
+  12,
+  25,
+  18,
+  5,
+  0
+]
+
+Isso ajuda a transmitir:
+
+“mergulhando”
+
+e depois:
+
+“levantando voo”.
+
+Não exagerar.
+
+==================================================
+8. ROTATEZ APENAS PARA BANKING
+==================================================
+
+Pode usar rotateZ como uma aeronave inclinando na curva.
+
+Exemplo:
+
+rotateZ: [
+  0,
+  -8,
+  -15,
+  -8,
+  6,
+  3,
+  0
+]
+
+Isso é o “banking” da curva.
+
+Não usar grandes valores.
+
+O livro não deve parecer rodando como hélice.
+
+==================================================
+9. A ROTAÇÃO PRECISA ESTAR SINCRONIZADA COM A CURVA
+==================================================
+
+Muito importante:
+
+não quero:
+
+primeiro desce
+→ depois gira
+→ depois sobe.
+
+Quero os movimentos simultâneos.
+
+Exemplo conceitual:
+
+0%
+livro de frente
+começa a sair
+
+20%
+desceu um pouco
+rotateY ~ 35°
+rotateX ~ 8°
+
+40%
+próximo do ponto mais baixo
+rotateY ~ 100°
+rotateX ~ 20°
+rotateZ ~ -12°
+
+50%
+fundo da curva
+livro quase/de costas
+rotateY ~ 170–200°
+
+65%
+começa a subir
+rotateY ~ 250°
+rotateX começa a voltar
+
+82%
+aproxima do centro
+rotateY ~ 325°
+
+100%
+centro
+rotateY 360° / equivalente a 0°
+rotateX 0°
+rotateZ 0°.
+
+==================================================
+10. TRAJETÓRIA ESPACIAL
+==================================================
+
+Preservar a curva que já existe, mas sincronizar com essa rotação.
+
+Algo aproximadamente:
+
+y:
+0
+→ +80
+→ +120
+→ +80
+→ +20
+→ targetY
+
+x:
+0
+→ pequeno deslocamento lateral
+→ compensação
+→ targetX
+
+A curva pode ter uma pequena componente horizontal para reforçar o movimento tridimensional.
+
+Não precisa ser uma linha vertical perfeita.
+
+==================================================
+11. ESCALA TAMBÉM PRECISA ACOMPANHAR
+==================================================
+
+Durante o mergulho, não deixar a escala crescer linearmente o tempo todo.
+
+Pode fazer algo como:
+
+scale:
+1
+→ 0.96
+→ 1.05
+→ 1.25
+→ finalScale
+
+Isso pode dar a impressão de:
+
+- livro inicialmente se afastando um pouco;
+- fazendo a curva;
+- depois vindo rapidamente para a câmera.
+
+Essa mudança pequena de profundidade pode melhorar muito o efeito.
+
+==================================================
+12. SENSAÇÃO DE NAVE
+==================================================
+
+Quero especificamente uma sensação semelhante a:
+
+uma nave sai de uma plataforma,
+abaixa o nariz,
+mergulha,
+faz uma curva,
+mostra sua parte traseira/lateral,
+levanta o nariz,
+sobe em direção ao observador,
+alinha,
+para.
+
+Mas mantendo o livro elegante.
+
+Não adicionar efeitos sci-fi exagerados.
+
+A referência é somente o movimento físico.
+
+==================================================
+13. EVITAR GIRO CONSTANTE COM VELOCIDADE UNIFORME
+==================================================
+
+Não fazer:
+
+rotateY 0 → 360
+
+com interpolação linear.
+
+Isso vai parecer uma moeda girando.
+
+A rotação precisa acelerar e desacelerar conforme a trajetória.
+
+Use keyframes e easing.
+
+Por exemplo:
+
+- começa devagar;
+- acelera quando entra na curva;
+- giro maior acontece no fundo;
+- desacelera ao voltar de frente.
+
+==================================================
+14. USAR KEYFRAMES SINCRONIZADOS
+==================================================
+
+Se estiver usando Motion/Framer Motion, algo conceitualmente assim:
+
+x: [...]
+y: [...]
+scale: [...]
+rotateX: [...]
+rotateY: [...]
+rotateZ: [...]
+
+Todos com os mesmos offsets temporais.
+
+Exemplo:
+
+times: [
+  0,
+  0.18,
+  0.38,
+  0.52,
+  0.70,
+  0.86,
+  1
+]
+
+Assim cada ponto da trajetória corresponde a uma orientação específica do livro.
+
+==================================================
+15. EXEMPLO CONCEITUAL DE KEYFRAMES
+==================================================
+
+Apenas como referência:
+
+x: [
+  0,
+  12,
+  26,
+  20,
+  targetX - 30,
+  targetX - 8,
+  targetX
+]
+
+y: [
+  0,
+  45,
+  105,
+  130,
+  80,
+  25,
+  targetY
+]
+
+scale: [
+  1,
+  0.98,
+  0.96,
+  1.02,
+  1.18,
+  1.4,
+  finalScale
+]
+
+rotateY: [
+  0,
+  25,
+  90,
+  175,
+  255,
+  325,
+  360
+]
+
+rotateX: [
+  0,
+  8,
+  20,
+  25,
+  15,
+  5,
+  0
+]
+
+rotateZ: [
+  0,
+  -5,
+  -12,
+  -15,
+  -6,
+  4,
+  0
+]
+
+IMPORTANTE:
+
+isso não é para copiar cegamente.
+
+Ajustar de acordo com a posição real do card e o resultado visual.
+
+==================================================
+16. PROBLEMA IMPORTANTE: PNG PLANO
+==================================================
+
+O livro original provavelmente ainda é uma imagem PNG renderizada como um plano.
+
+Se simplesmente aplicar rotateY de 180° no PNG, ao ficar de costas podemos enxergar apenas o verso do próprio plano, o que pode parecer errado.
+
+Preciso que isso seja tratado.
+
+==================================================
+17. CRIAR UM MODELO TEMPORÁRIO DE LIVRO PARA O GIRO
+==================================================
+
+Durante a fase global da transição, preferencialmente usar um wrapper 3D simplificado para representar o livro.
+
+Esse modelo pode ter:
+
+- frente;
+- verso;
+- lombada;
+- pequena espessura;
+- páginas.
+
+Não precisa ser um modelo 3D complexo.
+
+Pode ser construído com HTML/CSS usando alguns planos.
+
+Exemplo conceitual:
+
+<BookFlightObject>
+  <BookFront />
+  <BookBack />
+  <BookSpine />
+  <BookPagesEdge />
+</BookFlightObject>
+
+Assim, quando rotateY chegar perto de 180°, realmente teremos algo visual para mostrar nas costas.
+
+==================================================
+18. FRENTE DO LIVRO
+==================================================
+
+A frente deve utilizar a capa/visual real já existente.
+
+Não substituir por arte genérica.
+
+==================================================
+19. VERSO DO LIVRO
+==================================================
+
+Se já houver imagem da contracapa disponível no asset original, reutilizar.
+
+Se não houver um recorte utilizável, criar uma versão temporária simplificada:
+
+- preta/grafite;
+- mesma textura geral;
+- sem inventar informação textual importante.
+
+Mas preferir reutilizar a arte real se já estiver disponível.
+
+==================================================
+20. LOMBADA
+==================================================
+
+Criar uma lateral estreita para que, em torno de 90°/270°, não vejamos um plano de 1px.
+
+Ela pode usar:
+
+- preto;
+- vermelho escuro;
+- textura do livro;
+- detalhes discretos.
+
+==================================================
+21. ESPESSURA
+==================================================
+
+Não precisa ser fisicamente perfeita.
+
+Apenas o suficiente para vender a ideia 3D durante aproximadamente 600ms.
+
+A espessura pode ser algo visualmente equivalente a:
+
+8–18px
+
+dependendo do tamanho final do livro.
+
+==================================================
+22. DEPOIS DO VOO, ALINHAR COM OPENINGBOOKSTAGE
+==================================================
+
+No final da trajetória:
+
+rotateY deve terminar exatamente equivalente a:
+
+0deg
+
+ou
+
+360deg.
+
+rotateX:
+0deg
+
+rotateZ:
+0deg
+
+Assim o livro termina completamente frontal e pronto para a abertura.
+
+==================================================
+23. NÃO COMEÇAR A ABRIR ENQUANTO ELE AINDA ESTÁ GIRANDO
+==================================================
+
+A ordem continua sendo:
+
+trajetória + giro
+↓
+alinha
+↓
+pequena estabilização
+↓
+OpeningBookStage
+↓
+abre capa.
+
+Não abrir durante rotateY ~ 300°.
+
+==================================================
+24. TRANSIÇÃO PARA OPENINGBOOKSTAGE
+==================================================
+
+Preservar a correção anterior contra flicker.
+
+Quando o livro terminar o voo:
+
+- ele está centralizado;
+- totalmente frontal;
+- tamanho final correto.
+
+OpeningBookStage deve nascer exatamente sobre ele.
+
+Crossfade curto:
+
+80–140ms.
+
+Sem salto de posição ou tamanho.
+
+==================================================
+25. DURAÇÃO
+==================================================
+
+Quero dar um pouco mais de tempo para essa nova manobra.
+
+Sugestão:
+
+flight / curva / giro:
+650–850ms
+
+stabilize:
+80–120ms
+
+Depois segue a abertura já existente.
+
+Não tornar a navegação inteira lenta demais.
+
+==================================================
+26. BACKFACE-VISIBILITY
+==================================================
+
+Configurar corretamente:
+
+backface-visibility: hidden;
+
+nas faces individuais.
+
+Mas não esconder o livro inteiro ao passar de 90°.
+
+Precisamos realmente renderizar a face traseira.
+
+==================================================
+27. TRANSFORM-STYLE
+==================================================
+
+No objeto 3D:
+
+transform-style: preserve-3d;
+
+Nas faces:
+
+position: absolute;
+
+Cada plano posicionado corretamente no espaço 3D.
+
+==================================================
+28. EXEMPLO DE ESTRUTURA 3D SIMPLIFICADA
+==================================================
+
+Algo conceitualmente como:
+
+<div className="book-flight-object">
+  <div className="book-face book-front" />
+  <div className="book-face book-back" />
+  <div className="book-spine" />
+  <div className="book-pages-edge" />
+</div>
+
+Não precisa seguir exatamente esses nomes.
+
+==================================================
+29. NÃO ALTERAR O CARD IDLE
+==================================================
+
+Muito importante:
+
+não preciso que o card da Home vire um objeto 3D completo.
+
+O estado idle pode continuar usando a imagem atual.
+
+O modelo 3D temporário pode existir apenas no BookTransitionPortal após o clique.
+
+Fluxo:
+
+PNG do card
+↓
+clone/shell global
+↓
+troca praticamente imperceptível por BookFlightObject
+↓
+trajetória 3D.
+
+==================================================
+30. MANTER AS OUTRAS FASES
+==================================================
+
+Depois que a nova trajetória terminar, manter:
+
+- centralização;
+- abertura;
+- folheio;
+- zoom;
+- BookReader.
+
+Não remover essas fases.
+
+==================================================
+31. TESTE VISUAL
+==================================================
+
+Quero testar em câmera lenta.
+
+Preciso conseguir identificar claramente:
+
+FRAME A:
+livro de frente saindo do card.
+
+FRAME B:
+livro inclinado descendo.
+
+FRAME C:
+vemos praticamente a lateral.
+
+FRAME D:
+vemos as costas do livro.
+
+FRAME E:
+vemos a outra lateral.
+
+FRAME F:
+frente reaparece.
+
+FRAME G:
+livro chega ao centro.
+
+FRAME H:
+livro abre.
+
+==================================================
+32. O RESULTADO NÃO PODE PARECER UMA MOEDA
+==================================================
+
+Se parecer:
+
+“livro girando em torno do próprio eixo enquanto se move”
+
+está errado.
+
+O giro precisa parecer consequência da trajetória.
+
+Por isso sincronizar:
+
+- posição;
+- inclinação;
+- profundidade;
+- orientação.
+
+==================================================
+33. O RESULTADO NÃO PODE PARECER UM AVIÃO DE PAPEL
+==================================================
+
+Também não exagerar rotateX/rotateZ.
+
+Ainda é um livro pesado.
+
+Movimento:
+
+- suave;
+- elegante;
+- com inércia;
+- premium.
+
+==================================================
+34. EASING
+==================================================
+
+Usar easing que transmita peso.
+
+Evitar linear.
+
+A descida pode acelerar.
+
+No fundo da curva, o objeto mantém velocidade.
+
+Na subida/aproximação, desacelera conforme chega ao centro.
+
+==================================================
+35. SOMBRA E LUZ PODEM ACOMPANHAR A ORIENTAÇÃO
+==================================================
+
+Opcionalmente, ajustar discretamente:
+
+- intensidade da sombra;
+- posição do glow;
+- brilho vermelho;
+
+conforme o livro gira.
+
+Quando estiver de costas:
+
+menos destaque frontal.
+
+Quando voltar de frente:
+
+glow volta a aumentar.
+
+Não exagerar.
+
+==================================================
+36. CRITÉRIO DE ACEITE
+==================================================
+
+A correção está pronta apenas se a trajetória comunicar claramente:
+
+“o livro está fazendo uma manobra 3D”.
+
+Não quero mais:
+
+livro sempre frontal
+↓
+desce
+↓
+sobe.
+
+Quero:
+
+frente
+↓
+inclina
+↓
+lateral
+↓
+costas
+↓
+lateral
+↓
+frente
+↓
+centraliza
+↓
+abre.
+
+==================================================
+37. RESUMO
+==================================================
+
+Mantenha a curva atual de:
+
+descer
+→ subir
+→ centralizar,
+
+mas transforme a orientação do livro durante essa curva.
+
+Pense na física visual de uma nave fazendo uma manobra de voo:
+
+- inclinação acompanha a curva;
+- objeto gira em profundidade;
+- costas aparecem durante a parte mais profunda;
+- ele termina novamente alinhado de frente.
+
+Depois disso, continuar normalmente com:
+
+abertura
+→ folheio
+→ zoom
+→ BookReader.
+
+O ponto principal desta tarefa é:
+
+A ROTAÇÃO PRECISA FAZER PARTE DA TRAJETÓRIA, E NÃO SER APENAS UM EFEITO EXTRA.

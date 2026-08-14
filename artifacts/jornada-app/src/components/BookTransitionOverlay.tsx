@@ -6,44 +6,55 @@
  * ═══════════════════════════════════════════════════════════════════════════
  *
  *  createPortal → document.body
- *    └─ outer fixed wrapper (perspective 1200px for 3D tilt during launch)
+ *    └─ outer fixed wrapper (perspective: 1200px)
  *         ├─ dark overlay            (fades in during launch)
  *         ├─ ambient glow            (visible during opening/flip phases)
- *         └─ BookTransitionShell     (position:fixed at bookRect, animated via x/y/scale)
- *              ├─ ClosedBookVisual   (PNG, fades out in crossfade)
- *              └─ OpeningBookStage   (perspective, pre-mounted at opacity 0)
- *                   ├─ dark book body
- *                   ├─ cream proxy page  (visible from flippingBack onwards)
- *                   ├─ FlipPage × 6     (stagger-flipped in flippingBack)
- *                   └─ Cover            (rotateY 0 → -105 in opening)
+ *         └─ shell (shellCtrl: x/y/scale only, transform-style:preserve-3d)
+ *              └─ BookFlightObject (bookRotCtrl: rotateY/X/Z, preserve-3d)
+ *                   ├─ front face  — book PNG, backface-hidden
+ *                   ├─ back face   — dark back, rotateY(180deg), backface-hidden
+ *                   ├─ spine face  — left edge, rotateY(-90deg) from left center
+ *                   └─ pages face  — right edge, rotateY(90deg) from right center
+ *              (after crossfade, OpeningBookStage takes over at opacity 1)
+ *                   └─ OpeningBookStage (cover + flip pages)
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * CRITICAL FIX — MOUNT-BEFORE-ANIMATE
+ * 3D FLIGHT MANEUVER — rotateY sweep 0 → 360°
  * ═══════════════════════════════════════════════════════════════════════════
  *
- *  framer-motion resolves controls.start() immediately when the animated
- *  element is not yet mounted. If we return null in 'idle' phase, the shell
- *  is NOT in the DOM when the effect fires, so every await resolves at once
- *  and all phases fire together at card position.
+ *  0°    front (leaves card)
+ *  30°   slight lean — starts banking into curve
+ *  90°   pages edge faces viewer (right side visible)
+ *  180°  back cover faces viewer (book is "upside down" in arc)
+ *  270°  spine faces viewer (lombada)
+ *  330°  front re-emerging
+ *  360°  fully front again — ready to open
  *
- *  Fix: when `transition` is set, we ALWAYS render the shell (even in idle).
- *  The shell is pixel-perfect over the card book image. A double-rAF inside
- *  useLayoutEffect guarantees the shell has painted before we call
- *  controls.start(), so every animation runs as expected.
+ *  rotateX adds nose-dive / pull-up feeling.
+ *  rotateZ adds banking (small values — book is heavy, not a paper plane).
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * PHASE TIMELINE  (total ≈ 2.2 s)
+ * CRITICAL: MOUNT-BEFORE-ANIMATE
  * ═══════════════════════════════════════════════════════════════════════════
  *
- *   idle           shell at card pos, PNG visible — waits for paint
- *   detaching      0–40ms    1-2 frame pause to confirm shell is on screen
- *   launching      40–740ms  curved path: x/y/scale/rotateZ/rotateY keyframes
- *   centering      740–860ms stabilisation pause (book arrived, no movement)
- *   crossfading    860–980ms PNG → OpeningBookStage crossfade (120ms)
- *   opening        980–1380ms cover rotateY 0 → -105° (400ms)
- *   flippingBack   1180–1700ms pages stagger-flip (overlaps tail of opening)
- *   zooming        1700–2000ms shell scale to fill viewport (300ms)
- *   revealingReader 2000ms   navigate + shell opacity 0 (150ms)
+ *  framer-motion resolves controls.start() immediately for unmounted elements.
+ *  We always render the shell when transition is set (never return null early),
+ *  and use double-rAF inside useLayoutEffect to guarantee paint before any
+ *  controls.start() call.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PHASE TIMELINE  (total ≈ 2.0 s)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *   idle           shell at card pos — waits for paint
+ *   detaching      0–40ms    1-2 frame pause
+ *   launching      40–790ms  750ms 3D flight maneuver
+ *   centering      790–890ms 100ms stabilisation pause
+ *   crossfading    890–1010ms 120ms BookFlightObject → OpeningBookStage
+ *   opening        1010–1410ms cover rotateY 0 → -105° (400ms)
+ *   flippingBack   1210–1730ms pages stagger (overlaps opening tail)
+ *   zooming        1730–2030ms shell expands to fill viewport (300ms)
+ *   revealingReader 2030ms   navigate + shell fades (150ms)
  *   complete       clearTransition
  */
 
@@ -124,6 +135,152 @@ function FlipPage({ index, phase }: { index: number; phase: Phase }) {
   );
 }
 
+/* ─── BookFlightObject ───────────────────────────────────────────────────────
+ *
+ *  A CSS 3D box that represents the book during the flight phase.
+ *  Four faces — front, back, spine (left), pages-edge (right).
+ *  Faces use backface-visibility:hidden so each is only visible when facing
+ *  toward the camera.
+ *
+ *  Face visibility as rotateY increases from 0→360:
+ *    0°   → front visible
+ *    90°  → pages edge visible (right side of book)
+ *    180° → back cover visible
+ *    270° → spine visible (lombada)
+ *    360° → front visible again
+ *
+ *  The parent BookFlightObject div receives rotateY/X/Z from bookRotCtrl.
+ *  The shell parent moves via x/y/scale (shellCtrl).
+ *  Both are in separate Framer Motion elements so transforms don't mix.
+ * ─────────────────────────────────────────────────────────────────────────── */
+function BookFlightObject({
+  bookRotCtrl,
+  spineW,
+  pagesW,
+  phase,
+}: {
+  bookRotCtrl: ReturnType<typeof useAnimationControls>;
+  spineW: number;
+  pagesW: number;
+  phase: Phase;
+}) {
+  // Hide the 3D flight object once we crossfade to OpeningBookStage
+  const flightVisible = !['crossfading','opening','flippingBack','zooming','revealingReader','complete'].includes(phase);
+
+  return (
+    <motion.div
+      initial={{ rotateY: 0, rotateX: 0, rotateZ: 0 }}
+      animate={bookRotCtrl}
+      style={{
+        position:       'absolute',
+        inset:          0,
+        transformStyle: 'preserve-3d',
+        // opacity driven by phase (fade out when OpeningBookStage takes over)
+        opacity: flightVisible ? 1 : 0,
+        transition: 'opacity 120ms ease-out',
+        pointerEvents: 'none',
+      }}
+    >
+      {/* ── Front face ─────────────────────────────────── */}
+      <div style={{
+        position:          'absolute',
+        inset:             0,
+        backfaceVisibility:'hidden',
+        borderRadius:      '3px 6px 6px 3px',
+        overflow:          'hidden',
+      }}>
+        <img
+          src={bookImg}
+          alt=""
+          style={{ width:'100%', height:'100%', objectFit:'fill', display:'block' }}
+        />
+      </div>
+
+      {/* ── Back face (dark back cover) ─────────────────── */}
+      <div style={{
+        position:          'absolute',
+        inset:             0,
+        transform:         'rotateY(180deg)',
+        backfaceVisibility:'hidden',
+        borderRadius:      '3px 6px 6px 3px',
+        background:        'linear-gradient(135deg, #1c1210 0%, #0d0b09 60%, #141010 100%)',
+        // Subtle texture lines to not look like a blank black panel
+        boxShadow:         'inset 0 0 40px rgba(0,0,0,0.5)',
+      }}>
+        {/* Subtle back-cover detail */}
+        <div style={{
+          position:     'absolute',
+          inset:        '10% 12%',
+          border:       '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 2,
+          opacity:      0.6,
+        }} />
+        <div style={{
+          position:   'absolute',
+          bottom:     '8%',
+          left:       '50%',
+          transform:  'translateX(-50%)',
+          width:      '30%',
+          height:     '2px',
+          background: 'rgba(255,80,50,0.25)',
+          borderRadius: 1,
+        }} />
+      </div>
+
+      {/* ── Spine face (left edge — lombada) ────────────── */}
+      {/* rotateY(-90deg) from left center → faces -X direction (viewer sees it at book rotateY=270°) */}
+      <div style={{
+        position:          'absolute',
+        top:               0,
+        left:              0,
+        width:             spineW,
+        height:            '100%',
+        transform:         'rotateY(-90deg)',
+        transformOrigin:   'left center',
+        backfaceVisibility:'hidden',
+        background:        'linear-gradient(90deg, #1a0808 0%, #2d1010 40%, #220c0c 70%, #1a0808 100%)',
+        // Subtle gold/red line on spine
+        boxShadow:         'inset -2px 0 4px rgba(0,0,0,0.4)',
+      }}>
+        <div style={{
+          position:   'absolute',
+          top:        '8%',
+          bottom:     '8%',
+          left:       '50%',
+          transform:  'translateX(-50%)',
+          width:      '1px',
+          background: 'rgba(200,80,60,0.3)',
+        }} />
+      </div>
+
+      {/* ── Pages edge (right edge) ──────────────────────── */}
+      {/* rotateY(90deg) from right center → faces +X direction (viewer sees it at book rotateY=90°) */}
+      <div style={{
+        position:          'absolute',
+        top:               0,
+        right:             0,
+        width:             pagesW,
+        height:            '100%',
+        transform:         'rotateY(90deg)',
+        transformOrigin:   'right center',
+        backfaceVisibility:'hidden',
+        background:        'linear-gradient(90deg, #f0e8d6 0%, #e8dfc8 30%, #f0e8d6 70%, #e8dfc8 100%)',
+      }}>
+        {/* Simulated page lines */}
+        {[15,25,35,45,55,65,75,85].map((pct) => (
+          <div key={pct} style={{
+            position:   'absolute',
+            top:        `${pct}%`,
+            left:       0, right: 0,
+            height:     '1px',
+            background: 'rgba(180,160,120,0.35)',
+          }} />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ─── Shell ──────────────────────────────────────────────────────────────── */
 function BookTransitionShell() {
   const { transition, clearTransition } = useBookTransition();
@@ -131,9 +288,13 @@ function BookTransitionShell() {
   const [phase, setPhase] = useState<Phase>('idle');
   const cancelledRef = useRef(false);
 
+  // Shell: position in space (x, y, scale)
   const shellCtrl   = useAnimationControls();
+  // Book orientation (rotateY, rotateX, rotateZ) — separate from position
+  const bookRotCtrl = useAnimationControls();
+  // Supporting elements
   const overlayCtrl = useAnimationControls();
-  const pngCtrl     = useAnimationControls();
+  const pngCtrl     = useAnimationControls();   // ← actually unused after refactor; kept for safety
   const stageCtrl   = useAnimationControls();
   const coverCtrl   = useAnimationControls();
 
@@ -156,8 +317,6 @@ function BookTransitionShell() {
     }
 
     // ── Double-rAF: guarantees shell is painted before controls.start() ──
-    // Without this, controls.start() resolves immediately (unmounted element)
-    // and ALL phases fire simultaneously at card position.
     let raf1: number, raf2: number;
 
     raf1 = requestAnimationFrame(() => {
@@ -179,14 +338,11 @@ function BookTransitionShell() {
         const vh = window.innerHeight;
 
         /* ── Geometry ──────────────────────────────────────────────────── */
-        // Target: book fills ~88% of viewport width — large and imposing
         const targetW     = vw * 0.88;
         const targetScale = targetW / bookRect.width;
 
-        // With transformOrigin:'top left', translate the top-left corner so
-        // the scaled book is perfectly centred:
+        // Centre the scaled book:
         //   tx = vw/2 − rect.left − (rect.width  × scale)/2
-        //   ty = vh/2 − rect.top  − (rect.height × scale)/2
         const tx = vw / 2 - bookRect.left - (bookRect.width  * targetScale) / 2;
         const ty = vh / 2 - bookRect.top  - (bookRect.height * targetScale) / 2;
 
@@ -195,62 +351,98 @@ function BookTransitionShell() {
         const expandTx   = vw / 2 - bookRect.left - (bookRect.width  * finalScale) / 2;
         const expandTy   = vh / 2 - bookRect.top  - (bookRect.height * finalScale) / 2;
 
-        // Dramatic arc: book drops down vh*0.30 then rises up to centre
-        // This creates the "descer e subir se aproximando" arc the user wants.
-        const dipY    = vh * 0.30;            // big drop — clearly visible
-        const dipX    = vw * 0.06;            // slight lateral drift on the way down
-        const midScale = targetScale * 0.55;  // mid-arc scale (growing but not there yet)
+        // Arc geometry
+        const dipY = vh * 0.28;          // book drops 28% of viewport height
+        const dipX = vw * 0.05;          // slight lateral swing into the curve
 
-        /* ── detaching (1–2 frames) ────────────────────────────────────── */
+        /* ── 7-keyframe flight times ───────────────────────────────────── */
+        // These times drive BOTH position and rotation simultaneously.
+        // Each index corresponds to a specific orientation + position pair.
+        //   0    → at card, front facing (0°)
+        //   0.15 → starting to bank / lean (30°)
+        //   0.35 → near bottom of arc (90° — pages edge visible)
+        //   0.50 → deepest point (180° — back cover visible)
+        //   0.68 → coming up (270° — spine visible)
+        //   0.84 → re-aligning (330° — front re-emerging)
+        //   1.00 → centred, full front (360°)
+        const KF_TIMES = [0, 0.15, 0.35, 0.50, 0.68, 0.84, 1.00];
+
+        /* ── detaching (40ms) ──────────────────────────────────────────── */
         setPhase('detaching');
         await sleep(40);
         if (cancelledRef.current) return;
 
-        /* ── launching (850ms) ─────────────────────────────────────────── */
-        // 5-keyframe arc: card pos → dip-down-right → bottom of arc →
-        // rising toward centre → arrives centred large.
+        /* ── launching (750ms) — 3D flight maneuver ─────────────────────
+         *
+         *  Position (shellCtrl): x/y/scale — the book's path through space.
+         *  Rotation (bookRotCtrl): rotateY/X/Z — the book's orientation.
+         *
+         *  POSITION keyframes: dip down (30% vh) then rise to centre.
+         *  Small lateral arc adds sense of a banked turn.
+         *
+         *  ROTATION keyframes:
+         *    rotateY: 0 → 30 → 90 → 180 → 270 → 330 → 360
+         *    (front → lean → pages-edge → back → spine → lean-back → front)
+         *
+         *    rotateX: nose-dive then pull-up (max ~22° at bottom)
+         *    rotateZ: banking tilt (max ~-14° into the curve)
+         * ─────────────────────────────────────────────────────────────── */
         setPhase('launching');
+
+        // 6 per-segment easings (length = KF_TIMES.length - 1)
+        const flightEase: [number,number,number,number][] = [
+          [0.42, 0, 0.58, 1],  // 0→0.15 ease-in-out: leaves card smoothly
+          [0.33, 0, 0.55, 1],  // 0.15→0.35 ease-in: accelerates into the dip
+          [0.45, 0, 0.55, 1],  // 0.35→0.50 ease-in-out: through the bottom
+          [0.45, 0.55, 0.58, 1],// 0.50→0.68 ease-out: slingshotting back up
+          [0.22, 1, 0.36, 1],  // 0.68→0.84 ease-out: decelerating upward
+          [0.16, 1, 0.3,  1],  // 0.84→1.00 ease-out: soft landing at centre
+        ];
+
         await Promise.all([
+          // ── Position / scale ────────────────────────────────────────────
           shellCtrl.start({
-            x:       [0,       dipX,       tx * 0.35,          tx * 0.75,    tx],
-            y:       [0,       dipY * 0.5, dipY,               ty * 0.4,     ty],
-            scale:   [1,       1.10,       midScale,           targetScale * 0.92, targetScale],
-            rotateZ: [0,       -5,         -2,                 1,            0],
-            rotateY: [0,       -10,        -4,                 3,            0],
-            rotateX: [0,        3,          1,                -1,            0],
+            x:     [0,        dipX * 0.6, dipX,       dipX * 0.4, tx * 0.35,  tx * 0.78, tx],
+            y:     [0,        dipY * 0.3, dipY * 0.8, dipY,       dipY * 0.4, ty * 0.6,  ty],
+            scale: [1,        0.97,       0.93,       1.02,       1.18,       targetScale * 0.96, targetScale],
             transition: {
-              duration: 0.85,
-              times:    [0, 0.20, 0.45, 0.75, 1],
-              ease:     [
-                [0.42, 0, 0.58, 1],   // ease-in-out — accelerates into the dip
-                [0.33, 1, 0.68, 1],   // overshoot out of the dip
-                [0.22, 1, 0.36, 1],   // smooth rise
-                [0.16, 1, 0.3,  1],   // lands softly
-              ],
+              duration: 0.75,
+              times:    KF_TIMES,
+              ease:     flightEase,
             },
           }),
+          // ── 3D rotation ─────────────────────────────────────────────────
+          bookRotCtrl.start({
+            rotateY: [0,   30,   90,   180,  270,  330,  360],
+            rotateX: [0,   10,   22,   24,   14,   4,    0  ],
+            rotateZ: [0,   -6,   -13,  -14,  -7,   3,    0  ],
+            transition: {
+              duration: 0.75,
+              times:    KF_TIMES,
+              ease:     flightEase,
+            },
+          }),
+          // ── Dark overlay fades in ────────────────────────────────────────
           overlayCtrl.start({
             opacity:    0.85,
-            transition: { duration: 0.65, ease: 'easeOut' },
+            transition: { duration: 0.60, ease: 'easeOut' },
           }),
         ]);
         if (cancelledRef.current) return;
 
         /* ── centering (100ms) ─────────────────────────────────────────── */
-        // Book is now large at viewport centre — brief beat so user registers.
+        // Brief beat — book is at centre, fully frontal, user registers it.
         setPhase('centering');
         await sleep(100);
         if (cancelledRef.current) return;
 
-        /* ── crossfading PNG → OpeningBookStage (120ms) ─────────────────── */
+        /* ── crossfading 3D book → OpeningBookStage (120ms) ─────────────── */
+        // BookFlightObject fades via phase change; stageCtrl fades in.
         setPhase('crossfading');
-        await Promise.all([
-          pngCtrl.start({ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }),
-          stageCtrl.start({ opacity: 1, transition: { duration: 0.12, ease: 'easeIn'  } }),
-        ]);
+        await stageCtrl.start({ opacity: 1, transition: { duration: 0.12, ease: 'easeIn' } });
         if (cancelledRef.current) return;
 
-        /* ── opening — cover swings open (400ms); NOT awaited so flip can overlap */
+        /* ── opening — cover swings open (400ms); NOT awaited ───────────── */
         setPhase('opening');
         coverCtrl.start({
           rotateY:    -105,
@@ -259,9 +451,9 @@ function BookTransitionShell() {
         await sleep(200); // 200ms into opening, flip begins
         if (cancelledRef.current) return;
 
-        /* ── flippingBack — stagger via phase state, 6 × 45ms + 220ms ── */
+        /* ── flippingBack — stagger via phase state ─────────────────────── */
         setPhase('flippingBack');
-        await sleep(520); // 6 × 45ms stagger + 220ms last flip ≈ 490ms
+        await sleep(520);
         if (cancelledRef.current) return;
 
         /* ── zooming — shell expands to fill viewport (300ms) ──────────── */
@@ -291,7 +483,6 @@ function BookTransitionShell() {
         setPhase('complete');
         clearTransition();
       } catch {
-        // Safety net — never block navigation
         if (!cancelledRef.current) {
           sessionStorage.setItem('bookEntryTransition', '1');
           setLocation(transition!.targetPath);
@@ -303,12 +494,13 @@ function BookTransitionShell() {
   }, [transition?.targetPath]);
 
   /* ── Render ────────────────────────────────────────────────────────────── */
-  // IMPORTANT: do NOT return null when phase==='idle'.
-  // The shell must be in the DOM when controls.start() is called.
-  // We only hide the whole thing when there is no transition at all.
   if (!transition) return null;
 
   const { bookRect } = transition;
+
+  // Spine width ~8% of book width; pages edge ~6%
+  const spineW = Math.max(10, bookRect.width * 0.08);
+  const pagesW = Math.max(8,  bookRect.width * 0.06);
 
   const proxyVisible = ['flippingBack','zooming','revealingReader','complete'].includes(phase);
   const glowVisible  = ['crossfading','opening','flippingBack'].includes(phase);
@@ -318,9 +510,10 @@ function BookTransitionShell() {
     <div
       aria-hidden="true"
       style={{
-        position:      'fixed', inset: 0,
+        position:      'fixed',
+        inset:         0,
         zIndex:        9980,
-        // perspective on the outer container makes rotateY on the shell look 3D
+        // Perspective on outer container makes all rotateY look genuinely 3D
         perspective:   '1200px',
         pointerEvents: blocking ? 'all' : 'none',
       }}
@@ -332,9 +525,10 @@ function BookTransitionShell() {
         style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 1 }}
       />
 
-      {/* Ambient glow */}
+      {/* Ambient glow (purple) — visible during opening phases */}
       <div style={{
-        position:   'fixed', inset: 0,
+        position:   'fixed',
+        inset:      0,
         background: 'radial-gradient(ellipse 60% 44% at 50% 50%, rgba(178,102,255,0.32) 0%, transparent 68%)',
         filter:     'blur(18px)',
         opacity:     glowVisible ? 0.60 : 0,
@@ -343,12 +537,13 @@ function BookTransitionShell() {
         pointerEvents: 'none',
       }} />
 
-      {/* ── BookTransitionShell ────────────────────────────────────────────
-          Anchored at the book-image DOMRect.
-          ALL movement/scale/rotation happens via x, y, scale transforms.
-          transformOrigin:'top left' → centering formula accounts for scale. */}
+      {/* ── BookTransitionShell ──────────────────────────────────────────────
+       *  Anchored at the book-image DOMRect.
+       *  shellCtrl moves it through space (x, y, scale only).
+       *  preserve-3d passes the perspective through to inner BookFlightObject.
+       * ─────────────────────────────────────────────────────────────────── */}
       <motion.div
-        initial={{ x: 0, y: 0, scale: 1, rotateZ: 0, rotateY: 0, rotateX: 0, opacity: 1 }}
+        initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
         animate={shellCtrl}
         style={{
           position:        'fixed',
@@ -357,23 +552,26 @@ function BookTransitionShell() {
           width:            bookRect.width,
           height:           bookRect.height,
           transformOrigin: 'top left',
+          transformStyle:  'preserve-3d',
           zIndex:          10,
           pointerEvents:   'none',
           willChange:      'transform',
         }}
       >
-        {/* ── ClosedBookVisual (PNG) ───────────────────────────────────── */}
-        {/* Pixel-perfect over the card's book image; fades in crossfade  */}
-        <motion.img
-          src={bookImg}
-          alt=""
-          initial={{ opacity: 1 }}
-          animate={pngCtrl}
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'fill', display:'block' }}
+        {/* ── 3D Book Object (flight phase) ──────────────────────────────
+         *  Receives rotateY/X/Z from bookRotCtrl.
+         *  Has four CSS 3D faces: front, back, spine, pages-edge.
+         *  Fades out when OpeningBookStage crossfades in.
+         * ─────────────────────────────────────────────────────────────── */}
+        <BookFlightObject
+          bookRotCtrl={bookRotCtrl}
+          spineW={spineW}
+          pagesW={pagesW}
+          phase={phase}
         />
 
         {/* ── OpeningBookStage — pre-mounted at opacity 0 ──────────────── */}
-        {/* All opening/flip animation happens here, inside the global shell */}
+        {/* Takes over after crossfade; book is centred and frontal by then */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={stageCtrl}
