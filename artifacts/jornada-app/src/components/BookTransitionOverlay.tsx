@@ -256,7 +256,7 @@ export function BookTransitionOverlay() {
             }}
           />
 
-          {/* Inner page — cream, expands to fill stage in phase 4 */}
+          {/* Inner page — blank cream, expands to fill stage in phase 4 */}
           <div
             style={{
               position:     'absolute',
@@ -268,11 +268,6 @@ export function BookTransitionOverlay() {
               background:   'linear-gradient(150deg, #f2e9d4 0%, #ece0c4 100%)',
               borderRadius: '2px 5px 5px 2px',
               overflow:     'hidden',
-              display:      'flex',
-              flexDirection: 'column',
-              alignItems:   'center',
-              justifyContent: 'center',
-              padding:      '16px 14px',
             }}
           >
             {/* Spine light */}
@@ -285,17 +280,6 @@ export function BookTransitionOverlay() {
                 transition:  spineLightTransition,
               }}
             />
-
-            <span style={{ position: 'relative', fontSize: '8px', fontWeight: 700, letterSpacing: '0.22em', color: 'rgba(70,35,10,0.45)', fontFamily: 'Inter, sans-serif', marginBottom: '7px' }}>
-              CAPÍTULO {chapter?.number ?? '01'}
-            </span>
-            <h2 style={{ position: 'relative', fontSize: '13px', fontWeight: 600, color: '#251508', textAlign: 'center', lineHeight: 1.3, fontFamily: "'Playfair Display', serif", margin: 0 }}>
-              {chapter?.title ?? ''}
-            </h2>
-            <div style={{ position: 'relative', width: '22px', height: '1px', background: 'rgba(70,35,10,0.22)', margin: '10px auto' }} />
-            <p style={{ position: 'relative', fontSize: '7.5px', color: 'rgba(70,35,10,0.38)', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.5, maxWidth: '82%', margin: 0 }}>
-              {chapter?.intro ?? ''}
-            </p>
 
             {/* Shadow cast by cover */}
             <div
