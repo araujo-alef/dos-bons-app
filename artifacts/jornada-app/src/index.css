@@ -260,13 +260,13 @@
    No width/height/top/left changes → no layout shift.
    --------------------------------------------------------------------------- */
 
-/* ── Book float: organic 4-stop curve, ~18px total range ─────────────────── */
+/* ── Book float: organic 4-stop curve, ~32px total range ─────────────────── */
 @keyframes book-float {
-  0%   { transform: translateY(5px)   rotate(-0.8deg); }
-  30%  { transform: translateY(-7px)  rotate(-0.2deg); }
-  60%  { transform: translateY(-10px) rotate(0.4deg);  }
-  82%  { transform: translateY(-2px)  rotate(0deg);    }
-  100% { transform: translateY(5px)   rotate(-0.8deg); }
+  0%   { transform: translateY(12px)  rotate(-2deg);   }
+  28%  { transform: translateY(-14px) rotate(-0.5deg); }
+  58%  { transform: translateY(-20px) rotate(1.5deg);  }
+  80%  { transform: translateY(-4px)  rotate(0.2deg);  }
+  100% { transform: translateY(12px)  rotate(-2deg);   }
 }
 
 /* ── Primary glow: breathes in sync with the float cycle ─────────────────── */
@@ -286,11 +286,11 @@
 
 /* ── Book shadow: flattens when book rises, deepens when it lands ─────────── */
 @keyframes book-shadow-pulse {
-  0%   { transform: translateX(-50%) scaleX(1.00); opacity: 0.55; }
-  30%  { transform: translateX(-50%) scaleX(0.92); opacity: 0.30; }
-  60%  { transform: translateX(-50%) scaleX(0.84); opacity: 0.22; }
-  82%  { transform: translateX(-50%) scaleX(0.95); opacity: 0.38; }
-  100% { transform: translateX(-50%) scaleX(1.00); opacity: 0.55; }
+  0%   { transform: translateX(-50%) scaleX(1.05); opacity: 0.65; }
+  28%  { transform: translateX(-50%) scaleX(0.88); opacity: 0.28; }
+  58%  { transform: translateX(-50%) scaleX(0.78); opacity: 0.18; }
+  80%  { transform: translateX(-50%) scaleX(0.94); opacity: 0.38; }
+  100% { transform: translateX(-50%) scaleX(1.05); opacity: 0.65; }
 }
 
 /* ── Lightning bolt flashes — mostly invisible, brief energy flickers ──────
@@ -340,10 +340,10 @@
 
 /* ── Class bindings ─────────────────────────────────────────────────────────
    Timings are intentionally prime-ish and misaligned so nothing syncs up. */
-.book-float          { animation: book-float         10s   ease-in-out infinite; }
-.book-glow-primary   { animation: book-glow-pulse     6.5s  ease-in-out infinite; }
-.book-glow-secondary { animation: book-glow-drift     8s    ease-in-out infinite; }
-.book-shadow-anim    { animation: book-shadow-pulse   10s   ease-in-out infinite; }
+.book-float          { animation: book-float         4s    ease-in-out infinite; }
+.book-glow-primary   { animation: book-glow-pulse     3s    ease-in-out infinite; }
+.book-glow-secondary { animation: book-glow-drift     4.5s  ease-in-out infinite; }
+.book-shadow-anim    { animation: book-shadow-pulse   4s    ease-in-out infinite; }
 .bolt-a { animation: bolt-flash-a  7s    ease-in-out infinite 0.5s;  }
 .bolt-b { animation: bolt-flash-b  9.5s  ease-in-out infinite 3.2s;  }
 .bolt-c { animation: bolt-flash-c  11s   ease-in-out infinite 1.5s;  }
