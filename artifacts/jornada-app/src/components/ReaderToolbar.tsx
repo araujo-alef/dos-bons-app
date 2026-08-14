@@ -35,6 +35,8 @@ export function ReaderToolbar({
         pointerEvents: 'auto',
       }}
       onClick={e => e.stopPropagation()}
+      onTouchStart={e => e.stopPropagation()}
+      onTouchEnd={e => e.stopPropagation()}
     >
       {!expanded ? (
         /* ── Collapsed trigger ─────────────────────────────────────────── */
