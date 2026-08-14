@@ -28,7 +28,7 @@ export function ReaderToolbar({
     <div
       style={{
         position:   'absolute',
-        bottom:     'calc(14px + env(safe-area-inset-bottom, 0px))',
+        bottom:     'calc(26px + env(safe-area-inset-bottom, 0px))',
         left:       '50%',
         transform:  'translateX(-50%)',
         zIndex:     20,
@@ -47,7 +47,7 @@ export function ReaderToolbar({
             display:        'flex',
             alignItems:     'center',
             gap:            '3px',
-            padding:        '7px 16px',
+            padding:        '10px 22px',
             background:     'rgba(8,6,11,0.70)',
             border:         '1px solid rgba(255,255,255,0.08)',
             borderRadius:   '100px',
