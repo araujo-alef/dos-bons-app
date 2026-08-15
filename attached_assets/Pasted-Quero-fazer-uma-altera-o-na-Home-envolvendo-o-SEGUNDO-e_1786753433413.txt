@@ -1,0 +1,703 @@
+Quero fazer uma alteração na Home envolvendo o SEGUNDO e o TERCEIRO card.
+
+A Home atual tem o card do livro “Cachorro dos Bons” como primeiro produto.
+
+Quero que o NOVO produto “Lábia de Cachorro” com a arte da boca mordendo/quebrando a corrente passe a ocupar o SEGUNDO CARD, imediatamente depois do card do livro.
+
+O produto que hoje ocupa o SEGUNDO CARD deve ser movido para o TERCEIRO CARD, preservando seu conteúdo, comportamento e arte atuais.
+
+Além disso, quero que o novo card “Lábia de Cachorro” tenha uma animação própria, baseada na arte estática fornecida.
+
+Use esta imagem como referência/base visual do novo produto:
+
+/mnt/data/lábia_de_cachorro_corrente_partida.png
+
+==================================================
+1. NOVA ORDEM DOS CARDS
+==================================================
+
+A ordem deve ficar assim:
+
+CARD 1
+Cachorro dos Bons
+→ permanece exatamente como está
+
+CARD 2
+Lábia de Cachorro
+→ nova arte da boca quebrando a corrente
+→ nova animação
+
+CARD 3
+produto que atualmente está no CARD 2
+→ mover para cá
+→ preservar conteúdo e comportamento
+
+CARD 4
+permanece exatamente como está
+
+Não alterar os outros cards além dessa reorganização necessária.
+
+==================================================
+2. NÃO PERDER O CONTEÚDO DO CARD ATUAL
+==================================================
+
+Ao mover o produto atual do segundo card para o terceiro:
+
+preservar:
+
+- imagem;
+- textos;
+- comportamento;
+- rota;
+- estado disponível/em breve;
+- hover;
+- responsividade;
+- qualquer lógica existente.
+
+Não recriar o produto.
+
+Apenas mover sua posição no grid.
+
+==================================================
+3. NOVO SEGUNDO CARD — LÁBIA DE CACHORRO
+==================================================
+
+Criar o novo segundo card usando a arte:
+
+/mnt/data/lábia_de_cachorro_corrente_partida.png
+
+Essa arte contém:
+
+- boca;
+- presas;
+- corrente;
+- corrente quebrada;
+- identidade vermelha/preta;
+- título “Lábia de Cachorro”;
+- frase “A lábia que faz ela correr atrás”.
+
+A imagem deve ser tratada como uma CAPA DE PRODUTO.
+
+Não colocar:
+
+- cadeado;
+- badge “Em breve”;
+- texto externo;
+- descrição abaixo.
+
+A própria arte comunica o produto.
+
+==================================================
+4. ENQUADRAMENTO DA IMAGEM
+==================================================
+
+Renderizar a arte ocupando praticamente todo o card.
+
+Preservar:
+
+- boca;
+- corrente;
+- título;
+- frase inferior.
+
+Não distorcer.
+
+Usar:
+
+object-fit: cover
+
+ou
+
+contain
+
+conforme ficar melhor.
+
+A prioridade é parecer uma capa premium integrada ao card.
+
+==================================================
+5. A NOVA ARTE PRECISA TER VIDA
+==================================================
+
+Não quero que o novo segundo card seja apenas uma imagem estática.
+
+Quero uma animação curta em loop simulando:
+
+A BOCA MORDENDO E QUEBRANDO A CORRENTE.
+
+A imagem estática é a referência visual.
+
+A animação pode ser construída com:
+
+- HTML/CSS;
+- SVG;
+- Motion/Framer Motion;
+- camadas;
+- masks;
+- transforms;
+- pequenos efeitos de impacto.
+
+Não precisa ser um GIF.
+
+Preferência:
+animação feita no próprio frontend.
+
+==================================================
+6. NÃO TENTAR ANIMAR A IMAGEM INTEIRA COMO UMA SÓ PEÇA
+==================================================
+
+Se simplesmente mexer na imagem completa:
+
+não vai parecer que a boca está mordendo a corrente.
+
+A animação precisa ser composta em camadas.
+
+Criar visualmente elementos separados, conceitualmente:
+
+- boca superior;
+- boca inferior;
+- corrente esquerda;
+- corrente direita;
+- ponto central de quebra;
+- fragmentos;
+- faíscas.
+
+Pode usar a imagem estática como base/background e adicionar essas camadas por cima.
+
+==================================================
+7. FLUXO DA ANIMAÇÃO
+==================================================
+
+Quero uma sequência aproximadamente assim:
+
+ESTADO 1
+boca aberta
+corrente inteira atravessando a boca
+
+↓
+
+ESTADO 2
+boca fecha levemente
+
+↓
+
+ESTADO 3
+corrente tensiona
+
+↓
+
+ESTADO 4
+mordida acontece
+
+↓
+
+ESTADO 5
+corrente quebra no centro
+
+↓
+
+ESTADO 6
+fragmentos/faíscas aparecem
+
+↓
+
+ESTADO 7
+dois lados da corrente se afastam levemente
+
+↓
+
+ESTADO 8
+volta suavemente ao estado inicial
+
+Loop.
+
+==================================================
+8. DURAÇÃO
+==================================================
+
+A animação deve ser curta.
+
+Algo próximo de:
+
+2.0s–3.0s por loop.
+
+Não deixar frenética.
+
+Quero uma sensação:
+
+pesada
++
+impactante
++
+premium.
+
+==================================================
+9. PAUSA ENTRE OS LOOPS
+==================================================
+
+Adicionar uma pequena pausa visual entre uma mordida e outra.
+
+Exemplo:
+
+- animação acontece;
+- estado quebrado permanece alguns centenas de milissegundos;
+- reinicia.
+
+Isso evita parecer um GIF acelerado.
+
+==================================================
+10. MOVIMENTO DA BOCA
+==================================================
+
+A boca deve parecer fechar para morder.
+
+Não precisa fazer uma anatomia complexa.
+
+Pode simular:
+
+boca superior:
+translateY positivo pequeno
+
+boca inferior:
+translateY negativo pequeno
+
+ou:
+
+scaleY controlado
+
+Mas manter o centro visual.
+
+Não deformar os dentes exageradamente.
+
+==================================================
+11. MOVIMENTO DA CORRENTE
+==================================================
+
+Antes da quebra:
+
+a corrente pode sofrer uma pequena tensão.
+
+Exemplo:
+
+- lado esquerdo puxa levemente para esquerda;
+- lado direito puxa levemente para direita;
+- pequena vibração.
+
+Depois:
+
+a corrente rompe no centro.
+
+==================================================
+12. QUEBRA DA CORRENTE
+==================================================
+
+No momento da mordida:
+
+criar um impacto visual rápido.
+
+Pode usar:
+
+- pequena escala;
+- shake muito curto;
+- faíscas;
+- pequenos fragmentos.
+
+Não usar uma explosão grande.
+
+==================================================
+13. FRAGMENTOS
+==================================================
+
+Adicionar poucos fragmentos metálicos.
+
+Algo como:
+
+3–6 pequenos pedaços.
+
+Eles podem:
+
+- sair alguns pixels do centro;
+- girar;
+- perder opacity.
+
+Não exagerar.
+
+==================================================
+14. FAÍSCAS
+==================================================
+
+Usar faíscas discretas.
+
+Como a identidade dessa arte é vermelha/preta:
+
+preferência por:
+
+- vermelho;
+- laranja muito sutil;
+- branco quente.
+
+Não usar glow roxo aqui.
+
+Esse produto pode ter sua identidade própria em vermelho.
+
+==================================================
+15. CORRENTE PARTIDA
+==================================================
+
+Após quebrar:
+
+os dois lados da corrente podem se afastar:
+
+aproximadamente 5–15px
+
+dependendo da escala.
+
+Nada exagerado.
+
+==================================================
+16. RESET DO LOOP
+==================================================
+
+O reset precisa ser suave.
+
+Não quero:
+
+corrente quebrada
+→ PISCA
+→ corrente inteira.
+
+Pode:
+
+- fazer fade curto;
+- voltar os pedaços gradualmente;
+- reconstruir visualmente.
+
+Não permitir frame de flicker.
+
+==================================================
+17. NÃO ANIMAR O TEXTO
+==================================================
+
+Preservar:
+
+“LÁBIA DE CACHORRO”
+
+e:
+
+“A LÁBIA QUE FAZ ELA CORRER ATRÁS”
+
+estáveis.
+
+Não fazer glitch no texto.
+
+A animação deve ficar concentrada em:
+
+boca
++
+corrente.
+
+==================================================
+18. HOVER
+==================================================
+
+No desktop:
+
+hover pode intensificar levemente a animação.
+
+Exemplo:
+
+- glow vermelho aumenta;
+- fragmentos ficam um pouco mais visíveis;
+- pequena scale da arte.
+
+Nada agressivo.
+
+==================================================
+19. MOBILE
+==================================================
+
+A animação precisa funcionar bem em:
+
+375px
+390px
+414px
+430px
+
+Como o card é pequeno:
+
+priorizar clareza.
+
+A mordida e a quebra precisam continuar perceptíveis mesmo em duas colunas.
+
+==================================================
+20. PERFORMANCE
+==================================================
+
+Priorizar:
+
+transform
+opacity
+
+Evitar:
+
+- canvas pesado;
+- partículas demais;
+- filtros gigantes;
+- loops custosos.
+
+A Home terá múltiplos cards.
+
+Não quero queda de FPS.
+
+==================================================
+21. PAUSAR QUANDO FORA DA VIEWPORT
+==================================================
+
+Se possível, usar IntersectionObserver.
+
+Quando o card não estiver visível:
+
+pausar a animação.
+
+Quando voltar:
+
+retomar.
+
+Isso evita consumo desnecessário.
+
+==================================================
+22. PREFERS-REDUCED-MOTION
+==================================================
+
+Respeitar:
+
+prefers-reduced-motion: reduce
+
+Nesse caso:
+
+mostrar apenas a arte estática.
+
+Sem mordida/fragmentos.
+
+==================================================
+23. NÃO ALTERAR O CARD DO LIVRO
+==================================================
+
+O primeiro card possui sua própria animação/transição complexa.
+
+Não tocar nela.
+
+Não compartilhar lógica de animação com esse novo card se isso puder quebrar o livro.
+
+==================================================
+24. NÃO ALTERAR O QUARTO CARD
+==================================================
+
+O quarto card continua exatamente como está.
+
+==================================================
+25. NÃO MUDAR TAMANHO DO GRID
+==================================================
+
+Preservar:
+
+- 2 colunas;
+- dimensões;
+- gaps;
+- bordas;
+- radius.
+
+Não aumentar o novo card.
+
+==================================================
+26. INTEGRAR VISUALMENTE AO CARD
+==================================================
+
+A imagem já possui fundo preto/vermelho.
+
+Fazer essa arte se integrar ao card.
+
+Se necessário:
+
+- fade nas bordas;
+- gradiente;
+- mask sutil.
+
+Não colocar uma moldura interna.
+
+==================================================
+27. BORDA DO NOVO CARD
+==================================================
+
+Pode usar uma borda sutil em vermelho/vinho.
+
+Algo discreto.
+
+Exemplo conceitual:
+
+rgba(185, 28, 28, 0.16)
+
+No hover:
+
+aumentar levemente.
+
+==================================================
+28. NÃO ADICIONAR ROXO AO NOVO CARD
+==================================================
+
+Não tentar adaptar o produto para roxo.
+
+A identidade visual dele é:
+
+preto
++
+vermelho
++
+off-white.
+
+Isso cria diversidade entre produtos sem perder o dark geral do app.
+
+==================================================
+29. COMPONENTIZAÇÃO
+==================================================
+
+Se fizer sentido:
+
+criar algo como:
+
+<LabiaDeCachorroCardArtwork />
+
+ou:
+
+<AnimatedProductArtwork />
+
+Mas não over-engineer.
+
+O importante é manter o código organizado.
+
+==================================================
+30. POSSÍVEL ABORDAGEM TÉCNICA
+==================================================
+
+Uma implementação aceitável seria:
+
+<div className="labia-card-animation">
+  <img className="base-art" />
+
+  <div className="mouth-layer" />
+  <div className="chain-left" />
+  <div className="chain-right" />
+  <div className="impact-layer" />
+  <div className="fragments-layer" />
+</div>
+
+Pode usar masks/clip-path para recortar as partes necessárias.
+
+==================================================
+31. SE NÃO FOR POSSÍVEL RECORTAR A ARTE COM QUALIDADE
+==================================================
+
+Se separar boca/corrente a partir da imagem for inviável:
+
+não inventar uma animação ruim.
+
+Nesse caso:
+
+usar a arte estática como background e criar por cima uma nova corrente animada fiel ao estilo:
+
+- corrente metálica escura;
+- posicionada na mesma altura;
+- rompe no centro;
+- fragmentos.
+
+E simular a mordida apenas com:
+
+- pequeno movimento da boca/base;
+- impacto;
+- shake.
+
+O efeito final é mais importante que a precisão absoluta das camadas.
+
+==================================================
+32. NÃO RECRIAR A ARTE DO ZERO
+==================================================
+
+Usar a imagem fornecida como referência principal.
+
+Não trocar:
+
+- boca;
+- identidade;
+- tipografia;
+- composição;
+- frase.
+
+==================================================
+33. COMPORTAMENTO DE CLIQUE
+==================================================
+
+Preservar o comportamento atual de produtos.
+
+Se esse produto ainda não possui destino definido:
+
+não inventar rota.
+
+Apenas implementar o card visual e sua animação.
+
+Se existir lógica de "em breve", preservar internamente sem mostrar badge sobre a arte.
+
+==================================================
+34. CRITÉRIO VISUAL
+==================================================
+
+A animação deve comunicar instantaneamente:
+
+“a boca está mordendo e quebrando uma corrente.”
+
+Não quero:
+
+- imagem tremendo sem sentido;
+- corrente apenas desaparecendo;
+- fragmentos aleatórios.
+
+Precisa existir narrativa visual.
+
+==================================================
+35. CRITÉRIO DE ACEITE
+==================================================
+
+Considerar pronto quando:
+
+- o produto novo está no segundo card;
+- o produto antigo do segundo card foi movido ao terceiro;
+- primeiro card não mudou;
+- quarto card não mudou;
+- arte “Lábia de Cachorro” aparece corretamente;
+- boca faz movimento de mordida;
+- corrente tensiona;
+- corrente quebra;
+- fragmentos aparecem;
+- loop é suave;
+- não existe flicker;
+- performance mobile continua boa.
+
+==================================================
+36. RESULTADO FINAL DA HOME
+==================================================
+
+A ordem deve ficar:
+
+1. Cachorro dos Bons
+2. Lábia de Cachorro — boca quebrando corrente
+3. produto que antes estava no segundo card
+4. produto que já estava no quarto card
+
+O segundo card deve ser o mais impactante visualmente depois do livro, mas sem competir com a animação principal do livro.
+
+Priorizar:
+clareza
++
+impacto
++
+performance
++
+coerência com a identidade do produto.

@@ -1,13 +1,10 @@
 import { Link } from 'wouter';
 import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
+import { LabiaCachorroCard } from '@/components/LabiaCachorroCard';
 import chainImg from '@/assets/chain-wide.png';
 import labiaImg from '@/assets/labia-de-cachorro.png';
 import instaImg from '@/assets/codigo-insta-dominante.png';
-
-const COMING_SOON = [
-  { label: 'Mentorias', slug: 'mentorias' },
-];
 
 export default function Home() {
   return (
@@ -41,9 +38,14 @@ export default function Home() {
 
         <main className="animate-in fade-in duration-700 ease-out px-4 pb-4">
           <div className="grid grid-cols-2 gap-4">
+
+            {/* ── Card 1: Cachorro dos Bons — unchanged ──────────── */}
             <JourneyCard />
 
-            {/* Lábia de Cachorro — card de produto com arte real */}
+            {/* ── Card 2: Lábia de Cachorro — boca quebrando corrente */}
+            <LabiaCachorroCard />
+
+            {/* ── Card 3: antigo card 2 — mascote roxo ─────────────── */}
             <Link href="/em-breve/comunidade" className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
               <div style={{
                 borderRadius:   16,
@@ -70,7 +72,6 @@ export default function Home() {
                   }}
                   className="group-hover:scale-[1.02] group-hover:brightness-110"
                 />
-                {/* subtle edge fade so the image merges with the dark card */}
                 <div aria-hidden="true" style={{
                   position:   'absolute',
                   inset:      0,
@@ -81,54 +82,7 @@ export default function Home() {
               </div>
             </Link>
 
-            {COMING_SOON.map(({ label, slug }) => (
-              <Link key={slug} href={`/em-breve/${slug}`} className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
-                <div style={{
-                  borderRadius:    16,
-                  border:          '1px solid rgba(139,53,255,0.22)',
-                  background:      'radial-gradient(ellipse 90% 70% at 50% 20%, rgba(139,53,255,0.18) 0%, transparent 70%), #0f0d12',
-                  width:           '100%',
-                  height:          '100%',
-                  display:         'flex',
-                  flexDirection:   'column',
-                  alignItems:      'center',
-                  justifyContent:  'center',
-                  gap:             12,
-                  padding:         '24px 16px',
-                  cursor:          'pointer',
-                }}>
-                  {/* Lock icon */}
-                  <svg width="26" height="26" viewBox="0 0 24 24"
-                    fill="none" stroke="rgba(178,102,255,0.7)" strokeWidth="1.5"
-                    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-
-                  <span style={{
-                    fontSize: 13, fontWeight: 600,
-                    color: 'rgba(255,255,255,0.80)',
-                    letterSpacing: '0.08em', textTransform: 'uppercase',
-                  }}>
-                    {label}
-                  </span>
-
-                  <span style={{
-                    fontSize: 10, fontWeight: 600,
-                    color: 'rgba(178,102,255,0.9)',
-                    letterSpacing: '0.16em', textTransform: 'uppercase',
-                    background: 'rgba(139,53,255,0.15)',
-                    border: '1px solid rgba(139,53,255,0.30)',
-                    borderRadius: 20, padding: '3px 10px',
-                  }}>
-                    Em breve
-                  </span>
-                </div>
-              </Link>
-            ))}
-
-            {/* Card 4 — Código Insta Dominante */}
+            {/* ── Card 4: Código Insta Dominante — unchanged ────────── */}
             <Link href="/em-breve/ia" className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
               <div
                 className="group"
@@ -156,7 +110,6 @@ export default function Home() {
                   }}
                   className="group-hover:scale-[1.015] group-hover:brightness-110"
                 />
-                {/* subtle vignette so image blends into dark card */}
                 <div
                   aria-hidden="true"
                   style={{
@@ -169,6 +122,7 @@ export default function Home() {
                 />
               </div>
             </Link>
+
           </div>
         </main>
       </div>
