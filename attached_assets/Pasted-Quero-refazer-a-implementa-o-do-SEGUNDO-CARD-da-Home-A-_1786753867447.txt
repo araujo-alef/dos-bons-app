@@ -1,0 +1,490 @@
+Quero refazer a implementação do SEGUNDO CARD da Home.
+
+A tentativa anterior de usar a imagem estática como base direta da animação não funcionou bem — o resultado ficou parecendo apenas uma imagem com uma barra reta se partindo na frente.
+
+NÃO quero isso.
+
+Agora quero que o segundo card seja CONSTRUÍDO DO ZERO no frontend, inspirado visualmente na arte de referência do produto “Lábia de Cachorro”, mas sem depender da imagem como camada principal da animação.
+
+A imagem de referência deve ser usada apenas como GUIA VISUAL para:
+
+- composição;
+- paleta;
+- conceito;
+- tipografia;
+- boca;
+- corrente;
+- mood geral.
+
+Não quero simplesmente renderizar a imagem e animar por cima.
+Quero que o card seja desenhado/composto no frontend como uma peça animada própria.
+
+==================================================
+1. OBJETIVO
+==================================================
+
+Criar um card animado do produto:
+
+LÁBIA DE CACHORRO
+
+com a seguinte ideia central:
+
+- uma boca estilizada;
+- dentes/presas;
+- uma corrente atravessando a boca;
+- a boca morde;
+- a corrente tensiona;
+- a corrente quebra;
+- pequenos fragmentos e faíscas aparecem;
+- a animação entra em loop.
+
+Esse novo card deve ocupar o SEGUNDO CARD da Home, logo após o card do livro.
+
+O produto que hoje está no segundo card deve ser movido para o TERCEIRO CARD, preservando seu comportamento/arte atual.
+
+==================================================
+2. REGRA PRINCIPAL
+==================================================
+
+NÃO usar a imagem pronta como a arte principal do card.
+
+NÃO quero:
+
+- <img> ocupando o card com uma barra animada na frente;
+- corrente fake sobre uma imagem estática;
+- quebra “falsa” sem integração com a boca;
+- card parecendo um pôster com uma animação superficial.
+
+Quero um card desenhado/composto do zero.
+
+A imagem de referência é apenas inspiração visual.
+
+==================================================
+3. O QUE PRECISA SER CONSTRUÍDO DO ZERO
+==================================================
+
+Criar no frontend, preferencialmente com HTML/CSS/SVG e animação controlada, uma composição própria contendo:
+
+- fundo escuro;
+- selo/contorno oval ou composição central inspirada na identidade do produto;
+- título “LÁBIA DE CACHORRO”;
+- boca central estilizada;
+- corrente passando horizontalmente pela boca;
+- frase inferior:
+  “A LÁBIA QUE FAZ ELA CORRER ATRÁS”
+
+A construção pode ser feita com:
+
+- SVG;
+- camadas HTML/CSS;
+- pseudo-elements;
+- Motion/Framer Motion;
+- animações CSS;
+- masks/clip-path;
+
+ou combinação desses recursos.
+
+==================================================
+4. REFERÊNCIA VISUAL DO PRODUTO
+==================================================
+
+A referência estética é:
+
+- preto como base;
+- vermelho escuro / vermelho vivo como cor principal;
+- off-white / bege claro no texto e dentes;
+- visual agressivo, sedutor e marcante;
+- sensação dark / rocker / tattoo / badge.
+
+O card precisa dialogar com a identidade da referência, mas ser uma versão própria e animável.
+
+==================================================
+5. LAYOUT DO CARD
+==================================================
+
+Composição sugerida:
+
+- parte superior: título arqueado ou bem dominante;
+- centro: boca como protagonista;
+- meio da boca: corrente horizontal;
+- parte inferior: slogan/frase;
+- moldura oval ou emblema sutil em volta.
+
+Não precisa copiar a arte referência pixel por pixel.
+Quero uma interpretação própria, mais clean e apropriada para um card do app.
+
+==================================================
+6. ELEMENTO CENTRAL — A BOCA
+==================================================
+
+A boca precisa ser o principal ponto focal do card.
+
+Ela deve ser construída como elemento independente.
+
+Características desejadas:
+
+- lábios vermelhos;
+- interior escuro;
+- dentes claros;
+- presas/fangs levemente destacadas;
+- proporção forte e reconhecível mesmo em tamanho pequeno.
+
+A boca precisa poder animar:
+
+- abrir levemente;
+- fechar levemente;
+- reagir à mordida.
+
+==================================================
+7. CORRENTE
+==================================================
+
+A corrente deve ser construída separadamente, como elemento animável próprio.
+
+Não quero uma linha reta simples.
+
+Ela precisa parecer realmente uma corrente metálica.
+
+Características:
+
+- elos escuros/grafite;
+- leve brilho metálico;
+- espessura suficiente para leitura visual no card;
+- atravessando horizontalmente a boca.
+
+==================================================
+8. ANIMAÇÃO PRINCIPAL
+==================================================
+
+A animação precisa ter narrativa.
+
+Sequência desejada:
+
+1. estado inicial:
+   boca semiaberta
+   corrente inteira passando pela boca
+
+2. preparação:
+   leve tensão / micro movimento
+
+3. mordida:
+   boca fecha
+   corrente tensiona
+
+4. impacto:
+   pequeno shake / recoil / stress
+
+5. quebra:
+   corrente rompe no centro
+
+6. aftermath:
+   fragmentos pequenos aparecem
+   faíscas discretas aparecem
+   lados da corrente se afastam levemente
+
+7. pausa curta:
+   estado quebrado visível por um momento
+
+8. reset suave:
+   volta ao estado inicial sem flicker
+
+==================================================
+9. DURAÇÃO E LOOP
+==================================================
+
+Quero um loop elegante.
+
+Sugestão:
+
+- duração total: 2.2s a 3s
+- pequena pausa no estado final
+- reinício suave
+
+Não fazer animação rápida demais.
+
+Precisa parecer deliberada, forte, legível.
+
+==================================================
+10. NÃO EXAGERAR NO MOVIMENTO
+==================================================
+
+O card estará dentro de um grid de Home.
+
+Então a animação precisa ser perceptível sem ser histérica.
+
+Evitar:
+
+- shakes muito fortes;
+- partículas demais;
+- elementos voando pelo card inteiro;
+- efeitos de explosão.
+
+O foco é:
+
+mordida
++
+tensão
++
+quebra.
+
+==================================================
+11. FRAGMENTOS E FAÍSCAS
+==================================================
+
+No momento da quebra:
+
+- alguns poucos fragmentos metálicos;
+- pequenas faíscas / sparks;
+- tudo muito controlado.
+
+Cores ideais:
+
+- vermelho;
+- branco quente;
+- talvez um laranja muito discreto.
+
+Não usar roxo aqui.
+
+Este produto deve manter identidade vermelha própria.
+
+==================================================
+12. TIPOGRAFIA
+==================================================
+
+Construir o texto como parte do card.
+
+Elementos de texto:
+
+- LÁBIA DE CACHORRO
+- A LÁBIA QUE FAZ ELA CORRER ATRÁS
+
+Não quero reaproveitar a tipografia da imagem via screenshot.
+
+Use fonte que passe força, impacto e legibilidade.
+
+Se quiser:
+
+- título mais bold/condensado;
+- subtítulo menor, em arco ou acompanhado da moldura.
+
+Pode adaptar a tipografia para ficar melhor no card mobile, desde que preserve o espírito visual do produto.
+
+==================================================
+13. NÃO FAZER UMA CÓPIA EXATA DO LOGO ORIGINAL
+==================================================
+
+Pode se inspirar no conceito geral, mas o importante aqui é:
+
+- um card bonito;
+- legível;
+- animável;
+- coerente com a Home.
+
+Se copiar exatamente o logo original e isso prejudicar a clareza no card, prefira adaptar.
+
+==================================================
+14. SEGUNDO CARD DA HOME
+==================================================
+
+Esse novo produto animado deve ficar no SEGUNDO CARD, imediatamente após o card do livro.
+
+Então a ordem final deve ficar:
+
+CARD 1:
+Cachorro dos Bons
+→ permanece como está
+
+CARD 2:
+Lábia de Cachorro
+→ novo card construído do zero
+→ animação de boca + corrente
+
+CARD 3:
+produto que atualmente está no card 2
+→ mover para cá preservando tudo
+
+CARD 4:
+permanece como está
+
+==================================================
+15. NÃO ALTERAR OS OUTROS CARDS
+==================================================
+
+Não mexer em:
+
+- card do livro;
+- card 4;
+- lógica do grid;
+- tamanhos gerais;
+- espaçamentos.
+
+A única reorganização é:
+
+novo produto entra no card 2
+produto antigo do card 2 vai para o card 3
+
+==================================================
+16. COMPORTAMENTO DO CARD
+==================================================
+
+Se esse novo produto ainda não tiver rota definida:
+
+não inventar navegação nova.
+
+Pode manter o comportamento atual dos cards em breve / placeholder, se aplicável.
+
+Nesta tarefa o foco é:
+
+visual
++
+animação
++
+ordem dos cards.
+
+==================================================
+17. RESPONSIVIDADE
+==================================================
+
+Testar especialmente em mobile:
+
+- 375px
+- 390px
+- 414px
+- 430px
+
+A composição precisa continuar legível em um card de duas colunas.
+
+Prioridades de leitura visual no tamanho reduzido:
+
+1. boca
+2. corrente
+3. título
+4. frase inferior
+
+==================================================
+18. PERFORMANCE
+==================================================
+
+Priorizar performance.
+
+Preferência:
+
+- transform
+- opacity
+- SVG animation
+- CSS animation
+
+Evitar soluções pesadas.
+
+Se possível, pausar a animação quando o card estiver fora da viewport.
+
+Usar IntersectionObserver se fizer sentido.
+
+Também respeitar:
+
+prefers-reduced-motion: reduce
+
+Nesse caso:
+mostrar versão estática ou com mínima animação.
+
+==================================================
+19. SUGESTÃO DE ESTRUTURA
+==================================================
+
+Algo conceitualmente próximo de:
+
+<ProductCard>
+  <LabiaDeCachorroArtwork>
+    <BadgeFrame />
+    <Title />
+    <Mouth>
+      <UpperLip />
+      <LowerLip />
+      <Teeth />
+      <Fangs />
+      <ChainLeft />
+      <ChainRight />
+      <BreakEffect />
+      <Fragments />
+      <Sparks />
+    </Mouth>
+    <Tagline />
+  </LabiaDeCachorroArtwork>
+</ProductCard>
+
+Não precisa seguir literalmente esses nomes.
+
+Mas quero uma estrutura em camadas que permita animação real.
+
+==================================================
+20. SE FOR MELHOR USAR SVG
+==================================================
+
+Se a melhor solução for criar toda a arte como SVG:
+
+ótimo.
+
+Nesse caso:
+
+- desenhar boca e corrente em shapes vetoriais;
+- animar partes internas do SVG;
+- manter tipografia vetorial ou texto bem integrado.
+
+SVG provavelmente é uma boa escolha aqui.
+
+==================================================
+21. EFEITO DE HOVER
+==================================================
+
+No desktop, hover pode:
+
+- aumentar levemente o brilho vermelho;
+- aumentar levemente a escala geral;
+- talvez acelerar muito sutilmente a percepção do loop.
+
+Mas sem exagero.
+
+==================================================
+22. CRITÉRIO DE ACEITE VISUAL
+==================================================
+
+O card só está correto se, ao olhar rapidamente, eu entender:
+
+“esse produto é uma boca mordendo e quebrando uma corrente”.
+
+Se parecer:
+
+- só um logo estático;
+- só uma barra partindo;
+- só um overlay na frente;
+- ou uma imagem com efeito superficial;
+
+então está errado.
+
+==================================================
+23. CRITÉRIO DE ACEITE FUNCIONAL
+==================================================
+
+Considerar pronto quando:
+
+- o novo produto ocupa o segundo card;
+- o antigo segundo card foi movido para o terceiro;
+- a arte do novo card foi construída do zero;
+- a boca anima;
+- a corrente anima;
+- a quebra é legível;
+- o loop é suave;
+- não há flicker;
+- o mobile continua bom;
+- o grid geral da Home não foi quebrado.
+
+==================================================
+24. PRINCÍPIO FINAL
+==================================================
+
+Não quero “animar uma imagem”.
+Quero “criar um card animado original, inspirado na imagem”.
+
+Ou seja:
+usar a referência só como direção criativa,
+mas construir a peça do produto no frontend, do zero, de forma que a animação fique realmente integrada ao design.
