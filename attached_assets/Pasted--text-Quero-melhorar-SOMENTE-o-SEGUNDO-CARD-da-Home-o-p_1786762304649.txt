@@ -1,0 +1,618 @@
+```text
+Quero melhorar SOMENTE o SEGUNDO CARD da Home, o produto “Lábia de Cachorro”.
+
+Hoje ele está visualmente correto em termos de identidade, mas ficou parecendo uma “figurinha/pôster colado” dentro do card.
+
+O problema principal é falta de profundidade.
+
+Quero que ele passe a parecer um OBJETO / PRODUTO PREMIUM dentro do card, com volume, perspectiva e presença física, semelhante ao impacto visual que o livro tem no primeiro card, mas sem transformar esse produto em um livro.
+
+IMPORTANTE:
+não alterar os outros cards.
+Não mudar grid, tamanho, espaçamentos ou ordem dos produtos.
+
+==================================================
+1. PROBLEMA ATUAL
+==================================================
+
+O segundo card hoje parece:
+
+card
++
+imagem 2D plana ocupando a superfície
+
+Isso faz a arte parecer uma figurinha.
+
+Quero mudar a leitura para:
+
+card
++
+objeto de produto flutuando dentro dele
+
+A arte deve parecer estar fisicamente separada do fundo.
+
+==================================================
+2. NÃO USAR MAIS A ARTE COMO FULL-BLEED CHAPADO
+==================================================
+
+Não quero que a arte ocupe praticamente 100% do card como uma textura plana.
+
+Criar uma pequena margem visual ao redor.
+
+Sugestão:
+
+objeto principal ocupando aproximadamente:
+
+82%–88% da área útil do card
+
+Ajustar conforme ficar melhor.
+
+Essa margem é importante para criar profundidade.
+
+==================================================
+3. TRANSFORMAR A ARTE EM UMA “PLACA / BOX PREMIUM”
+==================================================
+
+Quero que a arte pareça aplicada sobre um objeto físico fino.
+
+Pode ser interpretado como:
+
+- placa premium;
+- box rígido;
+- capa física;
+- painel colecionável;
+- objeto editorial.
+
+Não precisa parecer embalagem real.
+
+O objetivo é apenas criar:
+
+- frente;
+- pequena espessura;
+- lateral;
+- sombra.
+
+==================================================
+4. PERSPECTIVA
+==================================================
+
+Adicionar uma leve perspectiva 3D ao objeto.
+
+Algo como:
+
+rotateY(-4deg a 6deg)
+rotateX(1deg a 3deg)
+rotateZ(-1deg a 2deg)
+
+Ajustar visualmente.
+
+Não exagerar.
+
+Quero algo sofisticado, não um card girado de forma caricata.
+
+==================================================
+5. ESPESSURA
+==================================================
+
+Criar uma espessura muito sutil.
+
+Algo visualmente equivalente a:
+
+4px–10px
+
+dependendo do tamanho do card.
+
+Pode usar:
+
+- pseudo-element;
+- face lateral;
+- box-shadow;
+- duplicated layer deslocado;
+- SVG.
+
+A lateral pode ser:
+
+preto
++
+vinho
++
+vermelho escuro.
+
+Isso ajuda o cérebro a perceber que existe um objeto físico.
+
+==================================================
+6. SOMBRA PROJETADA
+==================================================
+
+Adicionar uma sombra abaixo/atrás do objeto.
+
+Não usar sombra enorme.
+
+Quero uma sombra:
+
+- suave;
+- escura;
+- ligeiramente avermelhada;
+- coerente com a perspectiva.
+
+A sombra deve separar o objeto do fundo do card.
+
+==================================================
+7. GLOW VERMELHO DISCRETO
+==================================================
+
+Adicionar glow vermelho/vinho atrás do objeto.
+
+Muito sutil.
+
+Algo como:
+
+radial-gradient(
+  rgba(185, 28, 28, 0.14),
+  transparent 65%
+)
+
+ou equivalente.
+
+O glow deve reforçar profundidade, não parecer neon.
+
+==================================================
+8. FUNDO DO CARD
+==================================================
+
+O fundo do card deve continuar praticamente preto.
+
+Pode receber uma nuance vinho muito discreta.
+
+Exemplo:
+
+#080607
+ou equivalente.
+
+Não transformar o card em vermelho.
+
+==================================================
+9. OBJETO NÃO DEVE ENCOSTAR NAS BORDAS
+==================================================
+
+Garantir espaço entre:
+
+objeto
+e
+borda do card.
+
+Esse espaço precisa ser suficiente para a sombra aparecer.
+
+Hoje parte do problema é que a arte se mistura com o próprio card.
+
+==================================================
+10. MANTER A ARTE PRINCIPAL
+==================================================
+
+Preservar a composição visual do produto:
+
+- LÁBIA DE CACHORRO;
+- boca;
+- corrente;
+- slogan;
+- vermelho/preto/off-white.
+
+Não redesenhar toda a identidade nesta tarefa.
+
+O foco é apresentação e profundidade.
+
+==================================================
+11. CAMADAS INTERNAS
+==================================================
+
+Quero aumentar a sensação de profundidade TAMBÉM dentro da arte.
+
+A boca e a corrente não devem parecer estar exatamente no mesmo plano.
+
+Se a estrutura atual já separa elementos:
+
+- boca;
+- corrente;
+- fragmentos;
+- texto;
+
+usar isso.
+
+Se não estiver separado, criar camadas visuais equivalentes.
+
+==================================================
+12. BOCA COMO ELEMENTO PRINCIPAL
+==================================================
+
+A boca pode receber:
+
+- leve drop shadow;
+- pequeno highlight;
+- micro glow vermelho;
+- profundidade mínima.
+
+Ela deve parecer um pouco acima do background do produto.
+
+==================================================
+13. CORRENTE MAIS À FRENTE
+==================================================
+
+A corrente deve parecer passar na frente da boca.
+
+Aplicar:
+
+- sombra curta;
+- highlights metálicos;
+- z-index maior;
+- profundidade perceptível.
+
+Não transformar em uma barra reta.
+
+Ela precisa continuar parecendo elos reais.
+
+==================================================
+14. FRAGMENTOS DA QUEBRA
+==================================================
+
+Se a animação de quebra já existe:
+
+os fragmentos devem aparecer como elementos ainda mais próximos da câmera.
+
+Pode usar:
+
+scale pequeno maior;
+blur variável;
+drop-shadow;
+translateZ conceitual.
+
+Não exagerar.
+
+==================================================
+15. ANIMAÇÃO DE FLUTUAÇÃO
+==================================================
+
+Adicionar uma animação idle sutil no objeto inteiro.
+
+Algo como:
+
+translateY:
+0 → -4px → 0
+
+Duração:
+
+4s–6s
+
+Easing suave.
+
+Quero sensação de produto flutuando.
+
+Não balançar muito.
+
+==================================================
+16. MICRO ROTAÇÃO DURANTE O FLOAT
+==================================================
+
+Opcionalmente:
+
+rotateZ:
+-0.5deg → 0.5deg → -0.5deg
+
+ou equivalente.
+
+Muito sutil.
+
+O objetivo é dar vida ao objeto.
+
+==================================================
+17. NÃO ANIMAR A ARTE TODA DE FORMA EXAGERADA
+==================================================
+
+Não quero:
+
+- zoom grande;
+- wobble;
+- bounce;
+- tilt agressivo.
+
+A animação idle deve ser quase imperceptível.
+
+==================================================
+18. ANIMAÇÃO DA BOCA/CORRENTE CONTINUA
+==================================================
+
+Preservar a animação existente de:
+
+- mordida;
+- tensão;
+- quebra;
+- fragmentos.
+
+Mas agora ela deve acontecer DENTRO desse objeto com profundidade.
+
+Não remover.
+
+==================================================
+19. MOVIMENTO DA BOCA DEVE SER INDEPENDENTE DO OBJETO
+==================================================
+
+Separar responsabilidades:
+
+objeto inteiro:
+→ float/perspectiva
+
+boca:
+→ mordida
+
+corrente:
+→ tensão/quebra
+
+fragmentos:
+→ impacto
+
+Não aplicar tudo no mesmo transform.
+
+==================================================
+20. EFEITO DE HOVER
+==================================================
+
+No desktop:
+
+ao hover:
+
+- objeto sobe ~2px;
+- perspectiva aumenta levemente;
+- shadow aumenta discretamente;
+- glow vermelho cresce pouco.
+
+Pode usar:
+
+scale 1 → 1.015
+
+Nada além disso.
+
+==================================================
+21. MOBILE
+==================================================
+
+Em mobile:
+
+não depender de hover.
+
+O objeto já deve parecer profundo no estado normal.
+
+Testar em:
+
+375px
+390px
+414px
+430px
+
+==================================================
+22. NÃO REDUZIR LEGIBILIDADE
+==================================================
+
+Ao aplicar perspectiva:
+
+garantir que:
+
+“LÁBIA DE CACHORRO”
+
+e
+
+“A LÁBIA QUE FAZ ELA CORRER ATRÁS”
+
+continuem legíveis.
+
+Não inclinar tanto a ponto de deformar o texto.
+
+==================================================
+23. BORDER RADIUS DO OBJETO
+==================================================
+
+O objeto interno pode ter um pequeno radius próprio, se ajudar.
+
+Mas não repetir exatamente o radius do card.
+
+Quero distinguir:
+
+card externo
+vs
+produto interno.
+
+==================================================
+24. BORDA DO OBJETO
+==================================================
+
+Pode adicionar uma borda extremamente discreta ao objeto.
+
+Algo como:
+
+rgba(185, 28, 28, 0.20)
+
+ou equivalente.
+
+Não criar moldura vermelha grossa.
+
+==================================================
+25. CARD EXTERNO
+==================================================
+
+Preservar o card externo atual.
+
+Ele continua sendo o container.
+
+Não transformar o card inteiro em objeto 3D.
+
+A profundidade deve vir do elemento interno.
+
+==================================================
+26. ESTRUTURA RECOMENDADA
+==================================================
+
+Algo conceitualmente assim:
+
+<ProductCard>
+  <ProductAmbientGlow />
+
+  <ProductObject>
+    <ProductDepthLayer />
+    <ProductFrontArtwork>
+
+      <Title />
+      <MouthLayer />
+      <ChainLayer />
+      <FragmentsLayer />
+      <Tagline />
+
+    </ProductFrontArtwork>
+  </ProductObject>
+</ProductCard>
+
+==================================================
+27. TRANSFORM-STYLE
+==================================================
+
+Se usar perspectiva CSS:
+
+no container:
+
+perspective: 900px–1200px;
+
+no objeto:
+
+transform-style: preserve-3d;
+
+Mas manter a implementação simples e performática.
+
+==================================================
+28. NÃO USAR 3D COMPLEXO
+==================================================
+
+Não precisa criar uma caixa completa com seis faces.
+
+Uma fake depth bem feita já é suficiente.
+
+Por exemplo:
+
+front layer
++
+side/depth layer
++
+shadow.
+
+Priorizar resultado visual.
+
+==================================================
+29. REFERÊNCIA VISUAL
+==================================================
+
+Quero que o card lembre mais:
+
+“um produto premium flutuando dentro de uma vitrine”
+
+e menos:
+
+“uma imagem colada dentro de um retângulo”.
+
+==================================================
+30. RELAÇÃO COM O CARD DO LIVRO
+==================================================
+
+O primeiro card funciona bem porque:
+
+- livro tem volume;
+- tem sombra;
+- ocupa o espaço como objeto;
+- não se mistura com o fundo.
+
+Quero trazer esse MESMO PRINCÍPIO de profundidade para o segundo card.
+
+Mas NÃO transformar o segundo produto em um livro.
+
+Ele pode continuar sendo uma placa/box/capa premium.
+
+==================================================
+31. NÃO ALTERAR OUTROS CARDS
+==================================================
+
+Não alterar:
+
+- card 1;
+- card 3;
+- card 4;
+- grid;
+- ordem;
+- Home.
+
+Somente segundo card.
+
+==================================================
+32. PERFORMANCE
+==================================================
+
+Priorizar:
+
+transform
+opacity
+drop-shadow leve
+
+Evitar:
+
+- blur enorme;
+- filtros complexos;
+- múltiplos box-shadows gigantes.
+
+==================================================
+33. PREFERS-REDUCED-MOTION
+==================================================
+
+Se:
+
+prefers-reduced-motion: reduce
+
+remover float e micro rotação.
+
+Mas preservar:
+
+- profundidade;
+- sombra;
+- perspectiva estática.
+
+==================================================
+34. CRITÉRIO DE ACEITE
+==================================================
+
+O ajuste está correto se:
+
+- a arte não parece mais colada;
+- existe margem em volta;
+- existe sensação de objeto;
+- existe sombra;
+- existe profundidade;
+- boca/corrente continuam legíveis;
+- animação de mordida/quebra continua funcionando;
+- produto parece premium;
+- card não fica visualmente pesado.
+
+==================================================
+35. PRINCÍPIO FINAL
+==================================================
+
+Não quero mudar a identidade do produto.
+
+Quero mudar a FORMA COMO ELE É APRESENTADO.
+
+Hoje:
+imagem plana dentro do card.
+
+Depois:
+objeto visual com volume, perspectiva, sombra e pequenas camadas internas.
+
+A sensação final deve ser:
+
+“esse produto está dentro do card”
+
+e não:
+
+“essa imagem é o próprio card”.
+```

@@ -1,9 +1,8 @@
 import { Link } from 'wouter';
 import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
-import { ChainBreakParticles } from '@/components/ChainBreakParticles';
+import { LabiaPremiumCard } from '@/components/LabiaPremiumCard';
 import chainImg      from '@/assets/chain-wide.png';
-import labiaNovaImg  from '@/assets/labia-de-cachorro-nova.png';
 import labiaImg      from '@/assets/labia-de-cachorro.png';
 import instaImg      from '@/assets/codigo-insta-dominante-hq.png';
 
@@ -31,18 +30,9 @@ export default function Home() {
             {/* ── Card 1: Cachorro dos Bons ──────────────────────────── */}
             <JourneyCard />
 
-            {/* ── Card 2: Lábia de Cachorro — nova arte (estática) ───── */}
+            {/* ── Card 2: Lábia de Cachorro — premium 3D object ─────── */}
             <Link href="/em-breve/comunidade" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
-              <div className="group" style={{ borderRadius:16, border:'1px solid rgba(185,28,28,0.22)', background:'#080304', width:'100%', height:'100%', overflow:'hidden', position:'relative', cursor:'pointer' }}>
-                <img
-                  src={labiaNovaImg}
-                  alt="Lábia de Cachorro — A lábia que faz ela correr atrás"
-                  style={{ display:'block', width:'100%', height:'100%', objectFit:'cover', objectPosition:'center center', transition:'transform 0.3s ease, filter 0.3s ease' }}
-                  className="group-hover:scale-[1.02] group-hover:brightness-110"
-                />
-                <div aria-hidden="true" style={{ position:'absolute', inset:0, borderRadius:16, background:'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 58%, rgba(8,3,4,0.55) 100%)', pointerEvents:'none' }} />
-                <ChainBreakParticles left="50%" top="54%" />
-              </div>
+              <LabiaPremiumCard />
             </Link>
 
             {/* ── Card 3: mascote roxo (antigo card 2) ──────────────── */}
