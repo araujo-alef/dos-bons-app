@@ -179,18 +179,27 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
     };
 
     // ── selectionchange: the only reliable cross-browser/iOS event ────────────
-    // Instead of intercepting pointer/touch events and calling caretRangeFromPoint,
-    // we simply listen to selectionchange — which iOS fires natively after any
-    // long-press or drag selection. A short debounce lets the user finish
-    // extending the selection before the menu appears.
+    // IMPORTANT: on iOS the browser clears the selection on touchend, which
+    // happens well before a 300 ms debounce fires. We must capture the Range
+    // synchronously inside the event handler and clone it so it survives
+    // independently of the live Selection. The debounce only gates the setState
+    // call — not the range capture.
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const onSelectionChange = () => {
+      // Capture synchronously — do not defer this read.
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+        // Collapsed / cleared → cancel any pending commit.
+        if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+        return;
+      }
+      // Clone the range so it remains valid after iOS clears the selection.
+      const range = sel.getRangeAt(0).cloneRange();
+
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        const sel = window.getSelection();
-        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
-        const pending = pendingFromRange(sel.getRangeAt(0));
+        const pending = pendingFromRange(range);
         if (pending) setPendingSelection(pending);
       }, 300);
     };
