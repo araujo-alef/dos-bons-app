@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
+import { ChainBreakParticles } from '@/components/ChainBreakParticles';
 import chainImg      from '@/assets/chain-wide.png';
 import labiaNovaImg  from '@/assets/labia-de-cachorro-nova.png';
 import labiaImg      from '@/assets/labia-de-cachorro.png';
@@ -40,6 +41,7 @@ export default function Home() {
                   className="group-hover:scale-[1.02] group-hover:brightness-110"
                 />
                 <div aria-hidden="true" style={{ position:'absolute', inset:0, borderRadius:16, background:'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 58%, rgba(8,3,4,0.55) 100%)', pointerEvents:'none' }} />
+                <ChainBreakParticles left="50%" top="54%" />
               </div>
             </Link>
 
