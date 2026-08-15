@@ -178,36 +178,53 @@ export function BookReader({ chapter, onComplete, onBack }: BookReaderProps) {
       };
     };
 
-    // ── selectionchange: the only reliable cross-browser/iOS event ────────────
-    // IMPORTANT: on iOS the browser clears the selection on touchend, which
-    // happens well before a 300 ms debounce fires. We must capture the Range
-    // synchronously inside the event handler and clone it so it survives
-    // independently of the live Selection. The debounce only gates the setState
-    // call — not the range capture.
+    // ── Text selection → show confirm menu ───────────────────────────────────
+    // Strategy: capture the Range synchronously on every non-collapsed
+    // selectionchange. A short debounce lets handles settle before showing the
+    // menu. Crucially we do NOT cancel the pending timer when a *collapsed*
+    // selectionchange fires — iOS fires these spuriously (e.g. when the native
+    // callout popup appears/disappears) and cancelling would kill the menu.
+    // We also listen to mouseup for desktop reliability.
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let latestRange:   Range | null = null;
+
+    const commit = () => {
+      debounceTimer = null;
+      if (!latestRange) return;
+      const r = latestRange;
+      latestRange = null;
+      const pending = pendingFromRange(r);
+      if (pending) setPendingSelection(pending);
+    };
 
     const onSelectionChange = () => {
-      // Capture synchronously — do not defer this read.
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-        // Collapsed / cleared → cancel any pending commit.
-        if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
+        // Collapsed event — DO NOT cancel the pending timer.
+        // iOS fires these spuriously between handle adjustments.
         return;
       }
-      // Clone the range so it remains valid after iOS clears the selection.
-      const range = sel.getRangeAt(0).cloneRange();
-
+      // Capture synchronously; clone so it lives past iOS clearing the selection.
+      latestRange = sel.getRangeAt(0).cloneRange();
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        const pending = pendingFromRange(range);
-        if (pending) setPendingSelection(pending);
-      }, 300);
+      debounceTimer = setTimeout(commit, 280);
+    };
+
+    // Desktop: mouseup gives us a reliable "selection done" signal.
+    const onMouseUp = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
+      latestRange = sel.getRangeAt(0).cloneRange();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(commit, 80);
     };
 
     document.addEventListener('selectionchange', onSelectionChange);
+    document.addEventListener('mouseup',         onMouseUp);
 
     return () => {
       document.removeEventListener('selectionchange', onSelectionChange);
+      document.removeEventListener('mouseup',         onMouseUp);
       if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [readerMode, pages]);

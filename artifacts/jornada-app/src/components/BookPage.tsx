@@ -234,10 +234,15 @@ function PageBlock({ block, blockIdx, typo, isPortrait, isHighlightMode, blockHi
             color: C.ink, fontFamily: 'Inter, sans-serif',
             fontWeight: 300, letterSpacing: '0.012em',
             margin: '0 0 14px 0',
-            // In highlight mode, allow selection on this element specifically
-            userSelect: isHighlightMode ? 'text' : 'none',
-            WebkitUserSelect: isHighlightMode ? 'text' : 'none',
-            cursor: isHighlightMode ? 'text' : 'default',
+            // In highlight mode, allow selection on this element specifically.
+            // WebkitTouchCallout:none suppresses the iOS native Copy/Paste popup
+            // which fires spurious collapsed selectionchange events that kill our
+            // confirm-menu timer.
+            userSelect:           isHighlightMode ? 'text' : 'none',
+            WebkitUserSelect:     isHighlightMode ? 'text' : 'none',
+            // @ts-expect-error non-standard but widely supported on iOS Safari
+            WebkitTouchCallout:   'none',
+            cursor:               isHighlightMode ? 'text' : 'default',
           }}
         >
           <HighlightedText
