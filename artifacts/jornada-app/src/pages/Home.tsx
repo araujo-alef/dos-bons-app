@@ -3,10 +3,10 @@ import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
 import chainImg from '@/assets/chain-wide.png';
 import labiaImg from '@/assets/labia-de-cachorro.png';
+import instaImg from '@/assets/codigo-insta-dominante.png';
 
 const COMING_SOON = [
   { label: 'Mentorias', slug: 'mentorias' },
-  { label: 'IA',        slug: 'ia'        },
 ];
 
 export default function Home() {
@@ -127,6 +127,48 @@ export default function Home() {
                 </div>
               </Link>
             ))}
+
+            {/* Card 4 — Código Insta Dominante */}
+            <Link href="/em-breve/ia" className="aspect-[4/5]" style={{ textDecoration: 'none', display: 'block' }}>
+              <div
+                className="group"
+                style={{
+                  borderRadius: 16,
+                  border:       '1px solid rgba(139,53,255,0.28)',
+                  background:   '#06020d',
+                  width:        '100%',
+                  height:       '100%',
+                  overflow:     'hidden',
+                  position:     'relative',
+                  cursor:       'pointer',
+                }}
+              >
+                <img
+                  src={instaImg}
+                  alt="Código Insta Dominante — Perfil + Posicionamento"
+                  style={{
+                    display:        'block',
+                    width:          '100%',
+                    height:         '100%',
+                    objectFit:      'contain',
+                    objectPosition: 'center 10%',
+                    transition:     'transform 0.3s ease, filter 0.3s ease',
+                  }}
+                  className="group-hover:scale-[1.015] group-hover:brightness-110"
+                />
+                {/* subtle vignette so image blends into dark card */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position:     'absolute',
+                    inset:        0,
+                    borderRadius: 16,
+                    background:   'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 58%, rgba(6,2,13,0.60) 100%)',
+                    pointerEvents:'none',
+                  }}
+                />
+              </div>
+            </Link>
           </div>
         </main>
       </div>

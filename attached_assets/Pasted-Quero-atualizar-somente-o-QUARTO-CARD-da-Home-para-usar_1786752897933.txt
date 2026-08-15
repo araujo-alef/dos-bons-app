@@ -1,0 +1,370 @@
+Quero atualizar somente o QUARTO CARD da Home para usar a nova arte do produto "Código Insta Dominante".
+
+Use a nova imagem gerada como arte principal do quarto card.
+
+O objetivo é substituir o conteúdo visual atual do card por essa nova peça gráfica, mantendo o restante da Home exatamente como está.
+
+IMPORTANTE:
+não alterar o primeiro, segundo ou terceiro card.
+Modificar somente o quarto card.
+
+==================================================
+1. PRODUTO DO QUARTO CARD
+==================================================
+
+O quarto card representa:
+
+CÓDIGO INSTA DOMINANTE
+
+A nova arte já contém:
+
+- identidade visual do produto;
+- logo do Instagram como elemento principal;
+- badge "99+";
+- indicadores de curtidas, mensagens e seguidores;
+- título "Código Insta Dominante";
+- subtítulo "Perfil + Posicionamento".
+
+Portanto, a própria imagem já comunica o produto.
+
+==================================================
+2. REMOVER O CONTEÚDO ANTIGO DO QUARTO CARD
+==================================================
+
+No quarto card, remover visualmente:
+
+- cadeado;
+- texto "IA";
+- badge "EM BREVE";
+- ícone atual;
+- qualquer outro conteúdo de placeholder.
+
+Não deixar esses elementos escondidos atrás da imagem.
+
+Limpar o conteúdo antigo do card sempre que possível.
+
+==================================================
+3. USAR A NOVA IMAGEM COMO ARTE PRINCIPAL
+==================================================
+
+Renderizar a nova imagem do "Código Insta Dominante" dentro do quarto card.
+
+Usar o asset fornecido desta nova arte.
+
+A imagem deve funcionar como uma capa de produto, assim como estamos fazendo no card "Lábia de Cachorro".
+
+==================================================
+4. A IMAGEM DEVE SER O PROTAGONISTA DO CARD
+==================================================
+
+Não renderizar a arte como uma pequena miniatura centralizada.
+
+Quero que ela ocupe praticamente toda a área visual útil do card.
+
+A sensação precisa ser de:
+
+"capa de produto"
+
+e não:
+
+"ícone dentro de um card".
+
+==================================================
+5. PRESERVAR A PROPORÇÃO ORIGINAL
+==================================================
+
+Não distorcer a imagem.
+
+Usar:
+
+object-fit: cover;
+
+ou:
+
+object-fit: contain;
+
+conforme ficar melhor.
+
+A prioridade é preservar:
+
+- logo do Instagram;
+- "99+";
+- título "Código";
+- "Insta Dominante";
+- "Perfil + Posicionamento".
+
+==================================================
+6. CUIDADO COM O CROP
+==================================================
+
+Como o card é vertical e relativamente estreito, testar o enquadramento.
+
+Não cortar:
+
+- topo da logo do Instagram;
+- badge "99+";
+- título principal;
+- subtítulo inferior.
+
+Se `cover` cortar informação demais:
+
+usar `contain`, scale controlado ou solução híbrida.
+
+==================================================
+7. PREENCHER O CARD SEM DEIXAR MARGENS ESTRANHAS
+==================================================
+
+Quero que a arte pareça integrada ao card.
+
+Se `contain` deixar muito espaço vazio:
+
+- aumentar levemente scale;
+- ajustar object-position;
+- usar background do próprio card atrás;
+- aplicar fade discreto nas bordas.
+
+Mas não deformar.
+
+==================================================
+8. FUNDO DO CARD
+==================================================
+
+A imagem já possui fundo preto com roxo/magenta.
+
+Integrar esse fundo ao card.
+
+Se necessário, usar uma máscara ou gradient muito suave nas bordas para evitar a sensação de uma imagem quadrada "colada" dentro do card.
+
+Não adicionar moldura interna.
+
+==================================================
+9. BORDA EXTERNA DO CARD
+==================================================
+
+Preservar:
+
+- border-radius;
+- borda sutil;
+- dimensões;
+- hover;
+- geometria existente.
+
+O card precisa continuar alinhado perfeitamente ao grid.
+
+==================================================
+10. NÃO ADICIONAR TEXTO FORA DA IMAGEM
+==================================================
+
+Não adicionar abaixo ou sobre a arte:
+
+- "Código Insta Dominante";
+- descrição;
+- "Perfil + Posicionamento";
+- "Em breve".
+
+Essas informações já fazem parte da própria imagem.
+
+==================================================
+11. NÃO ADICIONAR GLOW EXAGERADO
+==================================================
+
+A arte já possui bastante glow roxo/magenta.
+
+Não aplicar uma sombra neon grande por fora.
+
+Se existir hover, usar apenas:
+
+- aumento muito leve de brilho;
+- scale sutil;
+- borda um pouco mais visível.
+
+==================================================
+12. HOVER
+==================================================
+
+No desktop, pode manter um efeito discreto.
+
+Sugestão:
+
+image scale:
+1 → 1.015 / 1.02
+
+brightness:
+pequeno aumento.
+
+Sem zoom forte.
+
+==================================================
+13. ESTADO DO PRODUTO
+==================================================
+
+Se o quarto card ainda estiver logicamente marcado como "em breve":
+
+preservar essa lógica interna.
+
+Não liberar funcionalidade nesta tarefa.
+
+Apenas remover o badge visual porque a arte agora representa o produto.
+
+Se o clique atualmente estiver bloqueado ou apontando para teaser, manter esse comportamento.
+
+==================================================
+14. NÃO ALTERAR O SEGUNDO CARD
+==================================================
+
+O segundo card "Lábia de Cachorro" já possui sua própria arte.
+
+Não reaproveitar essa implementação de forma que altere seu enquadramento.
+
+Pode reutilizar componente genérico de product artwork, mas preservar o resultado visual atual.
+
+==================================================
+15. NÃO ALTERAR O CARD DO LIVRO
+==================================================
+
+O primeiro card "Cachorro dos Bons" deve continuar exatamente como está:
+
+- livro;
+- animações;
+- efeitos;
+- transição para leitura.
+
+Não tocar nessa implementação.
+
+==================================================
+16. NÃO ALTERAR O TERCEIRO CARD
+==================================================
+
+O terceiro card continua como está por enquanto.
+
+Não substituir seu conteúdo nesta tarefa.
+
+==================================================
+17. RESPONSIVIDADE
+==================================================
+
+Testar principalmente em:
+
+375px
+390px
+414px
+430px
+
+A nova arte precisa continuar identificável mesmo dentro do grid de duas colunas.
+
+Verificar especialmente a legibilidade de:
+
+"Código"
+
+"Insta Dominante"
+
+"Perfil + Posicionamento"
+
+==================================================
+18. SE O TEXTO FICAR PEQUENO DEMAIS
+==================================================
+
+Se a arte completa ficar muito reduzida:
+
+não aumentar o card.
+
+Ajustar o crop da imagem.
+
+Prioridade visual no mobile:
+
+1. logo do Instagram + 99+
+2. "Código"
+3. "Insta Dominante"
+4. "Perfil + Posicionamento"
+
+O subtítulo inferior pode ficar menor, mas não deve ser cortado completamente.
+
+==================================================
+19. OBJECT-POSITION
+==================================================
+
+Ajustar object-position se necessário.
+
+Provavelmente algo próximo de:
+
+center center
+
+ou ligeiramente mais para cima.
+
+Testar visualmente.
+
+Não assumir automaticamente.
+
+==================================================
+20. PERFORMANCE
+==================================================
+
+Não criar canvas ou background processado.
+
+Usar a imagem otimizada normalmente.
+
+Se o projeto tiver pipeline de assets, seguir o padrão já existente.
+
+==================================================
+21. ACESSIBILIDADE
+==================================================
+
+Adicionar alt apropriado, por exemplo:
+
+"Código Insta Dominante — Perfil + Posicionamento"
+
+Se o card inteiro já possuir nome acessível, evitar redundância desnecessária.
+
+==================================================
+22. RESULTADO ESPERADO DA HOME
+==================================================
+
+A Home deve ficar conceitualmente assim:
+
+CARD 1
+Cachorro dos Bons
+→ livro 3D
+
+CARD 2
+Lábia de Cachorro
+→ arte do mascote
+→ Comunidade + Aulas
+
+CARD 3
+permanece como está
+
+CARD 4
+Código Insta Dominante
+→ arte com logo do Instagram
+→ 99+
+→ interações sociais
+→ título do produto
+→ Perfil + Posicionamento
+
+==================================================
+23. CRITÉRIO DE ACEITE
+==================================================
+
+A alteração está correta se:
+
+- somente o quarto card mudou;
+- cadeado antigo sumiu;
+- texto "IA" sumiu;
+- "EM BREVE" visual sumiu;
+- nova arte ocupa o card de maneira forte;
+- imagem não está deformada;
+- logo do Instagram continua visível;
+- badge 99+ continua visível;
+- nome do produto continua legível;
+- card mantém exatamente o mesmo tamanho do grid;
+- primeiro, segundo e terceiro cards continuam inalterados.
+
+==================================================
+24. PRINCÍPIO VISUAL
+==================================================
+
+Quero que esse card deixe de parecer um placeholder e passe a parecer uma capa oficial de produto.
+
+Não criar novos elementos ao redor da arte.
+
+Use a imagem fornecida como protagonista e integre-a ao card da forma mais limpa possível.
