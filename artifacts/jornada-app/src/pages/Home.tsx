@@ -5,7 +5,7 @@ import { ChainBreakParticles } from '@/components/ChainBreakParticles';
 import chainImg      from '@/assets/chain-wide.png';
 import labiaNovaImg  from '@/assets/labia-de-cachorro-nova.png';
 import labiaImg      from '@/assets/labia-de-cachorro.png';
-import instaImg      from '@/assets/codigo-insta-dominante.png';
+import instaImg      from '@/assets/codigo-insta-dominante-hq.png';
 
 export default function Home() {
   return (
