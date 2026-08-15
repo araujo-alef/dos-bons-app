@@ -37,11 +37,11 @@ function injectCSS() {
    Partículas disparam em 36–44% do loop, shake acontece na mesma janela. */
 @keyframes lpc-shake {
   0%,  35%   { transform: translateX(0)       rotate(0deg);    }
-  37%        { transform: translateX(-3px)    rotate(-0.4deg); }
-  38.5%      { transform: translateX(3px)     rotate(0.4deg);  }
-  40%        { transform: translateX(-2px)    rotate(-0.3deg); }
-  41.5%      { transform: translateX(2px)     rotate(0.3deg);  }
-  43%        { transform: translateX(-0.8px)  rotate(-0.1deg); }
+  37%        { transform: translateX(-6px)    rotate(-0.7deg); }
+  38.5%      { transform: translateX(6px)     rotate(0.7deg);  }
+  40%        { transform: translateX(-4px)    rotate(-0.5deg); }
+  41.5%      { transform: translateX(4px)     rotate(0.5deg);  }
+  43%        { transform: translateX(-1.5px)  rotate(-0.15deg); }
   44%, 100%  { transform: translateX(0)       rotate(0deg);    }
 }
 .lpc-shake {
