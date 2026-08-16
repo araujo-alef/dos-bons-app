@@ -43,7 +43,7 @@
  *  controls.start() call.
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * PHASE TIMELINE  (total ≈ 2.0 s)
+ * PHASE TIMELINE  (total ≈ 1.9 s)
  * ═══════════════════════════════════════════════════════════════════════════
  *
  *   idle           shell at card pos — waits for paint
@@ -52,9 +52,11 @@
  *   centering      790–890ms 100ms stabilisation pause
  *   crossfading    890–1010ms 120ms BookFlightObject → OpeningBookStage
  *   opening        1010–1410ms cover rotateY 0 → -105° (400ms)
- *   flippingBack   1210–1730ms pages stagger (overlaps opening tail)
- *   zooming        1730–2030ms shell expands to fill viewport (300ms)
- *   revealingReader 2030ms   navigate + shell fades (150ms)
+ *   flippingBack   1210–1655ms pages stagger (overlaps opening tail);
+ *                             lasts exactly FLIP_TOTAL_MS so the zoom starts
+ *                             on the frame the last page lands — no dead gap
+ *   zooming        1655–1955ms shell expands to fill viewport (300ms)
+ *   revealingReader 1955ms   navigate + shell fades (150ms)
  *   complete       clearTransition
  */
 
@@ -62,7 +64,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'wouter';
 import { motion, useAnimationControls } from 'framer-motion';
-import bookImg from '@/assets/book-3d-v3.png';
+import bookImg from '@/assets/book-3d-v3.webp';
 import { useBookTransition } from '@/context/BookTransitionContext';
 
 /* ─── Phase ──────────────────────────────────────────────────────────────── */
@@ -79,6 +81,17 @@ type Phase =
   | 'complete';
 
 const NUM_FLIP = 6;
+
+/* Page-flip timing. Each page starts FLIP_STAGGER_S after the previous one
+ * and takes FLIP_DURATION_S to swing — so the LAST page lands at
+ * FLIP_TOTAL_MS. The zoom phase waits exactly that long, no more: any extra
+ * would show a frozen book between the flip finishing and the expansion
+ * starting. Derived, not hard-coded, so changing NUM_FLIP or either timing
+ * can't silently reintroduce that gap. */
+const FLIP_STAGGER_S  = 0.045;
+const FLIP_DURATION_S = 0.22;
+const FLIP_TOTAL_MS   = Math.round(((NUM_FLIP - 1) * FLIP_STAGGER_S + FLIP_DURATION_S) * 1000);
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /* ─── FlipPage helpers ───────────────────────────────────────────────────── */
@@ -148,7 +161,11 @@ function FlipPage({ index, phase }: { index: number; phase: Phase }) {
       initial={{ rotateY: 0, opacity: 0 }}
       animate={{ rotateY: flipping ? -160 : 0, opacity: visible ? 1 : 0 }}
       transition={{
-        rotateY: { duration: 0.22, delay: flipping ? index * 0.045 : 0, ease: 'easeInOut' },
+        rotateY: {
+          duration: FLIP_DURATION_S,
+          delay:    flipping ? index * FLIP_STAGGER_S : 0,
+          ease:     'easeInOut',
+        },
         opacity: { duration: 0.08 },
       }}
       style={{
@@ -518,7 +535,7 @@ function BookTransitionShell() {
 
         /* ── flippingBack — stagger via phase state ─────────────────────── */
         setPhase('flippingBack');
-        await sleep(520);
+        await sleep(FLIP_TOTAL_MS); // exactly when the last page lands
         if (cancelledRef.current) return;
 
         /* ── zooming — shell expands to fill viewport (300ms) ──────────── */

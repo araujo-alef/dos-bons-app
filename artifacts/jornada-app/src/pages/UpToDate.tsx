@@ -21,12 +21,12 @@ export default function UpToDate() {
           A próxima etapa está chegando.
         </p>
 
-        <Link 
-          href="/" 
-          data-testid="link-revisit-chapters"
+        <Link
+          href="/"
+          data-testid="link-revisit-lessons"
           className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors group no-underline"
         >
-          <span className="group-hover:underline underline-offset-4 decoration-white/30">Revisitar capítulos</span>
+          <span className="group-hover:underline underline-offset-4 decoration-white/30">Voltar ao início</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>

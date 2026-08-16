@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useLocation } from 'wouter';
-import book3dV3 from '@/assets/book-3d-v3.png';
-import { CURRENT_CHAPTER_ID } from '@/mocks/config';
+import book3dV3 from '@/assets/book-3d-v3.webp';
+import { CURRENT_LESSON_ID } from '@/mocks/config';
 import { useBookTransition } from '@/context/BookTransitionContext';
 
 
@@ -76,7 +76,7 @@ export function JourneyCard() {
   const bookImgRef = useRef<HTMLImageElement>(null);
   const [, setLocation] = useLocation();
   const { startTransition, isTransitioning } = useBookTransition();
-  const targetPath = `/jornada/capitulo/${CURRENT_CHAPTER_ID}`;
+  const targetPath = `/jornada/licao/${CURRENT_LESSON_ID}`;
 
   function handleClick() {
     if (isTransitioning) return;

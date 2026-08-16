@@ -10,9 +10,9 @@ interface HighlightSelectionMenuProps {
 
 /**
  * Action menu shown after a text selection in highlight mode.
- * Always anchored just above the bottom bar so it never clips on mobile.
- * The toolbar collapsed button sits at calc(26px + safe-area) from bottom
- * and is ~40 px tall, so we place the menu 16 px above that.
+ * Takes over the exact slot the brush/eraser picker occupies — the two are
+ * mutually exclusive (see BookReader), so they share one position just
+ * above the reader toolbar rather than stacking.
  */
 export function HighlightSelectionMenu({
   onSave, onNote, onCancel,
@@ -38,7 +38,7 @@ export function HighlightSelectionMenu({
         onClick={e => e.stopPropagation()}
         style={{
           position:  'fixed',
-          bottom:    'calc(82px + env(safe-area-inset-bottom, 0px))',
+          bottom:    'calc(88px + env(safe-area-inset-bottom, 0px))',
           left:      '50%',
           transform: 'translateX(-50%)',
           zIndex:    151,
@@ -52,7 +52,7 @@ export function HighlightSelectionMenu({
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           boxShadow:  '0 4px 28px rgba(0,0,0,0.55)',
-          animation:  'toolbar-expand 0.20s cubic-bezier(0.34,1.56,0.64,1) both',
+          animation:  'toolbar-expand-centered 0.20s cubic-bezier(0.34,1.56,0.64,1) both',
           whiteSpace: 'nowrap',
         }}
       >

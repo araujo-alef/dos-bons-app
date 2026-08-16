@@ -1,20 +1,21 @@
 /**
- * LabiaPremiumCard — Card 2 da Home: "Lábia de Cachorro" apresentado como
- * objeto premium flutuando dentro do card.
+ * LabiaPremiumCard — Card 2 da Home: "Lábia de Cachorro".
+ *
+ * A arte já É um baralho renderizado em 3D, então o card não desenha mais
+ * nenhum objeto por baixo dela: a moldura de "livro" que existia aqui
+ * (espessura lateral, perspectiva, borda/sombra de capa, vignette) foi
+ * removida — ela duplicava a profundidade que a própria imagem traz.
  *
  * Camadas:
  *   Card (fundo escuro, overflow:hidden)
- *   └─ AmbientGlow          (radial vermelho atrás do objeto)
- *   └─ ProjectedShadow      (blob abaixo do objeto)
- *   └─ PerspectiveWrapper   (rotateY/X/Z + scale; React-controlled p/ hover)
- *         ├─ DepthEdge      (espessura lateral dark-red)
- *         └─ FloatWrapper   (translateY + micro rotateZ — CSS anim)
- *               └─ ShakeWrapper (vibração sincronizada com partículas — CSS anim)
- *                     └─ FrontFace (imagem + vignette + partículas)
+ *   └─ AmbientGlow      (radial vermelho de atmosfera)
+ *   └─ FloatWrapper     (translateY + micro rotateZ — CSS anim)
+ *         └─ ShakeWrapper (vibração sincronizada com partículas — CSS anim)
+ *               └─ ArtBox (imagem + partículas no ponto de ruptura)
  */
 import { useState, useEffect } from 'react';
 import { ChainBreakParticles } from './ChainBreakParticles';
-import labiaNovaImg from '@/assets/labia-de-cachorro-nova.png';
+import labiaNovaImg from '@/assets/labia-baralho-v2.webp';
 
 const STYLE_ID = 'lpc-css';
 
@@ -49,21 +50,10 @@ function injectCSS() {
   will-change: transform;
 }
 
-/* Sombra acompanha o float */
-@keyframes lpc-shadow {
-  0%, 100% { transform: translateX(-50%) scaleX(1);    opacity: 0.70; }
-  50%       { transform: translateX(-50%) scaleX(0.88); opacity: 0.45; }
-}
-.lpc-shadow {
-  animation: lpc-shadow 5s ease-in-out infinite;
-  will-change: transform, opacity;
-}
-
-/* Reduced-motion: remove animações, mantém profundidade estática */
+/* Reduced-motion: remove animações, mantém a arte estática */
 @media (prefers-reduced-motion: reduce) {
   .lpc-float  { animation: none; }
   .lpc-shake  { animation: none; }
-  .lpc-shadow { animation: none; }
 }
   `;
   document.head.appendChild(s);
@@ -72,10 +62,6 @@ function injectCSS() {
 export function LabiaPremiumCard() {
   useEffect(() => { injectCSS(); }, []);
   const [hovered, setHovered] = useState(false);
-
-  const perspectiveTransform = hovered
-    ? 'perspective(1000px) rotateY(-6deg) rotateX(2deg) rotateZ(-1deg) translateY(-2px) scale(1.018)'
-    : 'perspective(1000px) rotateY(-6deg) rotateX(2deg) rotateZ(-1deg) scale(1)';
 
   return (
     <div
@@ -106,89 +92,50 @@ export function LabiaPremiumCard() {
         }}
       />
 
-      {/* Sombra projetada */}
+      {/* Float wrapper */}
       <div
-        aria-hidden="true"
-        className="lpc-shadow"
-        style={{
-          position: 'absolute', bottom: '3%', left: '50%',
-          width: '72%', height: 20, zIndex: 1,
-          background: 'radial-gradient(ellipse 100% 100% at 50% 0%, rgba(40,0,0,0.60) 0%, transparent 100%)',
-          filter: 'blur(7px)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Wrapper de perspectiva (React-controlled) */}
-      <div
-        style={{
-          width: '84%',
-          aspectRatio: '1122 / 1402',
-          position: 'relative',
-          transform: perspectiveTransform,
-          transition: 'transform 0.38s cubic-bezier(0.25, 0.1, 0.25, 1)',
-          zIndex: 2,
-        }}
+        className="lpc-float"
+        style={{ position: 'relative', height: '100%', zIndex: 2 }}
       >
-        {/* Espessura lateral */}
+        {/* Shake wrapper — sincronizado com partículas */}
         <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            borderRadius: 8,
-            background: 'linear-gradient(150deg, #5c1010 0%, #2e0707 55%, #110202 100%)',
-            transform: 'translate(7px, 5px)',
-          }}
-        />
-
-        {/* Float wrapper */}
-        <div
-          className="lpc-float"
-          style={{ position: 'relative', width: '100%', height: '100%', zIndex: 1 }}
+          className="lpc-shake"
+          style={{ position: 'relative', height: '100%' }}
         >
-          {/* Shake wrapper — sincronizado com partículas */}
+          {/* Caixa da arte.
+              aspectRatio casa exatamente com a proporção nativa do arquivo
+              (640×960). Isso não é cosmético: com objectFit:'cover', qualquer
+              divergência recortaria a arte em silêncio E deslocaria as
+              partículas, cujo left/top é percentual DESTA caixa. Casando a
+              proporção, porcentagem daqui = porcentagem da imagem. */}
           <div
-            className="lpc-shake"
-            style={{ position: 'relative', width: '100%', height: '100%' }}
+            style={{
+              position: 'relative',
+              height: '100%',
+              aspectRatio: '640 / 960',
+              overflow: 'hidden',
+            }}
           >
-            {/* Face frontal */}
-            <div
+            <img
+              src={labiaNovaImg}
+              alt="Lábia de Cachorro — Comunidade + Aulas"
               style={{
-                position: 'relative', width: '100%', height: '100%',
-                borderRadius: 7, overflow: 'hidden',
-                border: '1px solid rgba(185,28,28,0.22)',
-                boxShadow: hovered
-                  ? '0 16px 38px rgba(0,0,0,0.70), 0 5px 14px rgba(90,0,0,0.32)'
-                  : '0 10px 28px rgba(0,0,0,0.60), 0 3px 10px rgba(80,0,0,0.22)',
-                transition: 'box-shadow 0.38s ease',
+                display: 'block', width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center center',
+                filter: hovered ? 'brightness(1.06)' : 'brightness(1)',
+                transition: 'filter 0.35s ease',
               }}
-            >
-              <img
-                src={labiaNovaImg}
-                alt="Lábia de Cachorro — A lábia que faz ela correr atrás"
-                style={{
-                  display: 'block', width: '100%', height: '100%',
-                  objectFit: 'cover', objectPosition: 'center center',
-                  filter: hovered ? 'brightness(1.06)' : 'brightness(1)',
-                  transition: 'filter 0.35s ease',
-                }}
-              />
+            />
 
-              {/* Vignette interna */}
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'absolute', inset: 0, pointerEvents: 'none',
-                  background: 'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 52%, rgba(4,1,1,0.50) 100%)',
-                }}
-              />
-
-              {/* Partículas de quebra da corrente */}
-              <ChainBreakParticles left="50%" top="54%" />
-            </div>
+            {/* Partículas de quebra da corrente.
+                Nesta arte o baralho é aberto em leque e a carta da frente
+                fica à direita: o estilhaço entre as presas está em
+                x≈690/1024, y≈975/1535 — daí 67%/63.5%. */}
+            <ChainBreakParticles left="67%" top="63.5%" />
           </div>
         </div>
       </div>
+
     </div>
   );
 }

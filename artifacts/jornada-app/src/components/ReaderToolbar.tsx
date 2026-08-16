@@ -1,15 +1,12 @@
-import { ArrowLeft, Highlighter, BookMarked, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Highlighter, BookMarked } from 'lucide-react';
 
 export type ReaderMode = 'reading' | 'highlighting';
 
 interface ReaderToolbarProps {
   mode:               ReaderMode;
-  expanded:           boolean;
-  onExpand:           (e: React.MouseEvent) => void;
   onExit:             (e: React.MouseEvent) => void;
   onHighlight:        (e: React.MouseEvent) => void;
   onViewHighlights:   (e: React.MouseEvent) => void;
-  onCollapse:         (e: React.MouseEvent) => void;
 }
 
 /** Wraps a handler so the click doesn't bubble to the reader */
@@ -18,9 +15,14 @@ const sp = (fn: (e: React.MouseEvent) => void) => (e: React.MouseEvent) => {
   fn(e);
 };
 
+/**
+ * Always-expanded reader toolbar. The collapsed pill (and its expand/
+ * collapse toggle) is gone for now — the bar is permanently visible, and
+ * every page reserves TOOLBAR_CLEARANCE_PX at the bottom for it, so text
+ * is never covered regardless of state.
+ */
 export function ReaderToolbar({
-  mode, expanded,
-  onExpand, onExit, onHighlight, onViewHighlights, onCollapse,
+  mode, onExit, onHighlight, onViewHighlights,
 }: ReaderToolbarProps) {
   const isHighlighting = mode === 'highlighting';
 
@@ -28,7 +30,7 @@ export function ReaderToolbar({
     <div
       style={{
         position:   'absolute',
-        bottom:     'calc(26px + env(safe-area-inset-bottom, 0px))',
+        bottom:     'calc(18px + env(safe-area-inset-bottom, 0px))',
         left:       '50%',
         transform:  'translateX(-50%)',
         zIndex:     20,
@@ -38,77 +40,40 @@ export function ReaderToolbar({
       onTouchStart={e => e.stopPropagation()}
       onTouchEnd={e => e.stopPropagation()}
     >
-      {!expanded ? (
-        /* ── Collapsed trigger ─────────────────────────────────────────── */
-        <button
-          onClick={sp(onExpand)}
-          aria-label="Abrir controles de leitura"
-          style={{
-            display:        'flex',
-            alignItems:     'center',
-            gap:            '3px',
-            padding:        '10px 22px',
-            background:     'rgba(8,6,11,0.70)',
-            border:         '1px solid rgba(255,255,255,0.08)',
-            borderRadius:   '100px',
-            cursor:         'pointer',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-          }}
-        >
-          {[0,1,2].map(i => (
-            <div key={i} style={{
-              width:        i === 1 ? '16px' : '4px',
-              height:       '2px',
-              borderRadius: '2px',
-              background:   'rgba(255,255,255,0.40)',
-            }} />
-          ))}
-        </button>
-      ) : (
-        /* ── Expanded toolbar ──────────────────────────────────────────── */
-        <div
-          style={{
-            display:        'flex',
-            alignItems:     'center',
-            gap:            '2px',
-            padding:        '6px 8px',
-            background:     'rgba(8,6,11,0.90)',
-            border:         '1px solid rgba(255,255,255,0.12)',
-            borderRadius:   '100px',
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-            boxShadow:      '0 4px 28px rgba(0,0,0,0.45)',
-            animation:      'toolbar-expand 0.22s cubic-bezier(0.34,1.56,0.64,1) both',
-          }}
-        >
-          <Btn
-            icon={<ArrowLeft size={13} />}
-            label="Sair"
-            onClick={sp(onExit)}
-          />
-          <Sep />
-          <Btn
-            icon={<Highlighter size={13} />}
-            label={isHighlighting ? 'Modo destaque' : 'Destacar'}
-            onClick={sp(onHighlight)}
-            active={isHighlighting}
-            aria-pressed={isHighlighting}
-          />
-          <Sep />
-          <Btn
-            icon={<BookMarked size={13} />}
-            label="Destaques"
-            onClick={sp(onViewHighlights)}
-          />
-          <Sep />
-          <Btn
-            icon={<ChevronDown size={13} />}
-            label="Recolher"
-            onClick={sp(onCollapse)}
-          />
-        </div>
-      )}
+      <div
+        style={{
+          display:        'flex',
+          alignItems:     'center',
+          gap:            '2px',
+          padding:        '6px 8px',
+          background:     'rgba(8,6,11,0.90)',
+          border:         '1px solid rgba(255,255,255,0.12)',
+          borderRadius:   '100px',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          boxShadow:      '0 4px 28px rgba(0,0,0,0.45)',
+        }}
+      >
+        <Btn
+          icon={<ArrowLeft size={13} />}
+          label="Sair"
+          onClick={sp(onExit)}
+        />
+        <Sep />
+        <Btn
+          icon={<Highlighter size={13} />}
+          label={isHighlighting ? 'Modo destaque' : 'Destacar'}
+          onClick={sp(onHighlight)}
+          active={isHighlighting}
+          aria-pressed={isHighlighting}
+        />
+        <Sep />
+        <Btn
+          icon={<BookMarked size={13} />}
+          label="Destaques"
+          onClick={sp(onViewHighlights)}
+        />
+      </div>
     </div>
   );
 }

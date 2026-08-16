@@ -1,12 +1,51 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { AppHeader } from '@/components/AppHeader';
 import { JourneyCard } from '@/components/JourneyCard';
 import { LabiaPremiumCard } from '@/components/LabiaPremiumCard';
-import chainImg      from '@/assets/chain-wide.png';
-import labiaImg      from '@/assets/labia-de-cachorro.png';
-import instaImg      from '@/assets/codigo-insta-dominante-hq.png';
+import { HomeSplash } from '@/components/HomeSplash';
+import { useImagePreload } from '@/hooks/useImagePreload';
+import { HOME_IMAGES } from '@/lib/preloadImages';
+import chainImg      from '@/assets/chain-wide.webp';
+import labiaImg      from '@/assets/labia-app-splash-v2.webp';
+import instaImg      from '@/assets/codigo-insta-dominante-hq.webp';
 
 export default function Home() {
+  const { ready, progress } = useImagePreload(HOME_IMAGES);
+  // Kept mounted through the fade-out so the splash dissolves into the home
+  // rather than cutting to it.
+  const [splashMounted, setSplashMounted] = useState(!ready);
+
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => setSplashMounted(false), 340); // ≥ fade duration
+    return () => clearTimeout(t);
+  }, [ready]);
+
+  // The home is MOUNTED from the very first frame and merely hidden behind
+  // the splash — never gated on `ready`. That distinction is the whole
+  // point: gating the mount means the real <img> elements are only created
+  // once the splash goes away, so the browser re-does the fetch validation
+  // and (crucially) the decode right when the user is looking. Mounting up
+  // front lets both happen behind the splash, so the reveal is just an
+  // opacity change over pixels that are already painted.
+  return (
+    <>
+      {splashMounted && <HomeSplash progress={progress} leaving={ready} />}
+      <div
+        aria-hidden={!ready}
+        style={{
+          opacity:    ready ? 1 : 0,
+          transition: 'opacity 240ms ease-out',
+        }}
+      >
+        <HomeContent />
+      </div>
+    </>
+  );
+}
+
+function HomeContent() {
   return (
     <div className="relative min-h-[100dvh] w-full pb-14" style={{ background: '#050505' }}>
 
@@ -40,7 +79,7 @@ export default function Home() {
               <div className="group" style={{ borderRadius:16, border:'1px solid rgba(139,53,255,0.28)', background:'#08060b', width:'100%', height:'100%', overflow:'hidden', position:'relative', cursor:'pointer' }}>
                 <img
                   src={labiaImg}
-                  alt="Lábia de Cachorro — Comunidade + Aulas"
+                  alt="Lábia de Cachorro — App"
                   style={{ display:'block', width:'100%', height:'100%', objectFit:'contain', objectPosition:'center', transition:'transform 0.3s ease, filter 0.3s ease' }}
                   className="group-hover:scale-[1.02] group-hover:brightness-110"
                 />

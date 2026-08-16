@@ -1,17 +1,17 @@
 import { Link } from 'wouter';
 import { ArrowRight } from 'lucide-react';
 import type { JourneyState } from '@/mocks/config';
-import type { Chapter } from '@/mocks/data';
+import type { Lesson } from '@/mocks/data';
 // Full spread image — we'll crop to show only the front cover (right half)
 import bookSpreadImg from '@assets/image_1786597575668.png';
 
 interface JourneyHeroProps {
   state: JourneyState;
-  currentChapter?: Chapter;
+  currentLesson?: Lesson;
   completedCount: number;
 }
 
-export function JourneyHero({ state, currentChapter, completedCount }: JourneyHeroProps) {
+export function JourneyHero({ state, currentLesson, completedCount }: JourneyHeroProps) {
   let label = '';
   let title = '';
   let subtext = '';
@@ -21,23 +21,23 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
   switch (state) {
     case 'notStarted':
       label = 'COMECE SUA JORNADA';
-      title = currentChapter?.title || 'Fundamentos';
+      title = currentLesson?.title || 'Fundamentos';
       break;
-    case 'newChapterAvailable':
+    case 'newLessonAvailable':
       showNewBadge = true;
       label = 'CONTINUE DE ONDE PAROU';
-      title = currentChapter?.title || 'Capítulo Atual';
-      subtext = `${completedCount} capítulos concluídos`;
+      title = currentLesson?.title || 'Lição Atual';
+      subtext = `${completedCount} lições concluídas`;
       break;
     case 'inProgress':
       label = 'CONTINUE DE ONDE PAROU';
-      title = currentChapter?.title || 'Capítulo Atual';
-      subtext = `${completedCount} capítulos concluídos`;
+      title = currentLesson?.title || 'Lição Atual';
+      subtext = `${completedCount} lições concluídas`;
       break;
     case 'upToDate':
       label = 'VOCÊ ESTÁ EM DIA';
       title = 'A próxima etapa está chegando';
-      subtext = `${completedCount} capítulos concluídos`;
+      subtext = `${completedCount} lições concluídas`;
       break;
   }
 
@@ -85,7 +85,7 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
           <div style={{ marginBottom: '10px' }}>
             {showNewBadge && (
               <span className="text-[9px] font-bold tracking-[0.2em] text-primary border border-primary/30 px-2 py-0.5 rounded-sm inline-block mb-2">
-                NOVO CAPÍTULO
+                NOVA LIÇÃO
               </span>
             )}
             <p className="text-[9px] font-bold tracking-[0.22em] text-primary/75 leading-none m-0">
@@ -93,7 +93,7 @@ export function JourneyHero({ state, currentChapter, completedCount }: JourneyHe
             </p>
           </div>
 
-          {/* GROUP 2 — Chapter title (dominant, breathes top & bottom) */}
+          {/* GROUP 2 — Lesson title (dominant, breathes top & bottom) */}
           <div style={{ marginBottom: '14px' }}>
             <h2
               className="font-serif text-white leading-tight m-0"
