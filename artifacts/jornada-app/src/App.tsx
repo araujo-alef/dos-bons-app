@@ -12,6 +12,7 @@ import ComingSoon from '@/pages/ComingSoon';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
+import LabiaDeCachorro from '@/pages/LabiaDeCachorro';
 import { BookTransitionProvider } from '@/context/BookTransitionContext';
 import { BookTransitionOverlay } from '@/components/BookTransitionOverlay';
 import { AuthProvider } from '@/context/AuthContext';
@@ -39,6 +40,11 @@ function Router() {
         <Route path="/cadastro"        component={Register} />
         <Route path="/recuperar-senha" component={ForgotPassword} />
         <Route path="/em-breve/:slug"  component={ComingSoon} />
+
+        {/* ── Produto: Lábia de Cachorro ── */}
+        <Route path="/labia-de-cachorro">
+          {() => <RequireAuthOnly><LabiaDeCachorro /></RequireAuthOnly>}
+        </Route>
 
         {/* ── Protected routes — require Firebase auth ── */}
         <Route path="/jornada/licao/:id">

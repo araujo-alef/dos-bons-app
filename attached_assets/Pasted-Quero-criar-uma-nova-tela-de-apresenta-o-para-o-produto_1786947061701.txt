@@ -1,0 +1,208 @@
+Quero criar uma nova tela de apresentação para o produto “Lábia de Cachorro”, que é o produto do segundo card da home.
+
+IMPORTANTE:
+essa tela pode ser simples por enquanto, com foco visual e de conversão.
+Não precisa implementar fluxo complexo agora.
+Quero apenas a tela de apresentação bem montada, responsiva e visualmente coerente com o restante do app.
+
+==================================================
+OBJETIVO DA TELA
+==================================================
+
+Essa tela representa o produto “Lábia de Cachorro”.
+
+A proposta do produto é:
+- acesso a uma comunidade;
+- acesso a videoaulas;
+- sensação de conteúdo exclusivo / fechado;
+- reforço visual de que o usuário precisa entrar para desbloquear tudo.
+
+Quero uma tela que passe essa ideia de:
+“produto exclusivo, com comunidade e aulas, bloqueado até o usuário entrar”.
+
+==================================================
+ESTRUTURA GERAL
+==================================================
+
+A tela deve seguir a identidade visual do app:
+
+- fundo escuro;
+- estética premium;
+- coerente com a paleta já usada no projeto;
+- preto profundo como base;
+- roxo/lilás como destaque principal da identidade;
+- pode usar vermelho escuro em detalhes sutis se fizer sentido;
+- visual moderno, elegante e um pouco misterioso.
+
+A composição da tela deve ser simples e clara:
+
+1. imagem principal no topo;
+2. abaixo dela, dois prints do grupo/comunidade;
+3. por cima ou na área inferior da composição, um overlay cinza/translúcido com cadeado e texto de CTA;
+4. botão de entrada/acesso, se fizer sentido;
+5. tudo com bom espaçamento e ótima leitura no mobile.
+
+==================================================
+SEÇÃO 1 — IMAGEM PRINCIPAL NO TOPO
+==================================================
+
+No topo da tela, quero uma imagem/banner principal.
+
+Essa imagem deve simular:
+- notificações;
+- videoaulas;
+- sensação de que existem conteúdos liberados dentro do produto.
+
+Pode ser uma composição visual com:
+- mini cards ou thumbnails de aulas;
+- pequenas notificações;
+- elementos que remetam a conteúdo liberado;
+- algo como “nova aula”, “conteúdo disponível”, “aula liberada”, mas sem exagerar no texto.
+
+Essa imagem deve ocupar o topo com destaque.
+Ela deve parecer premium e fazer sentido com o universo do produto.
+
+Se ainda não houver assets prontos, pode usar uma composição mockada temporária coerente com a identidade do app, desde que fique bonita e consistente.
+
+==================================================
+SEÇÃO 2 — PRINTS DA COMUNIDADE
+==================================================
+
+Abaixo da imagem principal, quero exibir 2 prints do grupo/comunidade.
+
+Objetivo:
+dar sensação de comunidade ativa e conteúdo vivo.
+
+Esses prints devem ser mostrados como prévias visuais, podendo ser:
+- um abaixo do outro;
+- ou levemente sobrepostos;
+- ou dentro de cards com borda suave.
+
+Não quero algo poluído.
+Quero algo bonito, elegante e que ajude a comunicar:
+“existe uma comunidade real ali dentro”.
+
+Se os prints reais ainda não existirem, criar placeholders visuais temporários que simulem trechos da comunidade, sem exagerar em texto.
+
+==================================================
+SEÇÃO 3 — OVERLAY DE BLOQUEIO / GATE
+==================================================
+
+Quero um overlay cinza/translúcido por cima ou parcialmente sobre a área dos prints / conteúdo.
+
+Esse overlay precisa comunicar bloqueio, exclusividade e acesso restrito.
+
+Características do overlay:
+- fundo cinza escuro / translúcido / vidro fosco;
+- aparência elegante, não pesada;
+- deve deixar o conteúdo visível por trás, mas parcialmente bloqueado;
+- bordas arredondadas;
+- leve blur/backdrop-filter se já estiver sendo usado no projeto.
+
+Dentro do overlay, quero:
+
+1. um ícone de cadeado meio aberto
+   - não totalmente fechado;
+   - ideia de “quase liberado”, “entre para desbloquear”.
+
+2. um texto principal de CTA, algo como:
+   “Entre na comunidade agora e tenha acesso ao grupo e às aulas”
+
+Você pode ajustar a redação para soar mais natural e impactante, mas manter esse sentido.
+
+Sugestões aceitáveis de texto:
+- “Entre na comunidade agora e tenha acesso ao grupo e às aulas.”
+- “Desbloqueie agora o grupo e as aulas da comunidade.”
+- “Entre agora e libere a comunidade e todas as aulas.”
+
+Escolha a melhor versão visualmente.
+
+3. opcionalmente um botão de CTA, por exemplo:
+- “Entrar agora”
+- “Quero acessar”
+- “Desbloquear acesso”
+
+==================================================
+COMPORTAMENTO
+==================================================
+
+Por enquanto, essa tela pode ser estática/visual.
+
+Mas já quero a estrutura preparada para:
+- receber imagens reais depois;
+- conectar um CTA com link/rota no futuro;
+- evoluir sem retrabalho.
+
+Se já existir navegação pelo card da home, faça o card “Lábia de Cachorro” abrir essa nova tela.
+
+==================================================
+LAYOUT E EXPERIÊNCIA
+==================================================
+
+Quero foco total em mobile first, mas a tela também deve ficar boa no desktop.
+
+No mobile:
+- bom respiro entre elementos;
+- imagem principal bem posicionada;
+- prints legíveis;
+- overlay com destaque;
+- CTA claro e fácil de tocar.
+
+No desktop:
+- pode centralizar a composição;
+- limitar largura máxima;
+- manter cara premium.
+
+==================================================
+ESTILO VISUAL
+==================================================
+
+Direção visual:
+- sofisticado;
+- escuro;
+- exclusivo;
+- levemente sensual / misterioso;
+- coerente com o nicho de desenvolvimento pessoal, sedução e comunidade privada;
+- sem parecer uma landing page genérica.
+
+Evitar:
+- excesso de texto;
+- excesso de brilho;
+- poluição visual;
+- visual barato/promocional.
+
+==================================================
+IMPLEMENTAÇÃO
+==================================================
+
+Quero que você:
+
+1. analise a estrutura atual do projeto;
+2. crie essa nova tela/componentes com a menor quebra possível;
+3. conecte o segundo card da home a essa nova tela;
+4. use componentes reutilizáveis se fizer sentido;
+5. mantenha o padrão do projeto.
+
+Se precisar criar placeholders temporários para:
+- imagem principal;
+- prints da comunidade;
+- cadeado;
+
+você pode criar mockups visuais temporários, desde que deixe a estrutura pronta para eu substituir depois.
+
+==================================================
+ENTREGA
+==================================================
+
+Ao final, me informe:
+
+1. quais arquivos/componentes foram criados;
+2. como o segundo card foi conectado a essa tela;
+3. onde substituir futuramente:
+   - a imagem principal;
+   - os 2 prints da comunidade;
+   - o texto do CTA;
+   - o link/botão de acesso.
+
+Não faça mudanças desnecessárias fora desse escopo.
+Quero essa nova tela bem montada, limpa, bonita e pronta para evolução.

@@ -69,10 +69,10 @@ function HomeContent() {
             {/* ── Card 1: Cachorro dos Bons ──────────────────────────── */}
             <JourneyCard />
 
-            {/* ── Card 2: Lábia de Cachorro — premium 3D object ─────── */}
-            <a href="https://pay.cakto.com.br/xuqc3on_733124" target="_blank" rel="noopener noreferrer" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
+            {/* ── Card 2: Lábia de Cachorro — abre tela de apresentação ── */}
+            <Link href="/labia-de-cachorro" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
               <LabiaPremiumCard />
-            </a>
+            </Link>
 
             {/* ── Card 3: mascote roxo (antigo card 2) ──────────────── */}
             <a href="https://start.labiadecachorro.com/?utm_source=solo.to&sck=1786943312736_17869424946624" target="_blank" rel="noopener noreferrer" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
