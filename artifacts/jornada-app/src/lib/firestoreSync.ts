@@ -83,13 +83,22 @@ export function clearLocalSession(): void {
 export async function performInitialSync(uid: string): Promise<void> {
   // ── Guard: evict a different user's cache ─────────────────────────────────
   const storedUid = getStoredSessionUid();
-  if (storedUid !== uid) {
-    // Either a new user on this device, or the first time we track the uid.
-    // Either way, the existing cache must not be used or migrated.
-    clearLocalHighlightsCache();
-    clearLocalProgressCache();
-    // (sentinel is stale/absent — we set it at the end of a successful sync)
+
+  if (storedUid === uid) {
+    // Same user, same device — localStorage is already populated from the last
+    // session. No need to hit Firestore again; return immediately so
+    // syncReady becomes true without any network round-trip.
+    //
+    // Note: cross-device sync (edits on another device) is not handled here yet.
+    // When that matters, replace this early-return with a background fetch that
+    // merges Firestore state without blocking the UI.
+    return;
   }
+
+  // Different user or first login on this device → full sync.
+  clearLocalHighlightsCache();
+  clearLocalProgressCache();
+  // (sentinel is stale/absent — we set it at the end of a successful sync)
 
   // ── Fetch Firestore state for both stores in parallel (4 s timeout) ────────
   // If Firestore is slow (cold start, poor connectivity) we proceed with
