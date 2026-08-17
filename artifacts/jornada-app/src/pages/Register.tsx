@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth, toAuthError } from '@/context/AuthContext';
+import { useAuth }    from '@/context/AuthContext';
+import { toAuthError } from '@/lib/authErrors';
 
 export default function Register() {
   const { signUp, user } = useAuth();

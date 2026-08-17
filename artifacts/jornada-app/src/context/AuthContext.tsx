@@ -13,40 +13,29 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { ensureUserProfile } from '@/lib/firestoreService';
+import { auth }                  from '@/lib/firebase';
+import { ensureUserProfile }     from '@/lib/firestoreService';
+import { setActiveSyncUid }      from '@/lib/syncStore';
+import { setWatermarkIdentity }  from '@/lib/watermark';
+import { performInitialSync }    from '@/lib/firestoreSync';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AuthContextValue {
-  user:          User | null;
+  user:      User | null;
   /** True while Firebase is resolving the persisted session on first load. */
-  loading:       boolean;
+  loading:   boolean;
+  /**
+   * True once the initial Firestore → localStorage sync is complete
+   * (or has been skipped for unauthenticated users).
+   * Protected routes block on this to guarantee localStorage reflects
+   * Firestore before BookReader performs its synchronous reads.
+   */
+  syncReady: boolean;
   signIn:        (email: string, password: string) => Promise<void>;
   signUp:        (email: string, password: string) => Promise<void>;
   signOut:       () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-}
-
-// ─── Portuguese error messages ────────────────────────────────────────────────
-
-const AUTH_ERRORS: Record<string, string> = {
-  'auth/user-not-found':      'E-mail não encontrado.',
-  'auth/wrong-password':      'Senha incorreta.',
-  'auth/invalid-credential':  'E-mail ou senha incorretos.',
-  'auth/email-already-in-use':'Este e-mail já está em uso.',
-  'auth/weak-password':       'A senha precisa ter pelo menos 6 caracteres.',
-  'auth/invalid-email':       'E-mail inválido.',
-  'auth/too-many-requests':   'Muitas tentativas. Tente novamente mais tarde.',
-  'auth/network-request-failed': 'Erro de conexão. Verifique sua internet.',
-};
-
-export function toAuthError(err: unknown): string {
-  if (err && typeof err === 'object' && 'code' in err) {
-    const code = (err as { code: string }).code;
-    return AUTH_ERRORS[code] ?? 'Algo deu errado. Tente novamente.';
-  }
-  return 'Algo deu errado. Tente novamente.';
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -54,23 +43,60 @@ export function toAuthError(err: unknown): string {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user,    setUser]    = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user,      setUser]      = useState<User | null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [syncReady, setSyncReady] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Reset syncReady on every auth transition so the spinner shows
+      // during Firestore sync on re-login as well as first login.
+      setSyncReady(false);
+
+      if (!firebaseUser) {
+        setActiveSyncUid(null);
+        setUser(null);
+        setLoading(false);
+        setSyncReady(true); // No user → nothing to sync; let RequireAuth redirect.
+        return;
+      }
+
+      // 1. Make the user available to the rest of the app immediately.
       setUser(firebaseUser);
       setLoading(false);
 
-      // Ensure the Firestore profile exists whenever the user is present.
-      if (firebaseUser) {
-        ensureUserProfile(
-          firebaseUser.uid,
-          firebaseUser.email ?? '',
-          firebaseUser.displayName,
-        ).catch(() => {});
+      // 2. Activate dual-write so any writes that happen during sync
+      //    (unlikely, but safe to guard) also go to Firestore.
+      setActiveSyncUid(firebaseUser.uid);
+
+      // 3. Update the content-protection watermark with the real identity.
+      setWatermarkIdentity({
+        name:  firebaseUser.displayName
+                 ?? firebaseUser.email?.split('@')[0]
+                 ?? 'Usuário',
+        email: firebaseUser.email ?? '',
+      });
+
+      // 4. Ensure the Firestore user profile document exists.
+      ensureUserProfile(
+        firebaseUser.uid,
+        firebaseUser.email ?? '',
+        firebaseUser.displayName,
+      ).catch(() => {});
+
+      // 5. Sync Firestore → localStorage so BookReader's synchronous reads
+      //    see the correct, per-user state when it mounts.
+      try {
+        await performInitialSync(firebaseUser.uid);
+      } catch {
+        // Firestore temporarily unavailable — fall through to existing
+        // localStorage content (could be stale if this is a second device,
+        // but the data is not lost and will re-sync on the next login).
+      } finally {
+        setSyncReady(true);
       }
     });
+
     return unsubscribe;
   }, []);
 
@@ -91,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, syncReady, signIn, signUp, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

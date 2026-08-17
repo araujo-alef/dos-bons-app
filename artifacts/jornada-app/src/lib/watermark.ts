@@ -1,9 +1,10 @@
 /**
  * Watermark identity source.
  *
- * Today this exports a static mock. When authentication is integrated,
- * replace `mockWatermarkIdentity` with the real user object here —
- * BookReader and BookPage don't need to change.
+ * Updated by AuthContext immediately after the user is resolved —
+ * before syncReady becomes true and any protected route is accessible.
+ * BookReader reads the live binding at render time, so by the time it
+ * mounts the real identity is already in place.
  */
 
 export interface WatermarkIdentity {
@@ -11,8 +12,13 @@ export interface WatermarkIdentity {
   email: string;
 }
 
-/** Swap this for `currentUser` once auth is wired up. */
-export const mockWatermarkIdentity: WatermarkIdentity = {
+// Mutable live binding — reassigned by setWatermarkIdentity.
+// ESM live bindings ensure all importers see the updated value.
+export let mockWatermarkIdentity: WatermarkIdentity = {
   name:  'Usuário',
-  email: 'usuario@email.com',
+  email: '',
 };
+
+export function setWatermarkIdentity(identity: WatermarkIdentity): void {
+  mockWatermarkIdentity = identity;
+}

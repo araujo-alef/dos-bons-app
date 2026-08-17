@@ -1,8 +1,25 @@
 /**
- * Highlights repository — localStorage-backed.
- * Swap the read/write primitives below to connect to a backend
- * without changing any component.
+ * Highlights repository.
+ *
+ * Storage strategy:
+ *   • localStorage — synchronous, always written first (keeps UX instant).
+ *   • Firestore    — written in the background when a user is authenticated.
+ *
+ * The public API is unchanged so BookReader, HighlightsPage, and BookPage
+ * do not need any modifications.
+ *
+ * Migration / initial restore is handled by src/lib/firestoreSync.ts,
+ * which pre-populates localStorage from Firestore before any protected
+ * route becomes accessible. By the time BookReader mounts, localStorage
+ * already reflects the authoritative Firestore state.
  */
+
+import { getActiveSyncUid }         from '@/lib/syncStore';
+import {
+  saveHighlightsRemote,
+  removeHighlightGroupRemote,
+  patchHighlightNoteRemote,
+} from '@/lib/firestoreService';
 
 const STORE_KEY = 'jornada_highlights_v1';
 
@@ -33,7 +50,7 @@ export function groupKey(h: BookHighlight): string {
   return h.groupId ?? h.id;
 }
 
-// ── storage primitives ──────────────────────────────────────────────────────
+// ── localStorage primitives ──────────────────────────────────────────────────
 
 function readAll(): BookHighlight[] {
   try {
@@ -46,7 +63,20 @@ function writeAll(list: BookHighlight[]): void {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch {}
 }
 
-// ── public API ──────────────────────────────────────────────────────────────
+// ── Migration helpers (used by firestoreSync.ts only) ───────────────────────
+
+/** Returns all highlights currently in localStorage — for migration. */
+export function getAllLocalHighlights(): BookHighlight[] {
+  return readAll();
+}
+
+/** Overwrites localStorage with the given list — used when restoring from
+ *  Firestore on login. Does NOT trigger a Firestore write. */
+export function restoreLocalHighlights(list: BookHighlight[]): void {
+  writeAll(list);
+}
+
+// ── public API ───────────────────────────────────────────────────────────────
 
 export function loadHighlightsForPage(lessonId: number, pageId: number): BookHighlight[] {
   return readAll().filter(h => h.lessonId === lessonId && h.pageId === pageId);
@@ -63,24 +93,32 @@ export function loadAllHighlights(): BookHighlight[] {
 }
 
 export function addHighlight(h: BookHighlight): void {
-  const all = readAll();
-  writeAll([...all, h]);
+  writeAll([...readAll(), h]);
+  const uid = getActiveSyncUid();
+  if (uid) saveHighlightsRemote(uid, [h]).catch(() => {});
 }
 
 /** Persists one multi-paragraph selection (already sharing a groupId). */
 export function addHighlights(list: BookHighlight[]): void {
   if (list.length === 0) return;
   writeAll([...readAll(), ...list]);
+  const uid = getActiveSyncUid();
+  if (uid) saveHighlightsRemote(uid, list).catch(() => {});
 }
 
 export function removeHighlight(id: string): void {
   writeAll(readAll().filter(h => h.id !== id));
+  // Single-record removal — only used internally; no Firestore call needed
+  // (removeHighlightGroup is always the public entry-point from the UI).
 }
 
 /** Removes every record of a logical highlight — erasing any paragraph of a
  *  multi-paragraph selection removes the whole thing, never a fragment. */
 export function removeHighlightGroup(key: string): void {
-  writeAll(readAll().filter(h => groupKey(h) !== key));
+  const all = readAll(); // capture before filtering (passed to remote)
+  writeAll(all.filter(h => groupKey(h) !== key));
+  const uid = getActiveSyncUid();
+  if (uid) removeHighlightGroupRemote(uid, key, all).catch(() => {});
 }
 
 export function patchHighlightNote(id: string, note: string): void {
@@ -88,9 +126,10 @@ export function patchHighlightNote(id: string, note: string): void {
   const all = readAll();
   const target = all.find(h => h.id === id);
   if (!target) return;
-  // The note belongs to the logical highlight, not one of its paragraphs.
-  const key = groupKey(target);
-  writeAll(all.map(h => (groupKey(h) === key ? { ...h, note, updatedAt: now } : h)));
+  const gKey = groupKey(target);
+  writeAll(all.map(h => (groupKey(h) === gKey ? { ...h, note, updatedAt: now } : h)));
+  const uid = getActiveSyncUid();
+  if (uid) patchHighlightNoteRemote(uid, id, note, all).catch(() => {});
 }
 
 // ── cross-navigation: standalone Highlights page → reader ──────────────────

@@ -1,32 +1,68 @@
 ---
 name: Firebase Auth integration
-description: How Firebase Auth and Firestore are wired into jornada-app — key decisions and gotchas.
+description: How Firebase Auth, Firestore, and the dual-write sync layer are wired into jornada-app.
 ---
 
-## What was done
+## Architecture
 
-- `artifacts/jornada-app/src/lib/firebase.ts` — initialises Firebase from `VITE_FIREBASE_*` Replit Secrets (never hardcoded). Sets `browserLocalPersistence` explicitly.
-- `artifacts/jornada-app/src/lib/firestoreService.ts` — async CRUD for `users/{uid}`, `users/{uid}/progress/{lessonId}`, `users/{uid}/highlights/{id}`. Notes are embedded in highlights (`note` field), no separate collection.
-- `artifacts/jornada-app/src/context/AuthContext.tsx` — `AuthProvider` + `useAuth` hook. Exports `toAuthError()` for Portuguese error messages.
-- `artifacts/jornada-app/src/components/ProtectedRoute.tsx` — `RequireAuth` component; shows spinner while `loading=true` (Firebase resolving persisted session), then redirects to `/login` if unauthenticated.
-- Auth pages: `/login`, `/cadastro`, `/recuperar-senha`.
-- `App.tsx` — `AuthProvider` wraps everything. `/jornada/*` routes use `RequireAuth`. `/` (Home) is public.
-- `AppHeader.tsx` — shows user initial avatar + dropdown with "Sair" when logged in.
+```
+onAuthStateChanged
+  ├─ setActiveSyncUid(uid)          ← syncStore.ts: module-level uid singleton
+  ├─ setWatermarkIdentity(...)      ← watermark.ts: live ESM binding, read at render time
+  ├─ ensureUserProfile(uid)         ← firestoreService.ts: upsert users/{uid}
+  └─ performInitialSync(uid)        ← firestoreSync.ts: Firestore → localStorage
+       └─ setSyncReady(true)        ← RequireAuth unblocks, BookReader can mount
+```
+
+### Dual-write (every write after initial sync)
+- `highlights.ts` → localStorage (sync, immediate) + Firestore (async, fire-and-forget)
+- `readerProgress.ts` → same pattern
+- Both read the active uid from `syncStore.ts` — no API changes to BookReader
+
+### Initial sync state machine (AuthContext)
+- `loading=true` → Firebase resolving persisted session
+- `loading=false, !user` → redirect to /login
+- `user, syncReady=false` → Firestore sync in progress (spinner)
+- `user, syncReady=true` → children render, BookReader safe to mount
+
+### Migration logic (firestoreSync.ts)
+- Firestore empty + localStorage has data → **migrate**: push local data to Firestore first, then continue
+- Firestore has data → **restore**: overwrite localStorage with Firestore (Firestore wins)
+- Both empty → no-op
+- localStorage is NEVER cleared before Firestore write is confirmed
 
 ## Key decisions
 
-**Why `loading` guard matters:** Firebase resolves the persisted session asynchronously on mount. Without it, every protected route would flash a redirect to `/login` on hard refresh.
+**Why syncReady blocks RequireAuth:** BookReader calls `loadAllHighlights()` and `loadProgress()` synchronously (in `useState` and `useLayoutEffect`). localStorage must be pre-populated from Firestore before the Reader mounts — otherwise it reads stale or wrong-user data.
 
-**Why Firestore service is async-only:** The existing localStorage-backed `highlights.ts` and `readerProgress.ts` are sync. They were intentionally left untouched — the Firestore service is the async layer ready to replace them. Wiring them together is the next task.
+**Why `setActiveSyncUid` not a React context:** highlights.ts and readerProgress.ts are plain modules with synchronous APIs. Passing uid as a parameter to every call site would require touching BookReader, BookPage, HighlightsPage, etc. The module-level singleton keeps the public API identical.
 
-**Why notes are in highlights:** `BookHighlight` already has `note?: string`. A note is a highlight with text — no separate collection needed.
+**Why `export let mockWatermarkIdentity`:** ESM live binding — AuthContext calls `setWatermarkIdentity()` before `syncReady=true`, so BookReader reads the real identity on its first render without any prop threading.
 
-**pnpm 11 build approvals:** `@firebase/util` and `protobufjs` needed to be added to both `onlyBuiltDependencies` and `allowBuilds: true` in `pnpm-workspace.yaml`. The `.npmrc` `allow-build` key was insufficient for scoped packages.
+**`lessonId` is correct domain terminology** — the app uses "lição" in UI and routes (/jornada/licao/:id). Do not rename to "chapterId" or anything else.
 
-**VITE_* secrets:** Firebase client config is set as Replit Secrets with `VITE_` prefix. Vite exposes `VITE_*` env vars to the browser bundle. The workflow must be restarted after secrets are added for Vite to pick them up.
+**pnpm 11 build approvals:** `@firebase/util` and `protobufjs` must be in both `onlyBuiltDependencies` AND `allowBuilds: true` in `pnpm-workspace.yaml`. The `.npmrc` `allow-build` key is insufficient for scoped packages.
+
+**`toAuthError` in its own file (`src/lib/authErrors.ts`):** Mixing React components and plain functions in the same module breaks Vite Fast Refresh. AuthContext exports only React things; utility functions go elsewhere.
+
+**VITE_* secrets:** Workflow must be restarted after secrets are added for Vite to pick them up.
+
+## Files
+
+| File | Role |
+|---|---|
+| `src/lib/syncStore.ts` | Module-level uid singleton |
+| `src/lib/firestoreSync.ts` | One-time migration/restore on login |
+| `src/lib/firestoreService.ts` | All Firestore CRUD (unchanged) |
+| `src/lib/highlights.ts` | Dual-write + migration helpers |
+| `src/lib/readerProgress.ts` | Dual-write + migration helpers |
+| `src/lib/watermark.ts` | Live-binding identity for content protection |
+| `src/lib/authErrors.ts` | Firebase code → Portuguese message |
+| `src/context/AuthContext.tsx` | Auth state + sync orchestration |
+| `src/components/ProtectedRoute.tsx` | Blocks on loading AND syncReady |
 
 ## What remains
 
-- Wire `highlights.ts` and `readerProgress.ts` to Firestore (replace localStorage primitives when user is authenticated).
-- Home page `JOURNEY_STATE` / `CURRENT_LESSON_ID` constants in `readerProgress.ts` should be driven by Firestore progress data per user.
-- Watermark (`mockWatermarkIdentity`) could use `user.uid` / `user.email` instead of mock identity.
+- Home page `JOURNEY_STATE` / `CURRENT_LESSON_ID` constants in `mocks/config.ts` — still hardcoded; could be driven by Firestore progress.
+- `clearAllProgress` in readerProgress.ts — only clears localStorage today; a Firestore counterpart would need `clearAllProgressRemote`.
+- Tela de perfil (/perfil) — proposed as follow-up task.
