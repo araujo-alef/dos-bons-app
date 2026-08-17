@@ -88,7 +88,7 @@ function HomeContent() {
             </a>
 
             {/* ── Card 4: Código Insta Dominante ────────────────────── */}
-            <Link href="/em-breve/ia" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
+            <a href="https://titiobernardo.com/" target="_blank" rel="noopener noreferrer" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
               <div className="group" style={{ borderRadius:16, border:'1px solid rgba(139,53,255,0.28)', background:'#06020d', width:'100%', height:'100%', overflow:'hidden', position:'relative', cursor:'pointer' }}>
                 <img
                   src={instaImg}
@@ -98,7 +98,7 @@ function HomeContent() {
                 />
                 <div aria-hidden="true" style={{ position:'absolute', inset:0, borderRadius:16, background:'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 58%, rgba(6,2,13,0.60) 100%)', pointerEvents:'none' }} />
               </div>
-            </Link>
+            </a>
 
           </div>
         </main>
