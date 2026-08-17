@@ -73,9 +73,7 @@ function LockedOverlay() {
         position:             'fixed',
         inset:                0,
         zIndex:               50,
-        background:           'rgba(8,6,12,0.54)',
-        backdropFilter:       'blur(2.5px)',
-        WebkitBackdropFilter: 'blur(2.5px)',
+        background:           'rgba(0,0,0,0.45)',
         /* pointer-events: none → scroll do conteúdo funciona normalmente.
            O bloco do CTA sobrescreve com pointer-events: auto. */
         pointerEvents:        'none',
