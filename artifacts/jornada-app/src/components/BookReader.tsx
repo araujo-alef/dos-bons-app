@@ -554,7 +554,16 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
     };
 
     const finishDrag = () => {
-      if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
+      // If a RAF update is still pending, flush it synchronously now so the
+      // very last touch position is always committed before we read the result.
+      // Without this, touchend arriving before the queued RAF executes would
+      // cancel the update, leaving liveSelectionRef stale/null and causing the
+      // selection to disappear instead of showing the save menu.
+      if (rafId != null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        flush(); // touchAnchorRef is still valid here; pendingPoint has the final pos
+      }
       const anchor = touchAnchorRef.current;
       touchAnchorRef.current = null;
       if (!anchor) return;
