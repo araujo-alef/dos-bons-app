@@ -1,0 +1,282 @@
+Quero refazer a tela de apresentação do produto “Lábia de Cachorro”.
+
+A implementação anterior ficou complexa demais.
+Agora quero uma versão muito mais simples, limpa e visual.
+
+IMPORTANTE:
+essa tela deve ser composta basicamente por 3 imagens reais que vou fornecer.
+Não quero vários componentes extras.
+Não quero reconstrução do conteúdo das imagens em HTML.
+A própria tela deve ser formada quase totalmente pelas imagens.
+
+==================================================
+OBJETIVO
+==================================================
+
+Criar uma tela de preview bloqueado do produto “Lábia de Cachorro”.
+
+A lógica visual é:
+
+- o usuário vê 3 imagens reais do produto;
+- essas imagens servem como teaser / apresentação;
+- por cima delas existe um overlay discreto de bloqueio;
+- esse overlay deve deixar a tela visível, porém mais apagada;
+- no overlay haverá:
+  - um cadeado;
+  - um texto curto;
+  - um botão para desbloquear.
+
+A ideia é comunicar:
+
+“você está vendo uma prévia, mas precisa desbloquear para acessar”.
+
+==================================================
+ESTRUTURA DA TELA
+==================================================
+
+A tela deve ser simples:
+
+1. Imagem 1
+2. Imagem 2
+3. Imagem 3
+
+Essas imagens devem aparecer em sequência vertical, uma abaixo da outra.
+
+Não criar:
+- cards extras;
+- listas fake;
+- componentes simulando comunidade;
+- blocos de chat feitos no código;
+- CTA separado no fim da página;
+- outras seções desnecessárias.
+
+A tela é basicamente:
+conteúdo visual = as 3 imagens
+bloqueio = overlay por cima
+
+==================================================
+USO DAS 3 IMAGENS
+==================================================
+
+Vou anexar 3 imagens e elas devem ser usadas exatamente assim:
+
+- Imagem 1:
+  usar como imagem principal / topo da tela
+  (preview das aulas / videoaulas)
+
+- Imagem 2:
+  usar como segundo bloco visual
+  (print da comunidade)
+
+- Imagem 3:
+  usar como terceiro bloco visual
+  (segundo print da comunidade)
+
+As imagens devem:
+- ocupar praticamente toda a largura útil;
+- ter border radius discreto;
+- manter boa proporção;
+- ficar bonitas no mobile;
+- ser exibidas com espaçamento vertical elegante.
+
+Não distorcer.
+Não recortar agressivamente.
+Não colocar molduras pesadas.
+Não redesenhar o conteúdo delas.
+
+==================================================
+LAYOUT
+==================================================
+
+Quero uma tela mobile first.
+
+No mobile:
+- imagens com largura quase total;
+- bom espaçamento entre elas;
+- padding lateral coerente com o app;
+- rolagem vertical normal.
+
+No desktop:
+- centralizar o conteúdo;
+- limitar largura máxima da coluna;
+- manter aparência premium.
+
+==================================================
+OVERLAY
+==================================================
+
+Preciso de um overlay por cima da tela inteira.
+
+Mas esse overlay NÃO deve ser pesado.
+
+Quero algo discreto:
+- um container translúcido;
+- meio cinza / preto suave;
+- com leve transparência;
+- que permita ver as imagens por trás;
+- deixando o conteúdo mais apagado.
+
+A intenção não é esconder tudo.
+A intenção é deixar claro que:
+- a tela existe;
+- o conteúdo está ali;
+- mas está bloqueado.
+
+==================================================
+VISUAL DO OVERLAY
+==================================================
+
+Criar uma camada visual elegante, algo como:
+
+- fundo escuro translúcido;
+- opacidade moderada;
+- leve blur/backdrop blur, se ficar bom;
+- aparência premium;
+- sem transformar a tela em algo muito escuro.
+
+As imagens atrás ainda precisam continuar visíveis.
+
+==================================================
+CONTEÚDO DO OVERLAY
+==================================================
+
+No centro da tela, exibir um pequeno bloco visual com:
+
+1. ícone de cadeado
+2. um texto curto de bloqueio
+3. botão de CTA
+
+Esse bloco deve ficar visualmente limpo, sem parecer um card enorme ou uma modal pesada.
+
+Pode ser um container sutil, translúcido, com blur e bordas arredondadas.
+
+==================================================
+TEXTO DO OVERLAY
+==================================================
+
+Usar algo no sentido de:
+
+“Desbloqueie agora a comunidade e as aulas”
+
+ou
+
+“Entre agora e desbloqueie a comunidade e as aulas”
+
+Pode escolher a melhor versão visualmente.
+
+Abaixo, pode ter um texto secundário curto e discreto, por exemplo:
+
+“Conteúdo exclusivo para membros.”
+
+Esse texto secundário deve ser menor e mais suave.
+
+==================================================
+BOTÃO
+==================================================
+
+Adicionar um botão principal com texto como:
+
+“Desbloquear agora”
+
+ou
+
+“Quero acessar”
+
+O botão deve seguir a identidade visual do app:
+- roxo/lilás como destaque principal;
+- aparência premium;
+- bom contraste;
+- fácil de clicar no mobile.
+
+==================================================
+COMPORTAMENTO DO OVERLAY
+==================================================
+
+O overlay deve bloquear a interação com o conteúdo por trás.
+
+Ou seja:
+- o usuário pode ver a tela;
+- mas não deve interagir com o conteúdo real.
+
+Se possível, manter o scroll vertical da página para ver as 3 imagens, enquanto o bloqueio visual continua presente.
+Se isso complicar demais, pode deixar o overlay fixo cobrindo a viewport e o conteúdo atrás visível.
+
+O mais importante é:
+- a tela parecer bloqueada;
+- o conteúdo continuar visível por trás;
+- o CTA ficar claro.
+
+==================================================
+ESTÉTICA
+==================================================
+
+Seguir a identidade do projeto:
+- fundo escuro;
+- visual premium;
+- limpo;
+- elegante;
+- misterioso;
+- coerente com o nicho;
+- sem poluição visual.
+
+Evitar:
+- excesso de elementos;
+- excesso de texto;
+- efeitos exagerados;
+- muitos blocos ou muitos componentes.
+
+==================================================
+ROTA / NAVEGAÇÃO
+==================================================
+
+Manter essa tela como a tela do produto “Lábia de Cachorro”, aberta a partir do segundo card da home.
+
+Não alterar a home além do necessário para manter a navegação funcionando.
+
+==================================================
+IMPLEMENTAÇÃO
+==================================================
+
+Quero que você:
+
+1. remova os componentes extras criados anteriormente nessa tela;
+2. use apenas as 3 imagens como conteúdo principal;
+3. aplique o overlay discreto por cima;
+4. coloque cadeado + texto + botão;
+5. garanta que a tela fique responsiva;
+6. mantenha a estética coerente com o app.
+
+==================================================
+ASSETS ANEXADOS
+==================================================
+
+Vou anexar 3 imagens.
+
+Use assim:
+
+- Asset 1 = imagem principal / aulas
+- Asset 2 = print da comunidade
+- Asset 3 = segundo print da comunidade
+
+==================================================
+RESULTADO ESPERADO
+==================================================
+
+O resultado final deve parecer uma tela simples de preview bloqueado:
+
+- 3 imagens reais em sequência;
+- conteúdo visível;
+- tela levemente apagada por um overlay translúcido;
+- cadeado discreto;
+- texto curto;
+- botão de desbloqueio.
+
+Sem componentes desnecessários.
+Sem reconstruções artificiais.
+Sem card grande ocupando a tela toda.
+
+Ao final, me diga:
+- quais arquivos/componentes foram ajustados;
+- onde estão sendo usadas as 3 imagens;
+- onde editar o texto do overlay;
+- onde editar a ação do botão futuramente.

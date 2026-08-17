@@ -1,51 +1,54 @@
 /**
  * LabiaDeCachorro — Preview bloqueado do produto "Lábia de Cachorro".
  *
- * Estrutura intencional:
- *   <tela scrollável com 3 imagens>
- *   <overlay fixo cobrindo toda a viewport>
+ * Assets usados:
+ *   IMAGE 1 → @/assets/labia-produto-imagem-1.png  (preview das aulas)
+ *   IMAGE 2 → @/assets/labia-produto-imagem-2.png  ← ainda não fornecido
+ *   IMAGE 3 → @/assets/labia-produto-imagem-3.png  (print da comunidade)
  *
- * Para substituir os assets:
- *   IMAGE 1 → @/assets/labia-produto-imagem-1.{webp|png|jpg}
- *   IMAGE 2 → @/assets/labia-comunidade-print.png  ← já existe
- *   IMAGE 3 → @/assets/labia-produto-imagem-3.{webp|png|jpg}
+ * Para editar o texto do overlay:
+ *   → constante OVERLAY_TEXT abaixo
  *
- * Para habilitar acesso real:
- *   Troque a constante `hasAccess` por uma verificação real de entitlement.
- *   Quando `hasAccess === true`, o overlay some e o conteúdo fica livre.
+ * Para editar a ação do botão:
+ *   → constante CAKTO_URL abaixo
  *
- * Link do CTA:
- *   Constante CAKTO_URL abaixo.
+ * Para habilitar acesso real (remover overlay):
+ *   → constante hasAccess abaixo (trocar por verificação de entitlement)
  */
 
 import { Link } from 'wouter';
 import { ArrowLeft } from 'lucide-react';
+import img1 from '@/assets/labia-produto-imagem-1.png';
+// import img2 from '@/assets/labia-produto-imagem-2.png'; // ainda não fornecido
+import img3 from '@/assets/labia-produto-imagem-3.png';
 
-// ─── Configuração ─────────────────────────────────────────────────────────────
+// ── Configuração ──────────────────────────────────────────────────────────────
 
+/** Link do botão CTA. */
 const CAKTO_URL = 'https://pay.cakto.com.br/xuqc3on_733124';
 
+/** Texto principal do overlay. */
+const OVERLAY_TEXT = 'Entre agora e desbloqueie a comunidade e as aulas.';
+
+/** Texto secundário (menor, discreto). */
+const OVERLAY_SUBTEXT = 'Conteúdo exclusivo para membros.';
+
+/** Label do botão. */
+const BTN_LABEL = 'Quero acessar';
+
 /**
- * TODO: substituir por verificação real de entitlement.
- * false → overlay aparece (conteúdo bloqueado).
+ * false → overlay aparece (bloqueado).
  * true  → overlay some (membro com acesso).
+ * TODO: substituir por verificação real de entitlement.
  */
 const hasAccess = false;
 
-// ─── Assets ───────────────────────────────────────────────────────────────────
-// IMAGE 1 e IMAGE 3 ainda não foram fornecidos — slots marcados abaixo.
-// Quando os arquivos forem adicionados, descomente e ajuste o import.
-
-// import img1 from '@/assets/labia-produto-imagem-1.webp';
-import img2 from '@/assets/labia-comunidade-print.png';
-// import img3 from '@/assets/labia-produto-imagem-3.webp';
-
-// ─── Cadeado semi-aberto ──────────────────────────────────────────────────────
+// ── Cadeado semi-aberto ───────────────────────────────────────────────────────
 
 function LockIcon() {
   return (
     <svg
-      width="32" height="32" viewBox="0 0 24 24"
+      width="30" height="30" viewBox="0 0 24 24"
       fill="none"
       stroke="rgba(178,102,255,0.95)"
       strokeWidth="1.6"
@@ -53,15 +56,14 @@ function LockIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {/* Corpo do cadeado */}
       <rect x="3" y="11" width="18" height="11" rx="2" />
-      {/* Anel semi-aberto: lado direito ainda preso, esquerdo já solto */}
+      {/* Anel semi-aberto: lado esquerdo solto */}
       <path d="M7 11V7a5 5 0 0 1 9.9-1" />
     </svg>
   );
 }
 
-// ─── Overlay fixo de bloqueio ─────────────────────────────────────────────────
+// ── Overlay fixo de bloqueio ──────────────────────────────────────────────────
 
 function LockedOverlay() {
   return (
@@ -71,44 +73,46 @@ function LockedOverlay() {
         position:             'fixed',
         inset:                0,
         zIndex:               50,
-        // Escurece sem esconder — as imagens ficam visíveis por trás
-        background:           'rgba(10,10,12,0.58)',
-        backdropFilter:       'blur(3px)',
-        WebkitBackdropFilter: 'blur(3px)',
-        // pointer-events: none → scroll passa através; imagens não são clicáveis
-        // O bloco do CTA define pointer-events: auto para capturar o clique no botão
+        background:           'rgba(8,6,12,0.54)',
+        backdropFilter:       'blur(2.5px)',
+        WebkitBackdropFilter: 'blur(2.5px)',
+        /* pointer-events: none → scroll do conteúdo funciona normalmente.
+           O bloco do CTA sobrescreve com pointer-events: auto. */
         pointerEvents:        'none',
         display:              'flex',
-        flexDirection:        'column',
         alignItems:           'center',
         justifyContent:       'center',
-        // Safe areas
-        paddingTop:           'calc(env(safe-area-inset-top, 0px) + 16px)',
-        paddingBottom:        'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-        paddingLeft:          'env(safe-area-inset-left, 0px)',
-        paddingRight:         'env(safe-area-inset-right, 0px)',
+        paddingTop:    'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingLeft:   'env(safe-area-inset-left, 0px)',
+        paddingRight:  'env(safe-area-inset-right, 0px)',
       }}
     >
-      {/* CTA — captura pointer events; resto do overlay não captura */}
+      {/* Bloco central — captura eventos de ponteiro */}
       <div
         style={{
-          pointerEvents: 'auto',
+          pointerEvents:  'auto',
           display:        'flex',
           flexDirection:  'column',
           alignItems:     'center',
-          gap:            20,
+          gap:            18,
           textAlign:      'center',
-          padding:        '0 32px',
-          maxWidth:       320,
+          padding:        '28px 28px 24px',
+          maxWidth:       300,
+          borderRadius:   20,
+          background:     'rgba(10,7,18,0.72)',
+          border:         '1px solid rgba(255,255,255,0.09)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
         }}
       >
         {/* Cadeado */}
         <div style={{
-          width:          60,
-          height:         60,
+          width:          54,
+          height:         54,
           borderRadius:   '50%',
-          background:     'rgba(139,53,255,0.16)',
-          border:         '1px solid rgba(178,102,255,0.30)',
+          background:     'rgba(139,53,255,0.15)',
+          border:         '1px solid rgba(178,102,255,0.28)',
           display:        'flex',
           alignItems:     'center',
           justifyContent: 'center',
@@ -118,24 +122,24 @@ function LockedOverlay() {
 
         {/* Texto principal */}
         <p style={{
-          fontSize:      18,
+          fontSize:      17,
           fontWeight:    700,
           color:         'rgba(255,255,255,0.94)',
           lineHeight:    1.4,
           margin:        0,
           letterSpacing: '-0.01em',
         }}>
-          Entre agora e libere a comunidade e todas as aulas.
+          {OVERLAY_TEXT}
         </p>
 
         {/* Texto secundário */}
         <p style={{
-          fontSize:   13,
-          color:      'rgba(255,255,255,0.42)',
+          fontSize:   12,
+          color:      'rgba(255,255,255,0.38)',
           lineHeight: 1.5,
-          margin:     '-8px 0 0',
+          margin:     '-6px 0 0',
         }}>
-          Conteúdo exclusivo disponível apenas para membros.
+          {OVERLAY_SUBTEXT}
         </p>
 
         {/* Botão CTA */}
@@ -144,59 +148,63 @@ function LockedOverlay() {
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            display:         'block',
-            width:           '100%',
-            background:      'linear-gradient(135deg, #9B3FFF 0%, #6B1FD9 100%)',
-            borderRadius:    14,
-            padding:         '15px 28px',
-            fontSize:        16,
-            fontWeight:      700,
-            color:           '#fff',
-            textDecoration:  'none',
-            letterSpacing:   '0.02em',
-            boxShadow:       '0 4px 28px rgba(139,53,255,0.45)',
-            textAlign:       'center',
+            display:        'block',
+            width:          '100%',
+            background:     'linear-gradient(135deg, #9B3FFF 0%, #6B1FD9 100%)',
+            borderRadius:   13,
+            padding:        '14px 24px',
+            fontSize:       15,
+            fontWeight:     700,
+            color:          '#fff',
+            textDecoration: 'none',
+            letterSpacing:  '0.02em',
+            textAlign:      'center',
+            boxShadow:      '0 4px 24px rgba(139,53,255,0.42)',
           }}
         >
-          Quero acessar
+          {BTN_LABEL}
         </a>
       </div>
     </div>
   );
 }
 
-// ─── Placeholder visual para imagens ainda não fornecidas ─────────────────────
-// Remove isso quando adicionar o asset real.
+// ── Slot de imagem ainda não fornecida ────────────────────────────────────────
 
-function ImagePlaceholder({ label }: { label: string }) {
+function ImagePlaceholder() {
   return (
     <div style={{
-      width:           '100%',
-      aspectRatio:     '9 / 16',
-      borderRadius:    12,
-      background:      'linear-gradient(160deg, #0d0510 0%, #07040e 100%)',
-      border:          '1px solid rgba(139,53,255,0.14)',
-      display:         'flex',
-      alignItems:      'center',
-      justifyContent:  'center',
+      width:       '100%',
+      aspectRatio: '4 / 3',
+      borderRadius: 12,
+      background:  'linear-gradient(160deg, #0d0510 0%, #07040e 100%)',
+      border:      '1px solid rgba(139,53,255,0.12)',
+      display:     'flex',
+      alignItems:  'center',
+      justifyContent: 'center',
     }}>
-      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-        {label}
+      <span style={{
+        fontSize:      11,
+        color:         'rgba(255,255,255,0.18)',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+      }}>
+        imagem em breve
       </span>
     </div>
   );
 }
 
-// ─── Página ───────────────────────────────────────────────────────────────────
+// ── Página ────────────────────────────────────────────────────────────────────
 
 export default function LabiaDeCachorro() {
   return (
     <div style={{ background: '#050505', minHeight: '100dvh', position: 'relative' }}>
 
-      {/* ── Conteúdo scrollável: 3 imagens ───────────────────────────────── */}
+      {/* Scrollable — 3 imagens */}
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 12px 80px' }}>
 
-        {/* Botão voltar */}
+        {/* Voltar */}
         <header style={{ padding: '24px 4px 16px' }}>
           <Link
             href="/"
@@ -213,48 +221,36 @@ export default function LabiaDeCachorro() {
           </Link>
         </header>
 
-        {/* IMAGE 1 — apresentação das aulas */}
-        {/* Quando o arquivo estiver pronto: substituir <ImagePlaceholder> por <img src={img1} ... /> */}
-        <div style={{ marginBottom: 10 }}>
-          <ImagePlaceholder label="imagem 1 — substituir" />
-          {/* <img
-            src={img1}
-            alt="Apresentação das aulas"
-            draggable={false}
-            style={{ display: 'block', width: '100%', borderRadius: 12, userSelect: 'none' }}
-          /> */}
-        </div>
-
-        {/* IMAGE 2 — print da comunidade (asset já disponível) */}
+        {/* IMAGE 1 — preview das aulas */}
         <div style={{ marginBottom: 10 }}>
           <img
-            src={img2}
-            alt="Prévia da comunidade"
+            src={img1}
+            alt="Preview das aulas — Lábia de Cachorro"
             draggable={false}
-            style={{
-              display:    'block',
-              width:      '100%',
-              borderRadius: 12,
-              userSelect: 'none',
-            }}
+            style={{ display: 'block', width: '100%', borderRadius: 12, userSelect: 'none' }}
           />
         </div>
 
+        {/* IMAGE 2 — print da comunidade (ainda não fornecido) */}
+        {/* Quando tiver o asset: adicionar arquivo labia-produto-imagem-2.png,
+            descomentar o import e substituir <ImagePlaceholder /> por <img src={img2} ... /> */}
+        <div style={{ marginBottom: 10 }}>
+          <ImagePlaceholder />
+        </div>
+
         {/* IMAGE 3 — segundo print da comunidade */}
-        {/* Quando o arquivo estiver pronto: substituir <ImagePlaceholder> por <img src={img3} ... /> */}
         <div>
-          <ImagePlaceholder label="imagem 3 — substituir" />
-          {/* <img
+          <img
             src={img3}
-            alt="Prévia da comunidade 2"
+            alt="Comunidade ativa — Lábia de Cachorro"
             draggable={false}
             style={{ display: 'block', width: '100%', borderRadius: 12, userSelect: 'none' }}
-          /> */}
+          />
         </div>
 
       </div>
 
-      {/* ── Overlay de bloqueio — fixo sobre toda a viewport ─────────────── */}
+      {/* Overlay fixo — cobre toda a viewport */}
       {!hasAccess && <LockedOverlay />}
 
     </div>
