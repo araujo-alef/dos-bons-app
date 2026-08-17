@@ -15,7 +15,7 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import { BookTransitionProvider } from '@/context/BookTransitionContext';
 import { BookTransitionOverlay } from '@/components/BookTransitionOverlay';
 import { AuthProvider } from '@/context/AuthContext';
-import { RequireAuth } from '@/components/ProtectedRoute';
+import { RequireAuth, RequireAuthOnly } from '@/components/ProtectedRoute';
 import {
   Route,
   Switch,
@@ -32,7 +32,7 @@ function Router() {
       <Switch>
         {/* ── Public routes ── */}
         <Route path="/">
-          {() => <RequireAuth><Home /></RequireAuth>}
+          {() => <RequireAuthOnly><Home /></RequireAuthOnly>}
         </Route>
         <Route path="/jornada">        <Redirect to="/" />        </Route>
         <Route path="/login"           component={Login} />

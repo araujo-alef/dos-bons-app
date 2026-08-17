@@ -91,10 +91,20 @@ export async function performInitialSync(uid: string): Promise<void> {
     // (sentinel is stale/absent — we set it at the end of a successful sync)
   }
 
-  // ── Fetch Firestore state for both stores in parallel ─────────────────────
+  // ── Fetch Firestore state for both stores in parallel (4 s timeout) ────────
+  // If Firestore is slow (cold start, poor connectivity) we proceed with
+  // whatever is already in localStorage rather than blocking the user.
+  const SYNC_TIMEOUT_MS = 4_000;
+
+  const withTimeout = <T,>(promise: Promise<T>, fallback: T): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>(resolve => setTimeout(() => resolve(fallback), SYNC_TIMEOUT_MS)),
+    ]);
+
   const [remoteHighlights, remoteProgress] = await Promise.all([
-    loadAllHighlightsRemote(uid),
-    loadAllProgressRemote(uid),
+    withTimeout(loadAllHighlightsRemote(uid), []),
+    withTimeout(loadAllProgressRemote(uid), {}),
   ]);
 
   // ── Highlights ─────────────────────────────────────────────────────────────

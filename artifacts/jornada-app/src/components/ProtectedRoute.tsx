@@ -3,12 +3,12 @@ import { Redirect } from 'wouter';
 import { useAuth } from '@/context/AuthContext';
 
 /**
- * Renders children only when the user is authenticated AND the initial
+ * Full guard — blocks until Firebase session is resolved AND the initial
  * Firestore → localStorage sync is complete.
  *
- * Blocking on syncReady guarantees that BookReader's synchronous reads
- * (loadAllHighlights, loadProgress) see the correct, per-user state
- * rather than whatever happened to be in localStorage beforehand.
+ * Use on routes that perform synchronous localStorage reads during mount
+ * (e.g. BookReader, Highlights, UpToDate). The sync guarantees those reads
+ * see the correct, per-user state rather than a stale previous session.
  *
  * State machine:
  *   loading            → spinner (Firebase resolving persisted session)
@@ -21,6 +21,27 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   if (loading || (user && !syncReady)) return <SyncLoadingScreen syncing={!!user} />;
   if (!user) return <Redirect to="/login" />;
+  return <>{children}</>;
+}
+
+/**
+ * Fast guard — blocks only until Firebase session is resolved.
+ * Does NOT wait for the Firestore sync.
+ *
+ * Use on routes that do not read from localStorage on mount (e.g. Home).
+ * This makes those pages accessible immediately after auth without waiting
+ * for the Firestore round-trip, which can take 1-3 extra seconds.
+ *
+ * State machine:
+ *   loading           → spinner (Firebase resolving persisted session)
+ *   !loading && !user → redirect to /login
+ *   user              → render children ✓  (sync may still be in progress)
+ */
+export function RequireAuthOnly({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <SyncLoadingScreen syncing={false} />;
+  if (!user)   return <Redirect to="/login" />;
   return <>{children}</>;
 }
 
