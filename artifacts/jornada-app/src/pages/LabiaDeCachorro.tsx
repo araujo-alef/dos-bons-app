@@ -2,9 +2,16 @@
  * LabiaDeCachorro — Preview bloqueado do produto "Lábia de Cachorro".
  *
  * Assets usados:
- *   IMAGE 1 → @/assets/labia-produto-imagem-1.png  (preview das aulas)
- *   IMAGE 2 → @/assets/labia-produto-imagem-2.png  ← ainda não fornecido
- *   IMAGE 3 → @/assets/labia-produto-imagem-3.png  (print da comunidade)
+ *   IMAGE 1 → @/assets/labia-produto-imagem-1.png   (preview das aulas)
+ *   IMAGE 2 → @/assets/labia-produto-imagem-2.webp  (prova social)
+ *   IMAGE 3 → @/assets/labia-produto-imagem-3.png   (print da comunidade)
+ *
+ * IMAGE 2 é uma versão redigida do print original: a mídia enviada pela
+ * aluna, o nome do remetente e a foto de perfil do rodapé foram cobertos
+ * de forma OPACA (os pixels originais não existem mais no arquivo — não é
+ * blur nem overlay de CSS, que continuariam entregando a imagem ao
+ * cliente). Se algum dia houver consentimento documentado para exibir a
+ * mídia, gerar um asset novo; não reverter este.
  *
  * Para editar o texto do overlay:
  *   → constante OVERLAY_TEXT abaixo
@@ -19,7 +26,7 @@
 import { Link } from 'wouter';
 import { ArrowLeft } from 'lucide-react';
 import img1 from '@/assets/labia-produto-imagem-1.png';
-// import img2 from '@/assets/labia-produto-imagem-2.png'; // ainda não fornecido
+import img2 from '@/assets/labia-produto-imagem-2.webp';
 import img3 from '@/assets/labia-produto-imagem-3.png';
 
 // ── Configuração ──────────────────────────────────────────────────────────────
@@ -229,11 +236,14 @@ export default function LabiaDeCachorro() {
           />
         </div>
 
-        {/* IMAGE 2 — print da comunidade (ainda não fornecido) */}
-        {/* Quando tiver o asset: adicionar arquivo labia-produto-imagem-2.png,
-            descomentar o import e substituir <ImagePlaceholder /> por <img src={img2} ... /> */}
+        {/* IMAGE 2 — prova social (mídia redigida; ver cabeçalho do arquivo) */}
         <div style={{ marginBottom: 10 }}>
-          <ImagePlaceholder />
+          <img
+            src={img2}
+            alt="Prova social — mensagem recebida por um aluno"
+            draggable={false}
+            style={{ display: 'block', width: '100%', borderRadius: 12, userSelect: 'none' }}
+          />
         </div>
 
         {/* IMAGE 3 — segundo print da comunidade */}

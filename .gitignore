@@ -41,6 +41,21 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Environment / secrets — o app lê credenciais do Firebase via VITE_*.
+# .env.example é versionado de propósito: documenta os NOMES das variáveis,
+# nunca os valores.
+.env
+.env.*
+!.env.example
+
+# Prints originais de prova social contendo mídia íntima de terceiros.
+# Só entra no repositório a versão redigida (labia-produto-imagem-2.webp),
+# em que os pixels da mídia, o nome do remetente e a foto de perfil foram
+# cobertos de forma opaca. Publicar o original exigiria consentimento
+# documentado da pessoa retratada — e ainda assim seria um asset novo,
+# nunca estes arquivos.
+artifacts/jornada-app/src/assets/labia_prova*.png
+
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
