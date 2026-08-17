@@ -31,7 +31,9 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         {/* ── Public routes ── */}
-        <Route path="/"                component={Home} />
+        <Route path="/">
+          {() => <RequireAuth><Home /></RequireAuth>}
+        </Route>
         <Route path="/jornada">        <Redirect to="/" />        </Route>
         <Route path="/login"           component={Login} />
         <Route path="/cadastro"        component={Register} />
