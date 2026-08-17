@@ -37,7 +37,7 @@ function Router() {
         </Route>
         <Route path="/jornada">        <Redirect to="/" />        </Route>
         <Route path="/login"           component={Login} />
-        <Route path="/cadastro"        component={Register} />
+        <Route path="/cadastro"><Redirect to="/login" /></Route>
         <Route path="/recuperar-senha" component={ForgotPassword} />
         <Route path="/em-breve/:slug"  component={ComingSoon} />
 
