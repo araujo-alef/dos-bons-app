@@ -62,6 +62,20 @@ export function restoreLocalProgress(progress: Record<number, ProgressAnchor>): 
   }
 }
 
+/** Removes all progress keys from localStorage.
+ *  Called on logout and on login when a different user is detected.
+ *  Does NOT touch Firestore. */
+export function clearLocalProgressCache(): void {
+  try {
+    const toRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k?.startsWith(PREFIX)) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
+
 // ── public API ───────────────────────────────────────────────────────────────
 
 export function saveProgress(lessonId: number, anchor: ProgressAnchor): void {

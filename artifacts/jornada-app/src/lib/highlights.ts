@@ -76,6 +76,13 @@ export function restoreLocalHighlights(list: BookHighlight[]): void {
   writeAll(list);
 }
 
+/** Removes the highlights cache from localStorage.
+ *  Called on logout and on login when a different user is detected.
+ *  Does NOT touch Firestore. */
+export function clearLocalHighlightsCache(): void {
+  try { localStorage.removeItem(STORE_KEY); } catch {}
+}
+
 // ── public API ───────────────────────────────────────────────────────────────
 
 export function loadHighlightsForPage(lessonId: number, pageId: number): BookHighlight[] {

@@ -2,21 +2,32 @@
  * Initial Firestore ↔ localStorage synchronisation.
  *
  * Called once per login, before any protected route becomes accessible.
- * Decides between two paths:
+ *
+ * ── UID sentinel ────────────────────────────────────────────────────────────
+ * localStorage is NOT namespaced by uid — the same keys are reused across
+ * all users on the same browser. To prevent User B from inheriting User A's
+ * cached data (and from having that data mistakenly migrated to B's Firestore
+ * account), we store the uid that last populated the cache under
+ * SESSION_UID_KEY. On every login we compare the incoming uid against the
+ * stored one: if they differ (or if the key is absent), we wipe the local
+ * cache before proceeding so B always starts from a clean slate.
+ *
+ * ── Sync paths ──────────────────────────────────────────────────────────────
+ * After the cache is guaranteed to belong to the current user:
  *
  *   MIGRATE  — Firestore is empty, localStorage has data.
- *              Push local data to Firestore; localStorage is left as-is.
- *              localStorage is NOT cleared until Firestore confirms the write,
- *              so data is never lost on a network failure.
+ *              First login with pre-existing local activity: push to Firestore.
+ *              localStorage is NOT cleared until Firestore confirms the write.
  *
  *   RESTORE  — Firestore has data (returning user / second device).
- *              Overwrite localStorage with the Firestore state.
- *              Firestore is the source of truth; the local cache is refreshed.
+ *              Overwrite localStorage with Firestore state. Firestore wins.
  *
- * After this function resolves, localStorage reflects Firestore and
- * subsequent reads by BookReader (sync, via localStorage) are correct.
- * Subsequent writes go to both stores via the dual-write in
- * highlights.ts / readerProgress.ts.
+ *   NO-OP    — Both empty. Fresh account on a fresh device.
+ *
+ * ── clearLocalSession ───────────────────────────────────────────────────────
+ * Called on sign-out to immediately evict the cached data. Protects against
+ * the "different user picks up the same device" scenario even in the brief
+ * window before onAuthStateChanged fires for the new user's login.
  */
 
 import {
@@ -28,14 +39,59 @@ import {
 import {
   getAllLocalHighlights,
   restoreLocalHighlights,
+  clearLocalHighlightsCache,
 } from '@/lib/highlights';
 import {
   getAllLocalProgress,
   restoreLocalProgress,
+  clearLocalProgressCache,
 } from '@/lib/readerProgress';
 
+// ── Sentinel ─────────────────────────────────────────────────────────────────
+
+const SESSION_UID_KEY = 'jornada_session_uid';
+
+function getStoredSessionUid(): string | null {
+  try { return localStorage.getItem(SESSION_UID_KEY); } catch { return null; }
+}
+
+function setStoredSessionUid(uid: string): void {
+  try { localStorage.setItem(SESSION_UID_KEY, uid); } catch {}
+}
+
+function clearStoredSessionUid(): void {
+  try { localStorage.removeItem(SESSION_UID_KEY); } catch {}
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/**
+ * Evicts all user-scoped localStorage cache entries.
+ * Called on sign-out so no residue remains for the next user.
+ * Never touches Firestore.
+ */
+export function clearLocalSession(): void {
+  clearLocalHighlightsCache();
+  clearLocalProgressCache();
+  clearStoredSessionUid();
+}
+
+/**
+ * Runs once per login. Ensures localStorage reflects the current user's
+ * Firestore state before any protected route becomes accessible.
+ */
 export async function performInitialSync(uid: string): Promise<void> {
-  // Fetch Firestore state for both stores in parallel.
+  // ── Guard: evict a different user's cache ─────────────────────────────────
+  const storedUid = getStoredSessionUid();
+  if (storedUid !== uid) {
+    // Either a new user on this device, or the first time we track the uid.
+    // Either way, the existing cache must not be used or migrated.
+    clearLocalHighlightsCache();
+    clearLocalProgressCache();
+    // (sentinel is stale/absent — we set it at the end of a successful sync)
+  }
+
+  // ── Fetch Firestore state for both stores in parallel ─────────────────────
   const [remoteHighlights, remoteProgress] = await Promise.all([
     loadAllHighlightsRemote(uid),
     loadAllProgressRemote(uid),
@@ -50,14 +106,13 @@ export async function performInitialSync(uid: string): Promise<void> {
     await saveHighlightsRemote(uid, localHighlights);
   } else if (remoteHighlights.length > 0) {
     // Returning user (or second device) → restore Firestore data to localStorage.
-    // Firestore wins; local cache is refreshed.
     restoreLocalHighlights(remoteHighlights);
   }
   // else: both empty — nothing to do.
 
   // ── Reading progress ────────────────────────────────────────────────────────
-  const localProgress    = getAllLocalProgress();
-  const hasLocalProgress = Object.keys(localProgress).length > 0;
+  const localProgress     = getAllLocalProgress();
+  const hasLocalProgress  = Object.keys(localProgress).length > 0;
   const hasRemoteProgress = Object.keys(remoteProgress).length > 0;
 
   if (!hasRemoteProgress && hasLocalProgress) {
@@ -71,4 +126,9 @@ export async function performInitialSync(uid: string): Promise<void> {
     // Returning user: restore Firestore progress to localStorage.
     restoreLocalProgress(remoteProgress);
   }
+
+  // ── Stamp the sentinel ────────────────────────────────────────────────────
+  // Only written after a successful sync so an interrupted sync does not
+  // leave a stale sentinel that suppresses the next eviction.
+  setStoredSessionUid(uid);
 }

@@ -17,7 +17,7 @@ import { auth }                  from '@/lib/firebase';
 import { ensureUserProfile }     from '@/lib/firestoreService';
 import { setActiveSyncUid }      from '@/lib/syncStore';
 import { setWatermarkIdentity }  from '@/lib/watermark';
-import { performInitialSync }    from '@/lib/firestoreSync';
+import { performInitialSync, clearLocalSession } from '@/lib/firestoreSync';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,6 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!firebaseUser) {
         setActiveSyncUid(null);
+        // Evict the localStorage cache immediately so the next user on this
+        // device never inherits this session's data — even in the brief window
+        // before their own login completes.
+        clearLocalSession();
         setUser(null);
         setLoading(false);
         setSyncReady(true); // No user → nothing to sync; let RequireAuth redirect.
