@@ -325,7 +325,21 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
     // asked to jump there.
     const pendingJump = consumePendingHighlightJump();
     if (pendingJump && pendingJump.lessonId === initialLessonId) {
-      const jumpIdx = findFlatIndexForAnchor(flatPages, initialLessonId, pendingJump);
+      // Primary: exact block search (stable across devices/pagination changes)
+      let jumpIdx = findFlatIndexForAnchor(flatPages, initialLessonId, pendingJump);
+
+      // Fallback: lesson-local pageIndex stored at highlight creation time.
+      // Works correctly when the exact block is not found (e.g. pagination
+      // changed, or the block coordinates were corrupted). Not reliable across
+      // different screen sizes but usually correct on the same device.
+      if (jumpIdx < 0 && pendingJump.pageIndex !== undefined) {
+        const candidateIdx = startIdx + pendingJump.pageIndex;
+        if (candidateIdx >= startIdx && candidateIdx < flatPages.length &&
+            flatPages[candidateIdx]?.lesson.id === initialLessonId) {
+          jumpIdx = candidateIdx;
+        }
+      }
+
       if (jumpIdx >= 0) {
         setCurrentPage(jumpIdx);
         setTimeout(() => {

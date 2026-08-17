@@ -153,6 +153,11 @@ export interface PendingHighlightJump {
   pageId:      number;
   blockIdx:    number;
   highlightId: string;
+  /** Lesson-local page index at time of highlighting (0=cover, 1=first
+   *  content page…). Used as a fallback when the exact (pageId,blockIdx)
+   *  block search fails due to pagination changes — not perfect across
+   *  different screen sizes but usually correct on the same device. */
+  pageIndex?:  number;
 }
 
 export function setPendingHighlightJump(jump: PendingHighlightJump): void {

@@ -49,7 +49,13 @@ export default function HighlightsPage() {
   };
 
   const handleTapItem = (h: BookHighlight) => {
-    setPendingHighlightJump({ lessonId: h.lessonId, pageId: h.pageId, blockIdx: h.blockIdx, highlightId: h.id });
+    setPendingHighlightJump({
+      lessonId:    h.lessonId,
+      pageId:      h.pageId,
+      blockIdx:    h.blockIdx,
+      highlightId: h.id,
+      pageIndex:   h.pageIndex,  // fallback for same-device navigation
+    });
     setLocation(`/jornada/licao/${h.lessonId}`);
   };
 
