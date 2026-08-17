@@ -12,7 +12,7 @@ import type { DynamicPage } from '@/lib/pagination';
 import {
   type BookHighlight,
   addHighlights,
-  removeHighlightRecord,
+  removeHighlightGroup,
   groupKey,
   loadAllHighlights,
   consumePendingHighlightJump,
@@ -588,34 +588,17 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
     };
   }, [readerMode, highlightTool]);
 
-  // ── Eraser: drag across highlights to erase individual records ─────────────
-  // The rendered <mark> carries data-highlight-ids so a touch/pointer resolves
-  // straight to the record ids under the finger via elementsFromPoint.
-  //
-  // Key behaviours vs the old tap-only eraser:
-  //   • Drag: touchmove / pointermove continuously erase as the finger moves,
-  //     RAF-throttled so the main thread never saturates.
-  //   • Per-record: only the specific record(s) under the finger are removed,
-  //     NOT the whole group. Sibling records in the same group survive,
-  //     enabling partial erasure (e.g. erasing the middle paragraph of a
-  //     3-paragraph selection leaves parts 0 and 2 intact, which then render
-  //     with "..." between them in HighlightsPage).
-  //   • Dedup: a Set tracks record ids already erased in this drag so slow
-  //     fingers don't double-fire on the same mark.
+  // ── Eraser: tap any word inside a highlight to delete it ───────────────────
+  // The rendered <mark> carries data-highlight-ids (see HighlightedText), so
+  // a tap resolves straight to the ids under the finger. elementsFromPoint,
+  // not the click target, because the same overlay-stacking caveat as the
+  // brush applies — the topmost hit may be a transparent layer.
   useEffect(() => {
     if (readerMode !== 'highlighting') return;
     if (highlightTool !== 'eraser') return;
     const container = containerRef.current;
     if (!container) return;
 
-    // ── Drag state (scoped to this effect instance) ───────────────────────
-    const erasedIds = new Set<string>();
-    let rafId: number | null = null;
-    let lastX = 0;
-    let lastY = 0;
-    let isDragging = false;
-
-    // ── Core erase logic ─────────────────────────────────────────────────
     const eraseAt = (x: number, y: number) => {
       const markEl = document
         .elementsFromPoint(x, y)
@@ -625,93 +608,35 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
       const ids = (markEl.getAttribute('data-highlight-ids') ?? '')
         .split(',')
         .map(s => s.trim())
-        .filter(Boolean)
-        .filter(id => !erasedIds.has(id)); // skip already erased this drag
+        .filter(Boolean);
       if (ids.length === 0) return;
-
-      ids.forEach(id => erasedIds.add(id));
-
-      // Remove per-record — sibling records in the same group survive.
+      // Erase whole logical highlights, never one paragraph of a
+      // multi-paragraph selection.
       setAllHighlights(prev => {
-        const targets = new Set(
-          prev.filter(h => ids.includes(h.id)).map(h => h.id),
-        );
-        if (targets.size === 0) return prev;
-        targets.forEach(id => removeHighlightRecord(id));
-        return prev.filter(h => !targets.has(h.id));
+        const keys = new Set(prev.filter(h => ids.includes(h.id)).map(groupKey));
+        if (keys.size === 0) return prev;
+        keys.forEach(removeHighlightGroup);
+        return prev.filter(h => !keys.has(groupKey(h)));
       });
-
-      // Prevent the trailing click from being treated as "tapped empty space".
+      // This tap erased something, so the trailing click must not be read
+      // as "tapped empty space" and close the tool bar.
       tapDidActionRef.current = true;
     };
 
-    // ── Touch handlers ────────────────────────────────────────────────────
-    const onTouchStart = () => {
-      erasedIds.clear();
-      isDragging = true;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (!t) return;
-      lastX = t.clientX;
-      lastY = t.clientY;
-      if (rafId !== null) return; // already queued
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        eraseAt(lastX, lastY);
-      });
-    };
-
+    const onPointerUp = (e: PointerEvent) => eraseAt(e.clientX, e.clientY);
     const onTouchEnd = (e: TouchEvent) => {
-      isDragging = false;
-      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
       const t = e.changedTouches[0];
       if (t) eraseAt(t.clientX, t.clientY);
     };
 
-    // ── Desktop (pointer) handlers ────────────────────────────────────────
-    const onPointerDown = () => {
-      erasedIds.clear();
-      isDragging = true;
-    };
-
-    const onPointerMove = (e: PointerEvent) => {
-      if (!isDragging) return;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        eraseAt(lastX, lastY);
-      });
-    };
-
-    const onPointerUp = (e: PointerEvent) => {
-      isDragging = false;
-      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-      eraseAt(e.clientX, e.clientY);
-    };
-
-    // Touch devices use touch-only events; pointer events would double-fire.
-    if (IS_TOUCH_DEVICE) {
-      container.addEventListener('touchstart',  onTouchStart, { passive: true });
-      container.addEventListener('touchmove',   onTouchMove,  { passive: true });
-      container.addEventListener('touchend',    onTouchEnd);
-    } else {
-      container.addEventListener('pointerdown', onPointerDown);
-      container.addEventListener('pointermove', onPointerMove);
-      container.addEventListener('pointerup',   onPointerUp);
-    }
+    // Touch devices get the touch listener only — pointerup would double-fire
+    // alongside it and try to erase twice at the same point.
+    if (IS_TOUCH_DEVICE) container.addEventListener('touchend', onTouchEnd);
+    else                 container.addEventListener('pointerup', onPointerUp);
 
     return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      container.removeEventListener('touchstart',  onTouchStart);
-      container.removeEventListener('touchmove',   onTouchMove);
-      container.removeEventListener('touchend',    onTouchEnd);
-      container.removeEventListener('pointerdown', onPointerDown);
-      container.removeEventListener('pointermove', onPointerMove);
-      container.removeEventListener('pointerup',   onPointerUp);
+      container.removeEventListener('touchend', onTouchEnd);
+      container.removeEventListener('pointerup', onPointerUp);
     };
   }, [readerMode, highlightTool]);
 
@@ -903,10 +828,9 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
     if (!pendingSelection) return [];
     const gid = crypto.randomUUID();
     const now = new Date().toISOString();
-    return pendingSelection.parts.map((part, partIndex) => ({
+    return pendingSelection.parts.map(part => ({
       id:           crypto.randomUUID(),
       groupId:      gid,
-      partIndex,
       lessonId:     part.lessonId,
       pageId:       part.pageId,
       pageIndex:    part.pageIdx,

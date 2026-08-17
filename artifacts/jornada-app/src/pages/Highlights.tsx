@@ -56,41 +56,17 @@ export default function HighlightsPage() {
   // A multi-paragraph highlight is stored as one record per paragraph — they
   // must read as a single entry here. Collapse each group into its first
   // record (for addressing) plus the joined text of all its parts.
-  //
-  // Gap detection: if a middle record was erased with the drag-eraser, the
-  // remaining records' partIndex values will not be consecutive (e.g. 0 and 2
-  // with 1 missing). A "..." is inserted between parts with a gap so the
-  // reader sees: "início da frase ... continuação da frase".
-  // Legacy records without partIndex fall back to plain space-joining.
-  const groupMap = new Map<string, BookHighlight[]>();
+  const collapsed: { head: BookHighlight; text: string }[] = [];
+  const seen = new Map<string, number>();
   for (const h of highlights) {
     const key = groupKey(h);
-    if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key)!.push(h);
-  }
-  const collapsed: { head: BookHighlight; text: string }[] = [];
-  for (const parts of groupMap.values()) {
-    const sorted = [...parts].sort((a, b) => {
-      // Sort by partIndex when available, fall back to (blockIdx, startOffset)
-      if (a.partIndex !== undefined && b.partIndex !== undefined)
-        return a.partIndex - b.partIndex;
-      if (a.blockIdx !== b.blockIdx) return a.blockIdx - b.blockIdx;
-      return a.startOffset - b.startOffset;
-    });
-    let text = '';
-    let prevIdx: number | undefined;
-    for (const part of sorted) {
-      if (text.length > 0) {
-        const hasGap =
-          part.partIndex !== undefined &&
-          prevIdx  !== undefined &&
-          part.partIndex !== prevIdx + 1;
-        text += hasGap ? ' \u2026 ' : ' ';
-      }
-      text += part.selectedText;
-      prevIdx = part.partIndex;
+    const at = seen.get(key);
+    if (at === undefined) {
+      seen.set(key, collapsed.length);
+      collapsed.push({ head: h, text: h.selectedText });
+    } else {
+      collapsed[at].text += ` ${h.selectedText}`;
     }
-    collapsed.push({ head: sorted[0], text });
   }
 
   // One group per lesson that actually has highlights, in book order.

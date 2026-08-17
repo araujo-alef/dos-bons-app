@@ -17,7 +17,6 @@
 import { getActiveSyncUid }         from '@/lib/syncStore';
 import {
   saveHighlightsRemote,
-  removeHighlightRemote,
   removeHighlightGroupRemote,
   patchHighlightNoteRemote,
 } from '@/lib/firestoreService';
@@ -40,12 +39,6 @@ export interface BookHighlight {
    *  ties them back together for display and deletion. Absent on
    *  single-block highlights saved before this existed; use groupKey(). */
   groupId?: string;
-  /** 0-based position of this record within its group (set at creation).
-   *  Used by HighlightsPage to detect gaps when a middle part is erased:
-   *  if consecutive records have non-adjacent partIndex values, "..." is
-   *  inserted between them. Absent on highlights saved before this field
-   *  existed — fall back to space-joining. */
-  partIndex?: number;
   note?: string;
   createdAt: string;
   updatedAt?: string;
@@ -120,13 +113,10 @@ export function addHighlights(list: BookHighlight[]): void {
   if (uid) saveHighlightsRemote(uid, list).catch(() => {});
 }
 
-/** Removes a single highlight record without touching sibling records in the
- *  same group. Use this for partial/drag erasure. The caller is responsible
- *  for updating React state to match. */
-export function removeHighlightRecord(id: string): void {
+export function removeHighlight(id: string): void {
   writeAll(readAll().filter(h => h.id !== id));
-  const uid = getActiveSyncUid();
-  if (uid) removeHighlightRemote(uid, id).catch(() => {});
+  // Single-record removal — only used internally; no Firestore call needed
+  // (removeHighlightGroup is always the public entry-point from the UI).
 }
 
 /** Removes every record of a logical highlight — erasing any paragraph of a
