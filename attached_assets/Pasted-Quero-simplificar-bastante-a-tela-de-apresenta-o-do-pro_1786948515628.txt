@@ -1,0 +1,441 @@
+Quero simplificar bastante a tela de apresentação do produto “Lábia de Cachorro”.
+
+A implementação atual ficou complexa demais, com vários cards/componentes extras e um card de CTA separado no final.
+
+NÃO é isso que eu quero.
+
+A ideia correta é:
+
+- a tela é composta basicamente por 3 imagens reais;
+- essas imagens aparecem em sequência vertical;
+- por cima de TODA a tela existe um overlay de bloqueio;
+- esse overlay é que comunica que o conteúdo está bloqueado;
+- não quero um card de cadeado separado no final.
+
+==================================================
+1. ESTRUTURA DA TELA
+==================================================
+
+A estrutura deve ser extremamente simples:
+
+<Screen>
+  <Image 1 />
+  <Image 2 />
+  <Image 3 />
+
+  <FullScreenLockedOverlay />
+</Screen>
+
+Essas três imagens são o conteúdo principal da tela.
+
+Não criar:
+- cards extras;
+- previews fictícios;
+- chat mockado;
+- componentes de comunidade gerados no frontend;
+- cards de benefícios;
+- seções adicionais.
+
+Use SOMENTE os 3 assets reais que vou fornecer.
+
+==================================================
+2. AS IMAGENS DEVEM SER O CONTEÚDO DA PÁGINA
+==================================================
+
+Quero que as imagens apareçam uma abaixo da outra, como uma apresentação visual do produto.
+
+Elas podem ter:
+- pequeno espaçamento entre si;
+- border-radius discreto, se ficar bom;
+- largura praticamente total do conteúdo;
+- enquadramento responsivo.
+
+Mas não colocar cada imagem dentro de um card pesado.
+
+A imagem em si já é o conteúdo.
+
+==================================================
+3. REMOVER COMPONENTES FICTÍCIOS
+==================================================
+
+Remova da implementação atual qualquer componente criado para simular:
+- comunidade;
+- mensagens;
+- chat;
+- membros;
+- cards internos;
+- badges;
+- notificações fictícias;
+- lista de mensagens fake.
+
+Esses elementos já existem nas imagens reais que vou adicionar.
+
+Não duplicar a informação.
+
+==================================================
+4. REMOVER O CARD DE CTA ATUAL
+==================================================
+
+Hoje existe um card separado no final com:
+- cadeado;
+- texto;
+- botão “Quero acessar”.
+
+Remova esse card.
+
+Não quero o bloqueio como uma seção da página.
+
+Quero o bloqueio como uma camada GLOBAL sobre toda a tela.
+
+==================================================
+5. OVERLAY DE BLOQUEIO
+==================================================
+
+Criar um overlay que cubra toda a viewport/tela da apresentação.
+
+Algo conceitualmente assim:
+
+position: fixed;
+inset: 0;
+z-index acima do conteúdo;
+
+O conteúdo com as imagens continua visível atrás.
+
+Mas deve parecer bloqueado.
+
+==================================================
+6. VISUAL DO OVERLAY
+==================================================
+
+Quero um overlay:
+- cinza/preto translúcido;
+- elegante;
+- com blur discreto;
+- escurecendo o conteúdo por trás;
+- sem esconder totalmente as imagens.
+
+Exemplo conceitual:
+
+background: rgba(10,10,12,0.58);
+
+backdrop-filter:
+blur(3px) ou algo muito sutil.
+
+A ideia é:
+“consigo ver o que existe, mas não consigo acessar”.
+
+==================================================
+7. CONTEÚDO CENTRAL DO OVERLAY
+==================================================
+
+No centro da viewport, colocar:
+
+1. ícone de cadeado meio aberto;
+2. texto principal;
+3. texto secundário opcional;
+4. botão CTA.
+
+Tudo diretamente sobre o overlay.
+
+Não colocar isso dentro de um card grande.
+
+Pode existir no máximo uma pequena área de suporte visual/transparência, mas não quero uma caixa enorme.
+
+==================================================
+8. TEXTO PRINCIPAL
+==================================================
+
+Usar algo como:
+
+“Entre agora e libere a comunidade e todas as aulas.”
+
+Esse deve ser o principal texto de conversão.
+
+Pode quebrar em 2 linhas no mobile.
+
+==================================================
+9. TEXTO SECUNDÁRIO
+==================================================
+
+Opcionalmente:
+
+“Conteúdo exclusivo disponível apenas para membros.”
+
+Esse texto deve ser menor e discreto.
+
+==================================================
+10. CTA
+==================================================
+
+Botão:
+
+“Quero acessar”
+
+ou:
+
+“Liberar acesso”
+
+Manter visual premium.
+
+Pode usar roxo/lilás da identidade do app.
+
+Não precisa ocupar a tela inteira.
+
+==================================================
+11. POSICIONAMENTO
+==================================================
+
+O conteúdo do overlay deve ficar centralizado visualmente na viewport.
+
+Não necessariamente no centro matemático exato se isso ficar estranho no mobile.
+
+Prioridade:
+- cadeado;
+- headline;
+- CTA;
+- tudo visível sem scroll.
+
+==================================================
+12. O OVERLAY DEVE BLOQUEAR INTERAÇÃO
+==================================================
+
+Enquanto o usuário não tiver acesso:
+
+não permitir interação com as imagens atrás.
+
+O overlay deve capturar:
+- clicks;
+- taps;
+- interação;
+- links.
+
+As imagens são apenas preview visual.
+
+==================================================
+13. SCROLL
+==================================================
+
+Quero manter a possibilidade de decidir entre dois comportamentos.
+
+Preferência inicial:
+
+o usuário pode rolar a tela e ver as 3 imagens através do overlay, mas não pode interagir com o conteúdo.
+
+Ou seja:
+- overlay visual permanece;
+- conteúdo continua scrollável;
+- CTA permanece visível/fixo.
+
+Se a implementação atual do overlay bloquear scroll, ajustar para permitir scroll do conteúdo atrás sem permitir interação com elementos.
+
+==================================================
+14. CTA FIXO DURANTE O SCROLL
+==================================================
+
+O conteúdo do bloqueio:
+- cadeado;
+- texto;
+- botão;
+
+deve continuar visível durante o scroll.
+
+Pode ficar centralizado/fixed sobre a viewport.
+
+Assim o usuário vê diferentes imagens por trás enquanto o convite de acesso continua presente.
+
+==================================================
+15. NÃO COBRIR DEMAIS AS IMAGENS
+==================================================
+
+Muito importante:
+
+não escurecer tanto a ponto de não dar para entender o que existe atrás.
+
+As imagens são justamente o teaser.
+
+A pessoa precisa conseguir reconhecer:
+- aulas;
+- comunidade;
+- prints;
+- atividade.
+
+Mas não precisa conseguir ler todos os detalhes.
+
+==================================================
+16. MOBILE FIRST
+==================================================
+
+Essa tela deve ser pensada principalmente para celular.
+
+No mobile:
+- imagens com width: 100%;
+- bom espaçamento vertical;
+- overlay preenchendo viewport inteira;
+- CTA fácil de tocar;
+- headline legível;
+- nada cortado pelo safe area.
+
+==================================================
+17. SAFE AREA
+==================================================
+
+Respeitar:
+
+env(safe-area-inset-top)
+env(safe-area-inset-bottom)
+
+O CTA não pode ficar atrás do home indicator.
+
+==================================================
+18. DESKTOP
+==================================================
+
+No desktop:
+- centralizar o conteúdo;
+- limitar a largura das imagens;
+- não deixar prints gigantes ocupando toda a tela.
+
+Pode usar algo como:
+
+max-width: 520px–700px
+
+conforme o design atual.
+
+==================================================
+19. ASSETS
+==================================================
+
+Vou fornecer exatamente 3 imagens.
+
+Use-as nesta ordem:
+
+IMAGE 1
+→ imagem principal / apresentação das aulas
+
+IMAGE 2
+→ primeiro print da comunidade
+
+IMAGE 3
+→ segundo print da comunidade
+
+Não gerar placeholders se os assets forem fornecidos.
+
+Não reconstruir nada dessas imagens em HTML/CSS.
+
+==================================================
+20. NÃO ALTERAR AS IMAGENS
+==================================================
+
+Não:
+- crop agressivo;
+- distorcer;
+- aplicar filtros fortes;
+- redesenhar;
+- inserir textos sobre elas individualmente.
+
+Usar os assets como foram fornecidos.
+
+==================================================
+21. ROTA
+==================================================
+
+Preservar a rota atual criada para o segundo card.
+
+Ao clicar no segundo card da Home:
+
+abre essa tela.
+
+Não alterar a Home nesta tarefa, exceto se for necessário manter esse link funcionando.
+
+==================================================
+22. NÃO IMPLEMENTAR PAGAMENTO AGORA
+==================================================
+
+O CTA pode continuar com comportamento temporário.
+
+Não integrar checkout/pagamento sem eu pedir.
+
+Se atualmente existir uma ação placeholder, preserve.
+
+==================================================
+23. PREPARAR PARA ENTITLEMENT
+==================================================
+
+Mesmo sendo visual por enquanto, estruturar o overlay para futuramente depender de algo como:
+
+hasAccess === false
+
+Se:
+
+hasAccess === false
+→ overlay aparece.
+
+Se:
+
+hasAccess === true
+→ overlay não aparece e conteúdo fica totalmente acessível.
+
+Não precisa implementar a regra real ainda se ela não existir.
+
+==================================================
+24. RESULTADO ESPERADO
+==================================================
+
+Quero que a tela final pareça aproximadamente:
+
+[ IMAGE 1 ]
+
+[ IMAGE 2 ]
+
+[ IMAGE 3 ]
+
+
+        ↓ POR CIMA DE TUDO ↓
+
+
+      [ cadeado meio aberto ]
+
+“Entre agora e libere a
+comunidade e todas as aulas.”
+
+     “Quero acessar”
+
+
+Com todo o conteúdo atrás:
+- visível;
+- escurecido;
+- parcialmente desfocado;
+- bloqueado.
+
+==================================================
+25. PRINCÍPIO VISUAL
+==================================================
+
+A página NÃO é uma landing page tradicional.
+
+Ela é um PREVIEW BLOQUEADO.
+
+As imagens devem provocar curiosidade.
+
+O overlay comunica:
+
+“isso existe, você está vendo uma prévia, mas precisa entrar para acessar”.
+
+==================================================
+26. CRITÉRIOS DE ACEITE
+==================================================
+
+Considerar correto somente quando:
+
+- a tela usa basicamente as 3 imagens;
+- componentes fake foram removidos;
+- card final de bloqueio foi removido;
+- overlay cobre toda a tela;
+- imagens continuam visíveis por trás;
+- conteúdo do overlay permanece visível durante o scroll;
+- botão CTA está no overlay;
+- conteúdo atrás não pode ser acessado;
+- layout continua responsivo;
+- segundo card da Home continua abrindo esta tela.
+
+Faça essa simplificação sem alterar outras partes do app.
