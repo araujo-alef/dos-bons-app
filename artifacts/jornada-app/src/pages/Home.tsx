@@ -75,7 +75,7 @@ function HomeContent() {
             </a>
 
             {/* ── Card 3: mascote roxo (antigo card 2) ──────────────── */}
-            <Link href="/em-breve/comunidade" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
+            <a href="https://start.labiadecachorro.com/?utm_source=solo.to&sck=1786943312736_17869424946624" target="_blank" rel="noopener noreferrer" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
               <div className="group" style={{ borderRadius:16, border:'1px solid rgba(139,53,255,0.28)', background:'#08060b', width:'100%', height:'100%', overflow:'hidden', position:'relative', cursor:'pointer' }}>
                 <img
                   src={labiaImg}
@@ -85,7 +85,7 @@ function HomeContent() {
                 />
                 <div aria-hidden="true" style={{ position:'absolute', inset:0, borderRadius:16, background:'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 60%, rgba(8,6,11,0.55) 100%)', pointerEvents:'none' }} />
               </div>
-            </Link>
+            </a>
 
             {/* ── Card 4: Código Insta Dominante ────────────────────── */}
             <Link href="/em-breve/ia" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
