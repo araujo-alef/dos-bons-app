@@ -13,12 +13,17 @@ const AUTH_ERRORS: Record<string, string> = {
   'auth/invalid-email':          'E-mail inválido.',
   'auth/too-many-requests':      'Muitas tentativas. Tente novamente mais tarde.',
   'auth/network-request-failed': 'Erro de conexão. Verifique sua internet.',
+  'auth/operation-not-allowed':  'Este método de login não está ativado. Contate o suporte.',
+  'auth/internal-error':         'Erro interno. Tente novamente.',
 };
 
 export function toAuthError(err: unknown): string {
   if (err && typeof err === 'object' && 'code' in err) {
     const code = (err as { code: string }).code;
+    // Log the raw code in development so it's visible in browser console.
+    if (import.meta.env.DEV) console.error('[auth error code]', code, err);
     return AUTH_ERRORS[code] ?? 'Algo deu errado. Tente novamente.';
   }
+  if (import.meta.env.DEV) console.error('[auth error]', err);
   return 'Algo deu errado. Tente novamente.';
 }
