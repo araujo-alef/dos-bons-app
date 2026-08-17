@@ -1,6 +1,6 @@
-# [Project name]
+# Hub da Jornada
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Hub digital editorial de desenvolvimento pessoal — uma Jornada interativa (livro digital em capítulos progressivos) com experiência de leitura premium, dark e editorial.
 
 ## Run & Operate
 
