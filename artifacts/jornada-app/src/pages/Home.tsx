@@ -70,9 +70,9 @@ function HomeContent() {
             <JourneyCard />
 
             {/* ── Card 2: Lábia de Cachorro — premium 3D object ─────── */}
-            <Link href="/em-breve/comunidade" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
+            <a href="https://pay.cakto.com.br/xuqc3on_733124" target="_blank" rel="noopener noreferrer" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
               <LabiaPremiumCard />
-            </Link>
+            </a>
 
             {/* ── Card 3: mascote roxo (antigo card 2) ──────────────── */}
             <Link href="/em-breve/comunidade" className="aspect-[4/5]" style={{ textDecoration:'none', display:'block' }}>
