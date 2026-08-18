@@ -81,7 +81,7 @@ export function PlanGate({ children }: { children: ReactNode }) {
             onClick={handleViewPlans}
             className="w-full rounded-full bg-[#B266FF] hover:bg-[#a34ffc] transition text-white text-sm font-semibold py-3"
           >
-            Ver planos
+            Adquirir já
           </button>
 
           <button
@@ -96,14 +96,7 @@ export function PlanGate({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Ação do CTA "Ver planos".
- *
- * Ainda não existe rota/página de compra no app. Quando a URL de checkout
- * (Cakto) for definida, basta substituir o conteúdo desta função por:
- *   window.open('https://SUA_URL_DE_CHECKOUT', '_blank');
- */
+/** Ação do CTA "Adquirir já": abre o checkout Cakto em nova aba. */
 function handleViewPlans(): void {
-  // Placeholder intencional — URL de planos ainda não definida.
-  alert('Página de planos em breve.');
+  window.open('https://pay.cakto.com.br/k6szn4q_1048490', '_blank', 'noopener');
 }
