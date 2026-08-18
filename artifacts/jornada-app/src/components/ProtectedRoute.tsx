@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Redirect } from 'wouter';
 import { useAuth } from '@/context/AuthContext';
+import { PlanGate } from '@/components/PlanGate';
 
 /**
  * Full guard — blocks until Firebase session is resolved AND the initial
@@ -21,7 +22,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   if (loading || (user && !syncReady)) return <SyncLoadingScreen syncing={!!user} />;
   if (!user) return <Redirect to="/login" />;
-  return <>{children}</>;
+  return <PlanGate>{children}</PlanGate>;
 }
 
 /**
@@ -42,7 +43,7 @@ export function RequireAuthOnly({ children }: { children: ReactNode }) {
 
   if (loading) return <SyncLoadingScreen syncing={false} />;
   if (!user)   return <Redirect to="/login" />;
-  return <>{children}</>;
+  return <PlanGate>{children}</PlanGate>;
 }
 
 function SyncLoadingScreen({ syncing }: { syncing: boolean }) {

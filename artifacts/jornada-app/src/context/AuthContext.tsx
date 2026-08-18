@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -24,6 +25,22 @@ import { performInitialSync, clearLocalSession } from '@/lib/firestoreSync';
 /** Plano comprado via Cakto — fonte de verdade no backend (cakto_entitlements). */
 export type UserPlan = 'essential' | 'deluxe' | null;
 
+/**
+ * Estado da consulta do plano ao backend:
+ *  - 'loading' → consulta em andamento (não mostrar bloqueio — evita flicker)
+ *  - 'ready'   → resposta recebida; `plan` é confiável (inclusive null = sem compra)
+ *  - 'error'   → falha técnica (rede/5xx); NÃO tratar como "sem plano"
+ */
+export type PlanStatus = 'loading' | 'ready' | 'error';
+
+/**
+ * Regra central de acesso: Essential e Deluxe têm o MESMO acesso nesta etapa.
+ * Diferenciação futura entre planos deve partir daqui (ex.: isDeluxe(plan)).
+ */
+export function hasPlan(plan: UserPlan): boolean {
+  return plan === 'essential' || plan === 'deluxe';
+}
+
 interface AuthContextValue {
   user:      User | null;
   /**
@@ -31,7 +48,9 @@ interface AuthContextValue {
    * pelo frontend). `null` = sem compra reconhecida ou não autenticado.
    */
   plan:      UserPlan;
-  /** Reconsulta o plano no backend (ex.: após compra posterior). */
+  /** Estado da consulta do plano — ver PlanStatus. */
+  planStatus: PlanStatus;
+  /** Reconsulta o plano no backend (ex.: após compra posterior ou retry). */
   refreshPlan: () => Promise<void>;
   /** True while Firebase is resolving the persisted session on first load. */
   loading:   boolean;
@@ -56,20 +75,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user,      setUser]      = useState<User | null>(null);
   const [loading,   setLoading]   = useState(true);
   const [syncReady, setSyncReady] = useState(false);
-  const [plan,      setPlan]      = useState<UserPlan>(null);
+  const [plan,       setPlan]       = useState<UserPlan>(null);
+  const [planStatus, setPlanStatus] = useState<PlanStatus>('loading');
+
+  // Guarda contra corrida: cada fetch é carimbado; só a consulta mais
+  // recente (e da sessão atual) pode gravar o resultado. Evita que uma
+  // resposta atrasada de um usuário anterior sobrescreva o plano do atual.
+  const planFetchSeq = useRef(0);
 
   async function fetchPlan(firebaseUser: User): Promise<void> {
+    const seq = ++planFetchSeq.current;
+    const uid = firebaseUser.uid;
+    const commit = (p: UserPlan, s: PlanStatus) => {
+      if (seq !== planFetchSeq.current || auth.currentUser?.uid !== uid) return;
+      setPlan(p);
+      setPlanStatus(s);
+    };
+    setPlanStatus('loading');
     try {
       const idToken = await firebaseUser.getIdToken();
       const resp = await fetch(`${import.meta.env.BASE_URL}api/me/plan`, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
-      if (!resp.ok) { setPlan(null); return; }
-      const data = (await resp.json()) as { plan?: UserPlan };
-      setPlan(data.plan ?? null);
+      if (!resp.ok) {
+        // Falha técnica (5xx etc.) — não é "sem plano"; permite retry.
+        commit(null, 'error');
+        return;
+      }
+      const data = (await resp.json()) as { plan?: unknown };
+      // Payload malformado ≠ "sem plano": só aceita valores conhecidos.
+      if (data.plan === 'essential' || data.plan === 'deluxe' || data.plan === null) {
+        commit(data.plan, 'ready');
+      } else {
+        commit(null, 'error');
+      }
     } catch {
-      // Backend temporariamente indisponível — sem plano até a próxima consulta.
-      setPlan(null);
+      // Backend/rede indisponível — estado de erro, não bloqueio comercial.
+      commit(null, 'error');
     }
   }
 
@@ -79,8 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // during Firestore sync on re-login as well as first login.
       setSyncReady(false);
 
+      // Toda transição de auth invalida o plano anterior: nunca herdar o
+      // plano de outra sessão/usuário, nem deixar fetches antigos gravarem.
+      planFetchSeq.current++;
+      setPlan(null);
+      setPlanStatus('loading');
+
       if (!firebaseUser) {
-        setPlan(null);
         setActiveSyncUid(null);
         // Evict the localStorage cache immediately so the next user on this
         // device never inherits this session's data — even in the brief window
@@ -155,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, plan, refreshPlan, loading, syncReady, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ user, plan, planStatus, refreshPlan, loading, syncReady, signIn, signUp, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

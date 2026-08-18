@@ -1,0 +1,396 @@
+Quero implementar agora o bloqueio visual do frontend com base no plano retornado por:
+
+GET /api/me/plan
+
+IMPORTANTE:
+nesta etapa NÃO quero criar novas regras de backend.
+NÃO quero alterar webhook, Cakto, Firebase Auth, Firestore, entitlement ou segurança server-side.
+
+A fonte de verdade já existe no backend.
+
+Hoje /api/me/plan retorna:
+
+{
+  authenticated: true,
+  plan: "essential" | "deluxe" | null,
+  emailVerified: boolean
+}
+
+A regra desta etapa é:
+
+- plan === "essential" → usuário tem acesso
+- plan === "deluxe" → usuário tem acesso
+- plan === null → usuário NÃO tem acesso
+
+Por enquanto Essential e Deluxe devem ter EXATAMENTE o mesmo acesso no frontend.
+
+Não diferenciar conteúdo entre os dois planos ainda.
+
+==================================================
+OBJETIVO
+==================================================
+
+Criar uma camada de controle de acesso visual no frontend.
+
+Quero que usuários autenticados sem plano vejam o app, mas com o conteúdo bloqueado por um overlay premium.
+
+Usuários com Essential ou Deluxe devem continuar usando o app normalmente, sem overlay.
+
+==================================================
+REGRA PRINCIPAL
+==================================================
+
+Criar uma lógica central equivalente a:
+
+const hasPlan =
+  plan === "essential" ||
+  plan === "deluxe";
+
+Se hasPlan === true:
+→ app funciona normalmente
+
+Se hasPlan === false:
+→ mostrar overlay de bloqueio
+
+Não duplicar essa regra em vários componentes.
+Centralizar a lógica de forma reutilizável.
+
+==================================================
+CARREGAMENTO
+==================================================
+
+Muito importante:
+
+enquanto /api/me/plan ainda estiver carregando, NÃO mostrar o overlay de bloqueio imediatamente.
+
+Evitar flicker do tipo:
+
+abre app
+→ aparece bloqueado por 200ms
+→ depois libera
+
+Criar um estado de loading apropriado.
+
+Fluxo esperado:
+
+Auth resolvido
+→ busca /api/me/plan
+→ enquanto carrega, mostrar estado neutro/loading discreto
+→ depois decidir se mostra ou não o bloqueio
+
+==================================================
+USUÁRIO SEM PLANO
+==================================================
+
+Quando:
+
+plan === null
+
+quero que o conteúdo continue VISÍVEL por trás.
+
+Não redirecionar para outra página.
+Não esconder completamente a Home.
+
+A ideia é:
+
+o usuário consegue ver o app,
+mas percebe claramente que precisa desbloquear o acesso.
+
+==================================================
+OVERLAY GLOBAL
+==================================================
+
+Criar um overlay cobrindo a viewport do app.
+
+Esse overlay deve:
+
+- ficar por cima do conteúdo;
+- ser discreto;
+- fundo preto/cinza translúcido;
+- permitir ver a Home por trás;
+- deixar o conteúdo levemente apagado;
+- aplicar blur bem sutil, se necessário;
+- impedir interação com o conteúdo bloqueado.
+
+Não quero uma tela branca.
+Não quero um modal pesado.
+Não quero esconder completamente o produto.
+
+A sensação deve ser:
+
+“o conteúdo está aqui, mas está bloqueado”.
+
+==================================================
+VISUAL DO OVERLAY
+==================================================
+
+Seguir a identidade atual do projeto:
+
+- fundo escuro;
+- premium;
+- masculino;
+- minimalista;
+- roxo/lilás como destaque;
+- sem excesso de glow;
+- sem aparência de SaaS/dashboard.
+
+Algo conceitualmente como:
+
+background: rgba(5, 5, 5, 0.50);
+
+backdrop-filter:
+blur(2px);
+
+Pode ajustar conforme ficar visualmente melhor.
+
+==================================================
+CONTEÚDO CENTRAL DO BLOQUEIO
+==================================================
+
+No centro da viewport, colocar:
+
+1. ícone de cadeado meio aberto ou cadeado simples;
+2. headline curta;
+3. texto secundário opcional;
+4. CTA principal.
+
+Não colocar dentro de um card grande.
+
+Pode existir apenas um pequeno container translúcido para dar contraste.
+
+==================================================
+COPY
+==================================================
+
+Headline sugerida:
+
+“Desbloqueie seu acesso”
+
+Texto secundário:
+
+“Escolha seu plano e libere todo o conteúdo.”
+
+CTA principal:
+
+“Ver planos”
+
+Se você achar que outra variação fica melhor visualmente, preserve o sentido.
+
+==================================================
+CTA
+==================================================
+
+O botão “Ver planos” deve levar para a tela/rota de compra existente, se já houver uma.
+
+Se ainda não existir uma rota definida para compra/planos:
+
+- criar apenas um handler claro/placeholder;
+- não inventar integração de checkout;
+- não hardcodar URL nova;
+- me informar onde devo colocar a URL depois.
+
+==================================================
+INTERAÇÃO
+==================================================
+
+Quando usuário estiver sem plano:
+
+- conteúdo atrás permanece visível;
+- links/cards não devem ser clicáveis;
+- ações do app não devem funcionar;
+- overlay intercepta interação.
+
+Mas manter elementos globais necessários, como logout, se isso já fizer parte da estrutura atual.
+
+Se bloquear logout por causa do overlay, ajustar para que logout continue possível.
+
+==================================================
+USUÁRIO COM PLANO
+==================================================
+
+Quando plan for:
+
+"essential"
+
+ou:
+
+"deluxe"
+
+não mostrar nenhuma limitação visual.
+
+A Home e o restante do frontend devem continuar funcionando exatamente como hoje.
+
+==================================================
+ESSENTIAL E DELUXE
+==================================================
+
+Muito importante:
+
+NÃO implementar diferenciação de conteúdo entre Essential e Deluxe agora.
+
+Os dois planos têm o mesmo acesso nesta etapa.
+
+Estruture a lógica para permitir diferenciação futura, mas sem criar regras fictícias.
+
+Exemplo:
+
+hasPlan(plan)
+
+ou algo equivalente.
+
+Não criar:
+
+if essential → bloqueia X
+if deluxe → libera X
+
+Isso virá depois.
+
+==================================================
+FONTE DE VERDADE
+==================================================
+
+Usar somente:
+
+GET /api/me/plan
+
+Não duplicar informação de plano em localStorage como fonte de verdade.
+
+Pode haver cache temporário de UI se necessário, mas o backend continua sendo a referência.
+
+==================================================
+ATUALIZAÇÃO DE PLANO
+==================================================
+
+A arquitetura atual já permite que um usuário Essential receba upgrade para Deluxe sem precisar relogar.
+
+Preservar esse comportamento.
+
+Se o frontend já possui mecanismo de revalidação/refetch de /api/me/plan:
+
+→ reutilizar.
+
+Se não possui:
+
+→ criar uma função central para refazer a consulta de plano quando necessário.
+
+Não criar polling agressivo.
+
+==================================================
+ERROS DE API
+==================================================
+
+Se /api/me/plan falhar por erro de rede/5xx:
+
+NÃO assumir automaticamente plan === null.
+
+Diferenciar:
+
+- plano realmente ausente
+- falha ao carregar plano
+
+Em falha técnica, mostrar estado de erro/retry discreto.
+
+Não transformar erro de API em bloqueio comercial.
+
+==================================================
+USUÁRIO NÃO AUTENTICADO
+==================================================
+
+Preservar o fluxo de autenticação atual.
+
+Este overlay é somente para:
+
+usuário autenticado + plan === null
+
+Usuário não autenticado continua indo para login/registro conforme comportamento atual.
+
+==================================================
+COMPONENTIZAÇÃO
+==================================================
+
+Pode criar algo como:
+
+PlanGate
+AccessOverlay
+usePlan
+hasPlan
+
+ou nomes equivalentes coerentes com a arquitetura atual.
+
+Prioridades:
+
+- lógica central;
+- fácil manutenção;
+- sem duplicação;
+- sem refatoração desnecessária.
+
+==================================================
+NÃO ALTERAR
+==================================================
+
+Não mexer em:
+
+- webhook Cakto
+- secrets
+- product IDs
+- Firebase Auth
+- registration-eligibility
+- Firestore
+- backend de entitlement
+- /api/me/plan
+- regra de upgrade
+- verificação de e-mail
+- componentes internos do leitor/livro
+- estrutura visual da Home além do overlay
+
+==================================================
+CRITÉRIOS DE ACEITE
+==================================================
+
+Considerar correto somente quando:
+
+1. usuário autenticado com plan essential:
+   → app totalmente liberado
+
+2. usuário autenticado com plan deluxe:
+   → app totalmente liberado
+
+3. usuário autenticado com plan null:
+   → Home aparece por trás
+   → overlay discreto cobre a tela
+   → cadeado + CTA aparecem
+   → conteúdo atrás não é interativo
+
+4. enquanto plano carrega:
+   → não há flicker de bloqueio
+
+5. erro em /api/me/plan:
+   → não é tratado como plan null
+
+6. logout continua acessível
+
+7. Essential e Deluxe têm o mesmo acesso
+
+8. nenhuma mudança de backend foi feita
+
+==================================================
+AO FINAL
+==================================================
+
+Me responda:
+
+1. quais arquivos foram criados/alterados;
+2. onde ficou centralizada a lógica de plano;
+3. como é calculado hasPlan;
+4. como ficou o estado de loading;
+5. como ficou o estado de erro;
+6. como o overlay é exibido;
+7. onde configurar a ação do botão “Ver planos”;
+8. como o frontend poderá diferenciar Essential e Deluxe no futuro;
+9. confirmação de que backend/Cakto/Firebase não foram alterados;
+10. quais testes foram executados para:
+   - essential
+   - deluxe
+   - null
+   - loading
+   - erro de API
