@@ -103,6 +103,12 @@ export default function Login() {
           </button>
         </form>
 
+        <p className="text-center text-sm text-white/30">
+          Ainda não tem uma conta?{' '}
+          <Link href="/cadastro" className="text-[#B266FF]/80 hover:text-[#B266FF] transition no-underline">
+            Criar conta
+          </Link>
+        </p>
 
       </div>
     </div>

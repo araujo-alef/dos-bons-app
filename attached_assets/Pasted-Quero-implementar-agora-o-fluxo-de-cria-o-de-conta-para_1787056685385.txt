@@ -1,0 +1,511 @@
+Quero implementar agora o fluxo de criação de conta para clientes que compraram um dos produtos pela Cakto.
+
+Atualmente o webhook da Cakto já está funcionando e registra o plano comprado na tabela:
+
+```text
+cakto_entitlements
+```
+
+O entitlement é associado ao e-mail normalizado da compra e possui:
+
+```text
+essential
+deluxe
+```
+
+O produto de upgrade apenas altera `essential → deluxe`.
+
+Nesta etapa, quero integrar esse entitlement ao fluxo de autenticação do app.
+
+IMPORTANTE: revise primeiro a implementação atual de autenticação, Firebase e banco antes de alterar qualquer coisa. Reutilize a arquitetura existente e não crie um segundo sistema de autenticação.
+
+---
+
+# 1. Fluxo desejado
+
+O fluxo deve funcionar assim:
+
+```text
+Cliente compra na Cakto
+↓
+Webhook registra entitlement pelo e-mail
+↓
+Cliente acessa o app
+↓
+Cria uma conta usando o mesmo e-mail utilizado na compra
+↓
+Sistema verifica se existe um entitlement válido para esse e-mail
+↓
+Se existir, permite criar a conta
+↓
+Conta Firebase criada normalmente
+↓
+Plano é associado/reconhecido automaticamente
+↓
+Usuário entra no app com acesso correspondente ao plano
+```
+
+NÃO quero criar automaticamente uma conta Firebase no momento da compra.
+
+NÃO quero criar senha default.
+
+O cliente deve escolher sua própria senha no fluxo normal de registro.
+
+---
+
+# 2. Restaurar página de registro
+
+Anteriormente pedi para bloquear/desabilitar a página de registro.
+
+Agora essa decisão deve ser revertida.
+
+Restaure a página/rota de registro para que compradores possam criar suas contas.
+
+Se a rota atualmente estiver:
+
+* bloqueada
+* redirecionando para login
+* desabilitada
+* inacessível
+
+remova essa restrição.
+
+Preserve o layout e a implementação original sempre que possível.
+
+---
+
+# 3. Restaurar botão/link de cadastro no login
+
+Anteriormente também pedi para remover do login o botão/link que levava para a página de registro.
+
+Restaure esse acesso.
+
+Pode ser algo como:
+
+```text
+Ainda não tem uma conta?
+Criar conta
+```
+
+ou preserve o texto/design que já existia anteriormente no projeto.
+
+O botão deve levar para a rota de registro correta.
+
+---
+
+# 4. Cadastro NÃO deve ser aberto para qualquer e-mail
+
+Apesar de restaurarmos a página de registro, apenas clientes que possuem um entitlement da Cakto devem conseguir criar conta.
+
+Antes de criar o usuário no Firebase, valide o e-mail informado no registro.
+
+Normalize o e-mail exatamente da mesma forma utilizada pelo webhook:
+
+```ts
+email.trim().toLowerCase()
+```
+
+Depois consulte:
+
+```text
+cakto_entitlements
+```
+
+Se existir entitlement para esse e-mail:
+
+```text
+permitir cadastro
+```
+
+Se NÃO existir:
+
+```text
+não criar usuário Firebase
+```
+
+e mostrar uma mensagem amigável.
+
+Exemplo conceitual:
+
+```text
+Não encontramos uma compra vinculada a este e-mail.
+
+Use o mesmo e-mail informado no momento da compra.
+```
+
+Não precisa usar exatamente esse texto se o projeto já tiver um padrão melhor de mensagens.
+
+---
+
+# 5. Segurança da validação
+
+A validação do entitlement NÃO pode depender apenas do frontend.
+
+Não faça algo como:
+
+```ts
+if (frontend encontrou plano) {
+   firebase.createUser(...)
+}
+```
+
+A existência do entitlement deve ser validada de forma segura pelo backend/API antes ou durante o processo de criação da conta.
+
+O frontend pode consultar o resultado, mas não deve ser a fonte de verdade.
+
+---
+
+# 6. Criação da conta
+
+Quando existir entitlement válido:
+
+o usuário deve poder criar sua conta utilizando o fluxo normal do Firebase Authentication.
+
+Preserve os campos atualmente utilizados pelo registro, como:
+
+* nome, se já existir
+* e-mail
+* senha
+* confirmação de senha, se existir
+
+Não crie senha automática.
+
+Não envie senha por webhook.
+
+Não armazene senha fora do Firebase Authentication.
+
+---
+
+# 7. Vínculo com o plano
+
+Depois que a conta Firebase for criada com sucesso, o sistema deve reconhecer automaticamente o entitlement correspondente ao e-mail.
+
+Exemplo:
+
+```text
+compra Essential
+↓
+cakto_entitlements = essential
+↓
+cria conta com mesmo e-mail
+↓
+usuário autenticado passa a possuir acesso Essential
+```
+
+E:
+
+```text
+compra Deluxe
+↓
+cakto_entitlements = deluxe
+↓
+cria conta com mesmo e-mail
+↓
+usuário autenticado passa a possuir acesso Deluxe
+```
+
+Não copie ou recrie regras de plano desnecessariamente.
+
+A tabela `cakto_entitlements` deve continuar sendo a fonte de verdade para a compra realizada pela Cakto, a menos que a arquitetura existente possua uma forma mais apropriada de vincular isso ao usuário Firebase.
+
+---
+
+# 8. Usuário que já possui conta
+
+Esse cenário é muito importante.
+
+Se uma pessoa já tiver uma conta Firebase e posteriormente realizar uma compra utilizando o mesmo e-mail:
+
+```text
+conta já existe
+↓
+Cakto registra/atualiza entitlement
+↓
+usuário continua usando a mesma conta
+↓
+novo plano deve ser reconhecido automaticamente
+```
+
+Não crie uma segunda conta.
+
+Não exija novo cadastro.
+
+Não altere senha.
+
+Na próxima autenticação, atualização da sessão ou consulta de entitlement, o usuário deve receber o acesso correspondente ao plano adquirido.
+
+---
+
+# 9. Caso tente registrar e a conta já exista
+
+Se o e-mail possuir entitlement, mas já existir uma conta Firebase para ele, não tente criar outra conta.
+
+Mostre uma mensagem apropriada e direcione o usuário para login.
+
+Exemplo conceitual:
+
+```text
+Já existe uma conta com este e-mail.
+Entre na sua conta para acessar seu conteúdo.
+```
+
+Se houver fluxo de recuperação de senha no projeto, preserve-o.
+
+---
+
+# 10. E-mail diferente da compra
+
+Se o cliente comprou com:
+
+```text
+cliente@email.com
+```
+
+mas tentar registrar:
+
+```text
+outro@email.com
+```
+
+o cadastro deve ser recusado porque não existe entitlement para esse segundo e-mail.
+
+Não tente inferir que são a mesma pessoa.
+
+Não mova entitlement automaticamente entre e-mails.
+
+A mensagem deve orientar o cliente a utilizar o mesmo e-mail informado na compra.
+
+---
+
+# 11. Normalização
+
+Utilize a mesma normalização em todos os pontos:
+
+```ts
+email.trim().toLowerCase()
+```
+
+Isso deve valer para:
+
+* webhook Cakto
+* busca do entitlement
+* registro
+* login/vínculo quando necessário
+
+Evite problemas como:
+
+```text
+Cliente@Email.com
+cliente@email.com
+```
+
+serem tratados como clientes diferentes.
+
+---
+
+# 12. Plano continua sendo monotônico
+
+Preserve a regra já implementada:
+
+```text
+sem plano < essential < deluxe
+```
+
+Nunca faça downgrade por causa do fluxo de autenticação.
+
+O registro/login apenas deve reconhecer o entitlement já existente.
+
+Não altere a lógica já implementada no webhook para:
+
+* Essential
+* Deluxe
+* Upgrade
+* idempotência
+* concorrência
+* produto desconhecido
+
+---
+
+# 13. Não implementar ainda bloqueio de conteúdo
+
+Nesta tarefa, foque em:
+
+```text
+compra
+→ entitlement
+→ cadastro/login
+→ identificação do plano do usuário
+```
+
+Ainda NÃO precisa implementar agora toda a lógica visual de quais módulos/cards/conteúdos ficam bloqueados para Essential ou Deluxe.
+
+Essa será a próxima etapa.
+
+Porém, deixe a informação do plano disponível de maneira adequada para que o frontend consiga utilizá-la posteriormente.
+
+---
+
+# 14. Não implementar reembolso/chargeback agora
+
+Não implemente nesta etapa nenhuma nova regra de:
+
+* refund
+* chargeback
+* cancelamento
+
+Isso será tratado posteriormente.
+
+Preserve apenas qualquer comportamento já existente.
+
+---
+
+# 15. Evitar exposição indevida do entitlement
+
+Não permita que o frontend consiga simplesmente informar:
+
+```text
+plan = deluxe
+```
+
+ou alterar seu próprio plano.
+
+O plano deve sempre ser obtido de uma fonte confiável no backend/banco.
+
+---
+
+# 16. Estado do usuário autenticado
+
+Depois do login, precisamos conseguir saber qual é o plano atual do usuário.
+
+Revise a arquitetura existente e implemente da maneira mais coerente.
+
+O frontend deve conseguir obter algo equivalente a:
+
+```ts
+{
+  authenticated: true,
+  plan: "essential"
+}
+```
+
+ou:
+
+```ts
+{
+  authenticated: true,
+  plan: "deluxe"
+}
+```
+
+Não necessariamente com esse formato exato.
+
+Reutilize services/hooks/endpoints de usuário existentes se houver.
+
+Não crie implementação paralela sem necessidade.
+
+---
+
+# 17. Cenários obrigatórios de teste
+
+Antes de considerar concluído, teste pelo menos:
+
+### Cenário 1
+
+```text
+entitlement essential existe
++
+conta ainda não existe
+→ cadastro permitido
+→ usuário criado
+→ plano essential reconhecido
+```
+
+### Cenário 2
+
+```text
+entitlement deluxe existe
++
+conta ainda não existe
+→ cadastro permitido
+→ usuário criado
+→ plano deluxe reconhecido
+```
+
+### Cenário 3
+
+```text
+nenhum entitlement
+→ tentativa de cadastro
+→ cadastro recusado
+→ nenhum usuário Firebase criado
+```
+
+### Cenário 4
+
+```text
+entitlement existe
++
+conta Firebase já existe
+→ não duplica usuário
+→ orienta login
+```
+
+### Cenário 5
+
+```text
+usuário já possui conta essential
++
+posteriormente compra deluxe/upgrade
+→ mesma conta passa a reconhecer deluxe
+```
+
+### Cenário 6
+
+```text
+usuário possui entitlement
++
+digita e-mail com letras maiúsculas/espaços
+→ normalização encontra corretamente o entitlement
+```
+
+---
+
+# 18. Não fazer alterações não relacionadas
+
+Não:
+
+* redesenhe telas desnecessariamente
+* altere webhook Cakto sem necessidade
+* altere autenticação da Cakto
+* troque Firebase
+* crie novo sistema de usuários
+* faça grandes refactors
+* implemente conteúdo Essential/Deluxe ainda
+* implemente refund/chargeback ainda
+
+Faça apenas o necessário para estabelecer corretamente:
+
+```text
+Cakto entitlement ↔ usuário Firebase
+```
+
+---
+
+# 19. Ao finalizar, me informe
+
+Quero um resumo objetivo contendo:
+
+1. quais arquivos foram alterados
+2. como ficou a página de registro
+3. onde o link de registro foi restaurado no login
+4. como o backend valida se o e-mail possui entitlement
+5. se é possível criar conta sem ter comprado
+6. como é feita a normalização do e-mail
+7. como o usuário Firebase é relacionado ao `cakto_entitlements`
+8. o que acontece quando o usuário já possui conta
+9. como uma compra posterior atualiza o acesso de uma conta existente
+10. como o frontend obtém o plano atual do usuário
+11. quais testes foram executados
+12. se foi necessária alguma alteração de schema
+13. se preciso executar algum passo manual ou republicar o app
+14. se existe alguma situação de edge case que você identificou durante a implementação

@@ -28,12 +28,37 @@ export default function Register() {
       return;
     }
 
+    // Mesma normalização usada pelo webhook/backend.
+    const normalizedEmail = email.trim().toLowerCase();
+
     setLoading(true);
     try {
-      await signUp(email, password);
+      // O backend é a fonte de verdade: só e-mails com compra Cakto
+      // registrada podem criar conta.
+      const resp = await fetch(`${import.meta.env.BASE_URL}api/auth/registration-eligibility`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      if (!resp.ok) {
+        setError('Não foi possível verificar sua compra agora. Tente novamente em instantes.');
+        return;
+      }
+      const { eligible } = (await resp.json()) as { eligible: boolean };
+      if (!eligible) {
+        setError('Não encontramos uma compra vinculada a este e-mail. Use o mesmo e-mail informado no momento da compra.');
+        return;
+      }
+
+      await signUp(normalizedEmail, password);
       setLocation('/');
     } catch (err) {
-      setError(toAuthError(err));
+      const code = (err as { code?: string })?.code;
+      if (code === 'auth/email-already-in-use') {
+        setError('Já existe uma conta com este e-mail. Entre na sua conta para acessar seu conteúdo.');
+      } else {
+        setError(toAuthError(err));
+      }
     } finally {
       setLoading(false);
     }

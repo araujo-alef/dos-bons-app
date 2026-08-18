@@ -9,6 +9,7 @@ import {
   type User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -21,8 +22,18 @@ import { performInitialSync, clearLocalSession } from '@/lib/firestoreSync';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+/** Plano comprado via Cakto — fonte de verdade no backend (cakto_entitlements). */
+export type UserPlan = 'essential' | 'deluxe' | null;
+
 interface AuthContextValue {
   user:      User | null;
+  /**
+   * Plano atual do usuário autenticado, obtido do backend (nunca definido
+   * pelo frontend). `null` = sem compra reconhecida ou não autenticado.
+   */
+  plan:      UserPlan;
+  /** Reconsulta o plano no backend (ex.: após compra posterior). */
+  refreshPlan: () => Promise<void>;
   /** True while Firebase is resolving the persisted session on first load. */
   loading:   boolean;
   /**
@@ -46,6 +57,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user,      setUser]      = useState<User | null>(null);
   const [loading,   setLoading]   = useState(true);
   const [syncReady, setSyncReady] = useState(false);
+  const [plan,      setPlan]      = useState<UserPlan>(null);
+
+  async function fetchPlan(firebaseUser: User): Promise<void> {
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      const resp = await fetch(`${import.meta.env.BASE_URL}api/me/plan`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!resp.ok) { setPlan(null); return; }
+      const data = (await resp.json()) as { plan?: UserPlan };
+      setPlan(data.plan ?? null);
+    } catch {
+      // Backend temporariamente indisponível — sem plano até a próxima consulta.
+      setPlan(null);
+    }
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -54,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSyncReady(false);
 
       if (!firebaseUser) {
+        setPlan(null);
         setActiveSyncUid(null);
         // Evict the localStorage cache immediately so the next user on this
         // device never inherits this session's data — even in the brief window
@@ -80,6 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                  ?? 'Usuário',
         email: firebaseUser.email ?? '',
       });
+
+      // 3b. Busca o plano comprado (Cakto) no backend — não bloqueia o boot.
+      void fetchPlan(firebaseUser);
 
       // 4. Ensure the Firestore user profile document exists.
       ensureUserProfile(
@@ -109,7 +140,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string): Promise<void> {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // O plano só é reconhecido pelo backend com e-mail verificado —
+    // envia a verificação imediatamente após o cadastro.
+    sendEmailVerification(cred.user).catch(() => {});
   }
 
   async function signOut(): Promise<void> {
@@ -120,8 +154,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sendPasswordResetEmail(auth, email);
   }
 
+  async function refreshPlan(): Promise<void> {
+    if (auth.currentUser) await fetchPlan(auth.currentUser);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, syncReady, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ user, plan, refreshPlan, loading, syncReady, signIn, signUp, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

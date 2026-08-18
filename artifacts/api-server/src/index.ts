@@ -1,8 +1,10 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { validateCaktoProductEnvs } from "./services/caktoPlans";
+import { validateFirebaseTokenConfig } from "./lib/firebaseToken";
 
 validateCaktoProductEnvs();
+validateFirebaseTokenConfig();
 
 const rawPort = process.env["PORT"];
 
