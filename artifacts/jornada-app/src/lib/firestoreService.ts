@@ -21,7 +21,6 @@ import {
   getDocs,
   writeBatch,
   serverTimestamp,
-  runTransaction,
   query,
   orderBy,
   Timestamp,
@@ -88,27 +87,22 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 // ─── Reading progress ─────────────────────────────────────────────────────────
 
 /**
- * Grava o progresso com last-write-wins por `updatedAtMs`:
- * se o documento existente for MAIS NOVO que o dado sendo gravado, a escrita
- * é descartada — um notebook antigo que abre na página 10 nunca sobrescreve
- * a página 30 salva pelo celular minutos antes.
+ * Grava o progresso no Firestore com setDoc simples.
+ *
+ * Conflito de concorrência (dois dispositivos gravando ao mesmo tempo) é
+ * resolvido no login seguinte pelo merge de firestoreSync, que compara
+ * `updatedAtMs` e restaura o dado mais recente no localStorage.
+ * Não usamos runTransaction aqui porque a API de canal WebChannel do
+ * Firestore produz `failed-precondition` intermitente em ambientes de proxy
+ * (Replit, redes corporativas), o que fazia as escritas falharem silenciosamente.
  */
 export async function saveProgressRemote(uid: string, lessonId: number, stored: StoredProgress): Promise<void> {
-  const incomingMs = stored.updatedAt ?? Date.now();
-  await runTransaction(db, async (tx) => {
-    const ref  = progRef(uid, lessonId);
-    const snap = await tx.get(ref);
-    if (snap.exists()) {
-      const existing = snap.data() as LessonProgress;
-      if (typeof existing.updatedAtMs === 'number' && existing.updatedAtMs > incomingMs) return;
-    }
-    tx.set(ref, {
-      lessonId,
-      pageId:      stored.pageId,
-      blockIdx:    stored.blockIdx,
-      updatedAtMs: incomingMs,
-      updatedAt:   serverTimestamp(),
-    });
+  await setDoc(progRef(uid, lessonId), {
+    lessonId,
+    pageId:      stored.pageId,
+    blockIdx:    stored.blockIdx,
+    updatedAtMs: stored.updatedAt ?? Date.now(),
+    updatedAt:   serverTimestamp(),
   });
 }
 

@@ -4,7 +4,7 @@
  */
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,7 +17,13 @@ const firebaseConfig = {
 
 export const app  = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db   = getFirestore(app);
+// experimentalAutoDetectLongPolling: o transporte WebChannel padrão do
+// Firestore falha com 400/"failed-precondition" intermitentes atrás de
+// proxies (preview do Replit, redes corporativas). A detecção automática
+// cai para long-polling quando necessário, sem custo quando não é.
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+});
 
 // Persist the session across browser restarts (local storage).
 // Called once at module load — safe to ignore the promise here since
