@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { logger } from "../lib/logger";
 
 /**
@@ -110,43 +111,63 @@ export function maskEmail(email: string | null): string | null {
 }
 
 /**
- * Validação de autenticidade do webhook.
+ * Extrai a credencial enviada pela Cakto no request.
  *
- * A Cakto permite configurar um "secret" por webhook, mas o formato exato de
- * como ele chega (header? campo no body?) deve ser confirmado no painel da
- * Cakto antes de ativarmos a rejeição. Por enquanto:
+ * ATENÇÃO: o mecanismo oficial da Cakto (body? header? outro?) ainda NÃO foi
+ * confirmado. Esta função é o ÚNICO ponto a ajustar depois de capturarmos um
+ * webhook real da Cakto em modo de teste. Por ora, aceitamos os candidatos
+ * mais prováveis (campo `secret` no body ou header `x-cakto-secret`) — se a
+ * Cakto usar outro mecanismo, requests legítimos serão rejeitados no modo
+ * seguro até ajustarmos aqui.
+ */
+export function extractCaktoCredential(
+  body: Record<string, unknown>,
+  headers: Record<string, string | string[] | undefined>,
+): string | null {
+  const headerCandidate = headers["x-cakto-secret"];
+  if (typeof headerCandidate === "string" && headerCandidate.length > 0) {
+    return headerCandidate;
+  }
+  return asString(body["secret"]);
+}
+
+/** Comparação em tempo constante para evitar timing attacks. */
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
+/**
+ * Validação de autenticidade do webhook — dois modos:
  *
- * - Se CAKTO_WEBHOOK_SECRET não estiver configurado → aceita e loga aviso.
- * - Se estiver configurado e o request trouxer um candidato (campo `secret`
- *   no body ou header `x-cakto-secret`) → compara e rejeita se divergir.
- * - Se estiver configurado mas nenhum candidato vier → aceita e loga aviso
- *   (modo observação), para não derrubar eventos reais enquanto o formato
- *   não for confirmado.
+ * MODO DE TESTE (CAKTO_WEBHOOK_SECRET ausente):
+ *   aceita tudo e loga claramente que a validação está DESATIVADA. Serve
+ *   apenas para capturar/testar o payload real da Cakto.
+ *
+ * MODO SEGURO (CAKTO_WEBHOOK_SECRET configurado):
+ *   fail-closed — só passa com credencial presente E idêntica ao secret.
+ *   Ausência de credencial = inválido. Divergência = inválido.
  */
 export function verifyCaktoAuthenticity(
   body: Record<string, unknown>,
   headers: Record<string, string | string[] | undefined>,
-): { ok: boolean; reason: string } {
+): { ok: boolean; mode: "test" | "secure"; reason: string } {
   const secret = process.env["CAKTO_WEBHOOK_SECRET"];
   if (!secret) {
-    return { ok: true, reason: "no-secret-configured" };
-  }
-
-  const headerCandidate = headers["x-cakto-secret"];
-  const bodyCandidate = asString(body["secret"]);
-  const candidate =
-    (typeof headerCandidate === "string" ? headerCandidate : null) ??
-    bodyCandidate;
-
-  if (candidate === null) {
     logger.warn(
-      "CAKTO_WEBHOOK_SECRET configured, but request carried no recognizable secret — accepting in observation mode until Cakto's format is confirmed",
+      "cakto-webhook: AUTH VALIDATION DISABLED (CAKTO_WEBHOOK_SECRET not set) — test mode only, do not use in production",
     );
-    return { ok: true, reason: "observation-mode" };
+    return { ok: true, mode: "test", reason: "validation-disabled" };
   }
 
-  if (candidate !== secret) {
-    return { ok: false, reason: "secret-mismatch" };
+  const candidate = extractCaktoCredential(body, headers);
+  if (candidate === null) {
+    return { ok: false, mode: "secure", reason: "credential-missing" };
   }
-  return { ok: true, reason: "secret-match" };
+  if (!safeEqual(candidate, secret)) {
+    return { ok: false, mode: "secure", reason: "credential-mismatch" };
+  }
+  return { ok: true, mode: "secure", reason: "credential-valid" };
 }

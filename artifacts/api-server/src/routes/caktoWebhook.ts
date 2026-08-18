@@ -26,7 +26,10 @@ router.post("/webhooks/cakto", (req, res) => {
 
   const auth = verifyCaktoAuthenticity(parsed.event.raw, req.headers);
   if (!auth.ok) {
-    logger.warn({ reason: auth.reason }, "cakto-webhook: rejected");
+    logger.warn(
+      { mode: auth.mode, reason: auth.reason },
+      "cakto-webhook: rejected",
+    );
     res.status(401).json({ ok: false, error: "unauthorized" });
     return;
   }
@@ -42,7 +45,8 @@ router.post("/webhooks/cakto", (req, res) => {
       transactionId,
       product,
       customerEmail: maskEmail(customerEmail),
-      authMode: auth.reason,
+      authMode: auth.mode,
+      authReason: auth.reason,
       receivedAt: new Date().toISOString(),
     },
     "cakto-webhook: event received",
