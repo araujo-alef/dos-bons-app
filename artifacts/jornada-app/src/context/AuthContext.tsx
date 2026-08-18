@@ -16,7 +16,8 @@ import {
 } from 'firebase/auth';
 import { auth }                  from '@/lib/firebase';
 import { ensureUserProfile }     from '@/lib/firestoreService';
-import { setActiveSyncUid }      from '@/lib/syncStore';
+import { setActiveSyncUid, getActiveSyncUid } from '@/lib/syncStore';
+import { flushPendingProgress, cancelPendingProgress } from '@/lib/readerProgress';
 import { setWatermarkIdentity }  from '@/lib/watermark';
 import { performInitialSync, clearLocalSession } from '@/lib/firestoreSync';
 
@@ -128,6 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPlanStatus('loading');
 
       if (!firebaseUser) {
+        // Nunca gravar debounce pendente depois que o dono da sessão saiu.
+        cancelPendingProgress();
         setActiveSyncUid(null);
         // Evict the localStorage cache immediately so the next user on this
         // device never inherits this session's data — even in the brief window
@@ -145,6 +148,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // 2. Activate dual-write so any writes that happen during sync
       //    (unlikely, but safe to guard) also go to Firestore.
+      //    Descarta qualquer escrita pendente de uma sessão anterior antes —
+      //    debounce do usuário A jamais pode gravar sob o uid do usuário B.
+      cancelPendingProgress();
       setActiveSyncUid(firebaseUser.uid);
 
       // 3. Update the content-protection watermark with the real identity.
@@ -174,7 +180,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // localStorage content (could be stale if this is a second device,
         // but the data is not lost and will re-sync on the next login).
       } finally {
-        setSyncReady(true);
+        // Só o handler da sessão ATUAL pode liberar as rotas protegidas —
+        // um sync atrasado de um usuário anterior não pode marcar pronto
+        // enquanto o usuário atual ainda está sincronizando.
+        if (getActiveSyncUid() === firebaseUser.uid) setSyncReady(true);
       }
     });
 
@@ -190,6 +199,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut(): Promise<void> {
+    // AGUARDA o flush do progresso pendente ENQUANTO a sessão ainda é válida —
+    // depois do signOut as escritas falhariam sem auth e o cache local é limpo.
+    await flushPendingProgress();
     await firebaseSignOut(auth);
   }
 

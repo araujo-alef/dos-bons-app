@@ -1,79 +1,13 @@
 ---
-name: Firebase Auth integration
-description: How Firebase Auth, Firestore, and the dual-write sync layer are wired into jornada-app.
+name: Firebase Auth + Firestore integration
+description: How auth/sync of reader data works in jornada-app; Firestore is source of truth for progress+highlights
 ---
 
-## Architecture
-
-```
-onAuthStateChanged
-  ├─ setActiveSyncUid(uid)          ← syncStore.ts: module-level uid singleton
-  ├─ setWatermarkIdentity(...)      ← watermark.ts: live ESM binding, read at render time
-  ├─ ensureUserProfile(uid)         ← firestoreService.ts: upsert users/{uid}
-  └─ performInitialSync(uid)        ← firestoreSync.ts: Firestore → localStorage
-       └─ setSyncReady(true)        ← RequireAuth unblocks, BookReader can mount
-       
-  on sign-out → clearLocalSession() ← evicts localStorage cache immediately
-```
-
-### Dual-write (every write after initial sync)
-- `highlights.ts` → localStorage (sync, immediate) + Firestore (async, fire-and-forget)
-- `readerProgress.ts` → same pattern
-- Both read the active uid from `syncStore.ts` — no API changes to BookReader
-
-### Initial sync state machine (AuthContext)
-- `loading=true` → Firebase resolving persisted session
-- `loading=false, !user` → redirect to /login
-- `user, syncReady=false` → Firestore sync in progress (spinner)
-- `user, syncReady=true` → children render, BookReader safe to mount
-
-### UID sentinel (firestoreSync.ts) — USER ISOLATION
-- `jornada_session_uid` stored in localStorage after each successful sync
-- On login: if stored uid ≠ incoming uid → wipe localStorage cache BEFORE sync
-- On logout: `clearLocalSession()` wipes cache + sentinel immediately
-- Guarantees User B never inherits User A's cached data
-
-### Migration logic (firestoreSync.ts)
-After the cache is guaranteed to belong to the current user:
-- Firestore empty + localStorage has data → **migrate**: push local data to Firestore first
-- Firestore has data → **restore**: overwrite localStorage with Firestore (Firestore wins)
-- Both empty → no-op
-- localStorage is NEVER cleared before Firestore write is confirmed
-
-## Known limitations (by design)
-
-**Firestore wins over newer localStorage:** If user makes progress offline then logs in again, the Firestore state (from last online session) overwrites the newer local state. Accepted trade-off; not changed.
-
-**Progress Firestore write frequency:** BookReader has 300ms debounce before calling `saveProgress`. Each debounced save fires one Firestore document write. Acceptable for personal-app scale; worth revisiting at >100 concurrent users.
-
-**`clearAllProgress` (book completed reset):** Only clears localStorage today. No Firestore counterpart yet.
-
-## Key decisions
-
-**Why `syncReady` blocks RequireAuth:** BookReader calls `loadAllHighlights()` and `loadProgress()` synchronously (in `useState` and `useLayoutEffect`). localStorage must be pre-populated from Firestore before the Reader mounts.
-
-**Why `setActiveSyncUid` not a React context:** highlights.ts and readerProgress.ts are plain modules with synchronous APIs. Module-level singleton keeps the public API identical — BookReader is untouched.
-
-**Why `export let mockWatermarkIdentity`:** ESM live binding — AuthContext calls `setWatermarkIdentity()` before `syncReady=true`, so BookReader reads the real identity on its first render without prop threading.
-
-**`lessonId` is correct domain terminology** — the app uses "lição" in UI and routes (/jornada/licao/:id). Do not rename.
-
-**`toAuthError` in its own file (`src/lib/authErrors.ts`):** Mixing React components and plain functions in the same module breaks Vite Fast Refresh.
-
-**pnpm 11 build approvals:** `@firebase/util` and `protobufjs` must be in both `onlyBuiltDependencies` AND `allowBuilds: true` in `pnpm-workspace.yaml`.
-
-**VITE_* secrets:** Workflow must be restarted after secrets are added for Vite to pick them up.
-
-## Files
-
-| File | Role |
-|---|---|
-| `src/lib/syncStore.ts` | Module-level uid singleton |
-| `src/lib/firestoreSync.ts` | One-time migration/restore + uid sentinel + clearLocalSession |
-| `src/lib/firestoreService.ts` | All Firestore CRUD (unchanged) |
-| `src/lib/highlights.ts` | Dual-write + migration helpers + clearLocalHighlightsCache |
-| `src/lib/readerProgress.ts` | Dual-write + migration helpers + clearLocalProgressCache |
-| `src/lib/watermark.ts` | Live-binding identity for content protection |
-| `src/lib/authErrors.ts` | Firebase code → Portuguese message |
-| `src/context/AuthContext.tsx` | Auth state + sync orchestration + clearLocalSession on logout |
-| `src/components/ProtectedRoute.tsx` | Blocks on loading AND syncReady |
+- Firebase Auth client-side (secrets `VITE_FIREBASE_*`, projeto `dos-bons-app`, plano Spark).
+- Progresso de leitura + highlights: **Firestore é a fonte de verdade**; localStorage é cache por usuário/fallback offline. `users/{uid}/progress/{lessonId}` e `users/{uid}/highlights/{id}`.
+- Progresso usa LWW por `updatedAtMs` (carimbo do cliente): gravação remota via `runTransaction` que descarta escritas mais antigas; merge no login sobre a união local∪remoto.
+- Escritas de progresso são debounced (2s) em `readerProgress.ts` com `flushPendingProgress()` (pagehide/hidden, saída do leitor, logout — logout AGUARDA o flush antes do signOut) e `cancelPendingProgress()` em toda transição de auth (evita gravação cross-user).
+- `performInitialSync` roda merge TODO login (mesmo uid incluso — é o que traz edições de outro dispositivo); guarda anti-corrida via `getActiveSyncUid() === uid` antes de cada mutação pós-await; sentinela `jornada_session_uid` só evita cache alheio quando PRESENTE e diferente (ausente = dados legados → migrar, não apagar).
+- **Why:** code-review pegou 4 bugs reais nessa área (wipe de dados legados, merge que perdia lições locais, corrida de auth, flush não aguardado no logout) — mudanças aqui exigem revisar esses cenários.
+- Regras Firestore em `artifacts/jornada-app/firestore.rules` (publicação é passo MANUAL no console).
+- pnpm 11: builds de deps nativas exigem aprovação (`pnpm approve-builds`).

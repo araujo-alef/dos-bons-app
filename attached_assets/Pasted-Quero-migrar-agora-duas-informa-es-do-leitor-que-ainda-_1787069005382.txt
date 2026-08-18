@@ -1,0 +1,423 @@
+Quero migrar agora duas informações do leitor que ainda estão sendo persistidas localmente:
+
+1. página/posição atual de leitura;
+2. textos destacados/highlights, incluindo notas se existirem.
+
+Hoje essas informações ainda dependem de localStorage/cache local.
+
+Quero que a fonte de verdade passe a ser o backend, preferencialmente Firestore, porque o app já usa Firebase Auth e Firebase.
+
+IMPORTANTE:
+não quero mudar a UX do leitor.
+Não quero alterar animações, navegação, seleção de texto ou aparência dos highlights.
+
+A tarefa é de persistência e sincronização.
+
+==================================================
+OBJETIVO
+==================================================
+
+Depois dessa mudança:
+
+- usuário entra em qualquer navegador/dispositivo;
+- faz login;
+- volta exatamente para a última página/posição;
+- vê todos os destaques anteriores;
+- notas continuam associadas;
+- trocar de navegador não perde nada.
+
+localStorage deixa de ser a fonte principal.
+
+==================================================
+ARQUITETURA PREFERIDA
+==================================================
+
+Usar Firestore vinculado ao uid autenticado.
+
+Estrutura sugerida:
+
+users/{uid}/progress/{bookId}
+
+e:
+
+users/{uid}/highlights/{highlightId}
+
+Se o projeto já tiver uma estrutura semelhante, REUTILIZE.
+
+Antes de criar schema novo:
+- inspecione os services existentes;
+- tipos atuais;
+- qualquer implementação Firestore já iniciada;
+- AuthContext;
+- reader state;
+- funções atuais de localStorage.
+
+Não duplicar estruturas existentes.
+
+==================================================
+PROGRESSO / PÁGINA ATUAL
+==================================================
+
+Hoje a página/posição atual é salva localmente.
+
+Quero persistir no Firestore algo suficiente para restaurar exatamente o ponto atual.
+
+Use o modelo que já existe no app.
+
+Pode incluir, conforme necessário:
+
+- bookId / lessonId
+- pageId
+- pageIndex
+- blockIdx
+- anchor/posição
+- updatedAt
+
+Não inventar campos redundantes se o projeto já possui um tipo como ProgressAnchor.
+
+==================================================
+SALVAMENTO DO PROGRESSO
+==================================================
+
+Ao mudar de página/posição:
+
+- atualizar o estado local imediatamente;
+- persistir no Firestore com debounce razoável;
+- evitar uma escrita Firestore para cada microinteração;
+- flush imediato quando fizer sentido, por exemplo:
+  - sair do leitor;
+  - navegar para fora;
+  - logout;
+  - antes de fechar fluxo importante, se já existir hook apropriado.
+
+Não fazer polling.
+
+==================================================
+CARREGAMENTO DO PROGRESSO
+==================================================
+
+Depois do login:
+
+1. identificar uid;
+2. carregar o progresso Firestore;
+3. aplicar esse progresso antes de abrir o leitor no ponto final;
+4. evitar flash da página 1 antes de pular para a página correta.
+
+Se não existir progresso:
+→ usar início padrão.
+
+==================================================
+HIGHLIGHTS
+==================================================
+
+Migrar highlights para:
+
+users/{uid}/highlights/{highlightId}
+
+Preservar o tipo BookHighlight atual.
+
+Não simplificar o modelo.
+
+Guardar tudo que hoje é necessário para:
+
+- renderizar o trecho;
+- localizar a página;
+- navegar de “Ver destaques” para o ponto exato;
+- renderizar highlight inline;
+- manter nota;
+- manter createdAt/updatedAt;
+- manter qualquer range/anchor existente.
+
+==================================================
+CREATE / UPDATE / DELETE
+==================================================
+
+Criar highlight:
+→ grava documento com o mesmo highlightId.
+
+Editar nota:
+→ atualiza o mesmo documento.
+
+Remover highlight:
+→ remove o documento.
+
+Não gerar IDs diferentes entre estado local e Firestore.
+
+==================================================
+FONTE DE VERDADE
+==================================================
+
+Depois da migração:
+
+Firestore = fonte de verdade.
+
+localStorage pode permanecer apenas como:
+
+- cache;
+- fallback temporário de offline/rede;
+- suporte de migração de dados antigos.
+
+Não manter Firestore e localStorage como duas fontes independentes.
+
+==================================================
+MIGRAÇÃO DE DADOS LOCAIS EXISTENTES
+==================================================
+
+Precisamos preservar usuários que já possuem progresso/highlights no localStorage.
+
+No primeiro sync autenticado:
+
+CASO A
+Firestore vazio
++ localStorage com dados
+
+→ migrar localStorage para Firestore.
+
+Somente após confirmar escrita bem-sucedida:
+→ considerar migração concluída.
+
+CASO B
+Firestore possui dados
++ localStorage possui dados antigos
+
+→ Firestore prevalece.
+
+Não sobrescrever Firestore com localStorage antigo.
+
+CASO C
+ambos vazios
+→ começar normalmente.
+
+A migração precisa ser idempotente.
+
+Reabrir/login várias vezes:
+→ não duplica highlights;
+→ não regrava progresso incorretamente.
+
+==================================================
+CACHE POR USUÁRIO
+==================================================
+
+Se localStorage continuar sendo usado como cache:
+
+as chaves precisam ser escopadas por uid.
+
+Exemplo conceitual:
+
+reader-progress:{uid}:{bookId}
+highlights:{uid}
+
+Usuário A não pode nunca enxergar cache do usuário B.
+
+==================================================
+TROCA DE USUÁRIO
+==================================================
+
+Obrigatório testar:
+
+usuário A:
+- página 20
+- 3 highlights
+
+logout
+
+usuário B:
+- página 4
+- 1 highlight
+
+B não pode ver absolutamente nada de A.
+
+Ao trocar uid:
+- cancelar writes/debounce pendentes do usuário anterior;
+- limpar estado em memória;
+- carregar dados do novo usuário.
+
+==================================================
+ERRO / OFFLINE
+==================================================
+
+Se Firestore falhar temporariamente:
+
+- não apagar dados locais;
+- não assumir que progresso/highlights estão vazios;
+- manter estado atual;
+- tentar sincronizar novamente depois;
+- mostrar feedback discreto apenas se necessário.
+
+Quando reconectar:
+→ Firestore volta a ser a fonte de verdade.
+
+==================================================
+CONFLITOS
+==================================================
+
+Para progresso:
+
+usar updatedAt para evitar que um dado antigo sobrescreva um progresso mais novo.
+
+Exemplo:
+
+celular está na página 30
+notebook antigo abre página 10
+
+não quero notebook sobrescrevendo página 30 só porque fez login depois.
+
+Implementar uma regra simples de last-write-wins baseada em updatedAt/server timestamp, ou estratégia equivalente segura.
+
+Para highlights:
+
+cada highlight é independente por highlightId.
+
+Não sobrescrever coleção inteira para salvar um único highlight.
+
+==================================================
+TIMESTAMPS
+==================================================
+
+Preferir serverTimestamp() do Firestore onde fizer sentido.
+
+Se os tipos atuais exigirem timestamp local para UX:
+- manter compatibilidade;
+- converter corretamente.
+
+Não quebrar dados existentes.
+
+==================================================
+SERVICE / REPOSITORY
+==================================================
+
+Centralizar persistência em services.
+
+Algo como:
+
+readerProgressService.ts
+highlightsService.ts
+
+ou uma estrutura equivalente coerente com o projeto.
+
+Operações esperadas:
+
+loadProgress(uid, bookId)
+saveProgress(uid, bookId, progress)
+flushProgress(...)
+
+loadHighlights(uid)
+saveHighlight(uid, highlight)
+updateHighlight(uid, highlight)
+deleteHighlight(uid, highlightId)
+
+migrateLocalReaderData(uid)
+
+Não espalhar Firestore calls pelos componentes.
+
+==================================================
+REGRAS FIRESTORE
+==================================================
+
+Revisar as regras para garantir:
+
+users/{uid}/progress/*
+users/{uid}/highlights/*
+
+só podem ser lidos/escritos quando:
+
+request.auth.uid == uid
+
+Não permitir uid arbitrário vindo do frontend para acessar dados de outro usuário.
+
+Não alterar outras regras desnecessariamente.
+
+==================================================
+NÃO ALTERAR
+==================================================
+
+Não alterar:
+
+- layout do leitor
+- transição do livro
+- clique esquerda/direita
+- modo carrossel
+- seleção de texto
+- menu de highlight
+- visual dos highlights
+- notas
+- Cakto
+- planos
+- PlanGate
+- Firebase Auth/login
+- backend de pagamento
+- entitlement
+
+==================================================
+TESTES OBRIGATÓRIOS
+==================================================
+
+Testar pelo menos:
+
+1. usuário novo
+→ sem progresso
+→ abre no início
+
+2. usuário lê até uma página
+→ recarrega
+→ volta para a mesma página
+
+3. usuário abre em outro navegador
+→ volta para a mesma página
+
+4. cria highlight
+→ recarrega
+→ highlight permanece
+
+5. cria highlight
+→ abre em outro navegador
+→ highlight aparece
+
+6. adiciona nota
+→ nota persiste
+
+7. remove highlight
+→ some também após reload
+
+8. localStorage antigo + Firestore vazio
+→ migra corretamente
+
+9. Firestore com dados + localStorage antigo
+→ Firestore vence
+
+10. usuário A logout → usuário B login
+→ nenhum dado cruza contas
+
+11. Firestore indisponível temporariamente
+→ dados locais não são apagados
+
+12. duas sessões com progresso diferente
+→ dado antigo não sobrescreve dado mais recente
+
+13. writes de progresso são debounced
+→ não gera escrita excessiva por navegação
+
+14. logout/navegação
+→ progresso pendente é flushado quando possível
+
+==================================================
+AO FINAL
+==================================================
+
+Me responda:
+
+1. quais arquivos foram criados/alterados;
+2. qual estrutura Firestore foi usada;
+3. como ficou o documento de progress;
+4. como ficou o documento de highlight;
+5. como funciona o carregamento inicial;
+6. como funciona o salvamento do progresso;
+7. qual debounce foi usado;
+8. como funciona a migração do localStorage;
+9. como é resolvido conflito de progresso;
+10. como é protegida troca de usuário;
+11. quais regras Firestore foram adicionadas/alteradas;
+12. quais testes foram executados;
+13. se existe algum passo manual no Firebase Console;
+14. confirmação de que a UX do leitor não foi alterada;
+15. confirmação de que Firestore agora é a fonte de verdade e localStorage é apenas cache/fallback.

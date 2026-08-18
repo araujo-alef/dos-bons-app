@@ -21,12 +21,13 @@ import {
   getDocs,
   writeBatch,
   serverTimestamp,
+  runTransaction,
   query,
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { ProgressAnchor } from '@/lib/readerProgress';
+import type { ProgressAnchor, StoredProgress } from '@/lib/readerProgress';
 import type { BookHighlight } from '@/lib/highlights';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -41,6 +42,10 @@ export interface UserProfile {
 
 export interface LessonProgress extends ProgressAnchor {
   lessonId:  number;
+  /** Carimbo do CLIENTE no momento da leitura (epoch ms) — usado para
+   *  last-write-wins entre dispositivos. */
+  updatedAtMs?: number;
+  /** Carimbo do servidor (auditoria; não usado para conflito). */
   updatedAt: Timestamp | null;
 }
 
@@ -82,29 +87,45 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 // ─── Reading progress ─────────────────────────────────────────────────────────
 
-export async function saveProgressRemote(uid: string, lessonId: number, anchor: ProgressAnchor): Promise<void> {
-  await setDoc(progRef(uid, lessonId), {
-    lessonId,
-    pageId:    anchor.pageId,
-    blockIdx:  anchor.blockIdx,
-    updatedAt: serverTimestamp(),
+/**
+ * Grava o progresso com last-write-wins por `updatedAtMs`:
+ * se o documento existente for MAIS NOVO que o dado sendo gravado, a escrita
+ * é descartada — um notebook antigo que abre na página 10 nunca sobrescreve
+ * a página 30 salva pelo celular minutos antes.
+ */
+export async function saveProgressRemote(uid: string, lessonId: number, stored: StoredProgress): Promise<void> {
+  const incomingMs = stored.updatedAt ?? Date.now();
+  await runTransaction(db, async (tx) => {
+    const ref  = progRef(uid, lessonId);
+    const snap = await tx.get(ref);
+    if (snap.exists()) {
+      const existing = snap.data() as LessonProgress;
+      if (typeof existing.updatedAtMs === 'number' && existing.updatedAtMs > incomingMs) return;
+    }
+    tx.set(ref, {
+      lessonId,
+      pageId:      stored.pageId,
+      blockIdx:    stored.blockIdx,
+      updatedAtMs: incomingMs,
+      updatedAt:   serverTimestamp(),
+    });
   });
 }
 
-export async function loadProgressRemote(uid: string, lessonId: number): Promise<ProgressAnchor | null> {
+export async function loadProgressRemote(uid: string, lessonId: number): Promise<StoredProgress | null> {
   const snap = await getDoc(progRef(uid, lessonId));
   if (!snap.exists()) return null;
   const data = snap.data() as LessonProgress;
-  return { pageId: data.pageId, blockIdx: data.blockIdx };
+  return { pageId: data.pageId, blockIdx: data.blockIdx, updatedAt: data.updatedAtMs };
 }
 
-/** Returns a map of lessonId → ProgressAnchor for all lessons this user has touched. */
-export async function loadAllProgressRemote(uid: string): Promise<Record<number, ProgressAnchor>> {
+/** Returns a map of lessonId → StoredProgress for all lessons this user has touched. */
+export async function loadAllProgressRemote(uid: string): Promise<Record<number, StoredProgress>> {
   const snap = await getDocs(progCol(uid));
-  const result: Record<number, ProgressAnchor> = {};
+  const result: Record<number, StoredProgress> = {};
   snap.forEach(d => {
     const data = d.data() as LessonProgress;
-    result[data.lessonId] = { pageId: data.pageId, blockIdx: data.blockIdx };
+    result[data.lessonId] = { pageId: data.pageId, blockIdx: data.blockIdx, updatedAt: data.updatedAtMs };
   });
   return result;
 }

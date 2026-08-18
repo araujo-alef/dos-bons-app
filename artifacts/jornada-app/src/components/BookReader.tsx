@@ -17,7 +17,7 @@ import {
   loadAllHighlights,
   consumePendingHighlightJump,
 } from '@/lib/highlights';
-import { saveProgress, loadProgress, type ProgressAnchor } from '@/lib/readerProgress';
+import { saveProgress, loadProgress, flushPendingProgress, type ProgressAnchor } from '@/lib/readerProgress';
 import { findAncestorWithAttr, getOffsetInBlock, offsetAtPoint } from '@/lib/textOffset';
 import { useReaderContentProtection } from '@/hooks/useReaderContentProtection';
 import { mockWatermarkIdentity } from '@/lib/watermark';
@@ -382,6 +382,7 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
     return () => {
       const entry = flatPagesRef.current[currentPageRef.current];
       if (entry) saveProgress(entry.lesson.id, anchorForEntry(entry));
+      flushPendingProgress(); // navegação para fora do leitor → flush imediato
     };
   }, []);
 
@@ -825,7 +826,8 @@ export function BookReader({ initialLessonId, onFinishBook, onBack, onLessonChan
   // ── Toolbar handlers ───────────────────────────────────────────────────────
   const handleExit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentEntry) saveProgress(currentEntry.lesson.id, anchorForEntry(currentEntry)); // flush immediately
+    if (currentEntry) saveProgress(currentEntry.lesson.id, anchorForEntry(currentEntry));
+    flushPendingProgress(); // sair do leitor grava no Firestore sem esperar o debounce
     onBack();
   };
   const handleHighlightToggle = (e: React.MouseEvent) => {

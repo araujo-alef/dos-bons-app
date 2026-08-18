@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore — Hub da Jornada (Cachorro dos Bons).
+//
+// Cada usuário autenticado acessa APENAS a própria árvore:
+//   users/{uid}                          → perfil
+//   users/{uid}/progress/{lessonId}      → progresso de leitura
+//   users/{uid}/highlights/{highlightId} → grifos/notas
+//
+// Publicar no console Firebase: Firestore → Regras → colar e "Publicar".
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /progress/{lessonId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      match /highlights/{highlightId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Tudo que não casar acima é negado por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
