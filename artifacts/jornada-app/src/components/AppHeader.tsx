@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { useAuth } from '@/context/AuthContext';
 
 export function AppHeader() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, plan } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -21,6 +21,12 @@ export function AppHeader() {
 
   const initial = user?.email?.[0]?.toUpperCase() ?? '?';
 
+  // Deluxe ganha borda dourada; essential (e demais estados) mantém o roxo.
+  const isDeluxe = plan === 'deluxe';
+  const avatarClasses = isDeluxe
+    ? 'bg-[#E6C15C]/15 border border-[#E6C15C] text-[#E6C15C] hover:bg-[#E6C15C]/25 shadow-[0_0_8px_rgba(230,193,92,0.35)]'
+    : 'bg-[#B266FF]/20 border border-[#B266FF]/30 text-[#B266FF] hover:bg-[#B266FF]/30';
+
   return (
     <header className="flex flex-col items-center pt-8 pb-0 px-4 gap-3">
 
@@ -29,7 +35,7 @@ export function AppHeader() {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(v => !v)}
-            className="w-8 h-8 rounded-full bg-[#B266FF]/20 border border-[#B266FF]/30 flex items-center justify-center text-[#B266FF] text-xs font-bold hover:bg-[#B266FF]/30 transition-colors focus:outline-none"
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors focus:outline-none ${avatarClasses}`}
             aria-label="Menu do usuário"
           >
             {initial}
