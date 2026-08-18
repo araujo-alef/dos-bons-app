@@ -28,6 +28,18 @@ router.post("/webhooks/cakto", (req, res) => {
       ? (req.body as Record<string, unknown>)
       : {};
 
+  // TODO(TEMP): log de depuração do 401 credential-mismatch — REMOVER depois.
+  // Expõe secrets no log; não deixar em produção além do necessário.
+  console.log({
+    receivedSecret: (req.body as Record<string, unknown> | undefined)?.["secret"],
+    expectedSecret: process.env["CAKTO_WEBHOOK_SECRET"],
+    bodyHasSecret: Boolean((req.body as Record<string, unknown> | undefined)?.["secret"]),
+    queryApiKey: req.query?.["api_key"],
+    event: (req.body as Record<string, unknown> | undefined)?.["event"],
+    productId: (req.body as { data?: { product?: { id?: unknown } } } | undefined)
+      ?.data?.product?.id,
+  });
+
   const auth = verifyCaktoAuthenticity(rawBody, req.headers);
   if (!auth.ok) {
     logger.warn(
