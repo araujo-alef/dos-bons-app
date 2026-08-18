@@ -6,7 +6,7 @@ import {
   verifyCaktoAuthenticity,
   maskEmail,
 } from "../services/cakto";
-import { processApprovedPurchase } from "../services/caktoPlans";
+import { processApprovedPurchase, processRevocation } from "../services/caktoPlans";
 
 const router: IRouter = Router();
 
@@ -61,8 +61,48 @@ router.post("/webhooks/cakto", async (req, res) => {
 
   logger.info(safeFields, "cakto-webhook: event received");
 
-  // 3) Somente purchase_approved altera plano/acesso. Outros eventos
-  // (PIX gerado, pendente, recusado, boleto, etc.) são apenas registrados.
+  // 3) Eventos com efeito: purchase_approved, refund, chargeback.
+  // Outros (PIX gerado, pendente, recusado, boleto, etc.) são só registrados.
+  if (evt.event === "refund" || evt.event === "chargeback") {
+    if (!evt.transactionId) {
+      logger.warn(
+        { ...safeFields, problems: ["missing_data_id"] },
+        "cakto-webhook: revocation failed validation",
+      );
+      res.status(422).json({ ok: false, error: "invalid revocation payload" });
+      return;
+    }
+    try {
+      const outcome = await processRevocation(evt, evt.event);
+      const logCtx =
+        "previousPlan" in outcome
+          ? { ...safeFields, previousPlan: outcome.previousPlan, resultingPlan: outcome.resultingPlan }
+          : safeFields;
+      switch (outcome.result) {
+        case "purchase_revoked":
+          logger.info(logCtx, "cakto-webhook: purchase revoked, entitlement recalculated");
+          break;
+        case "revocation_recorded_without_purchase":
+          logger.warn(logCtx, "cakto-webhook: revocation for unseen purchase recorded");
+          break;
+        case "duplicate_ignored":
+          logger.info(safeFields, "cakto-webhook: duplicate revocation ignored");
+          break;
+        case "purchase_not_found":
+          logger.warn(safeFields, "cakto-webhook: revocation for unknown purchase (insufficient data)");
+          break;
+        case "unknown_product":
+          logger.warn(safeFields, "cakto-webhook: revocation for unknown product");
+          break;
+      }
+      res.status(200).json({ ok: true, result: outcome.result });
+    } catch (err) {
+      logger.error({ ...safeFields, err }, "cakto-webhook: revocation processing failed");
+      res.status(500).json({ ok: false, error: "processing failed" });
+    }
+    return;
+  }
+
   if (evt.event !== "purchase_approved") {
     res.status(200).json({ ok: true, processed: false });
     return;
@@ -85,32 +125,28 @@ router.post("/webhooks/cakto", async (req, res) => {
     const outcome = await processApprovedPurchase(evt);
 
     switch (outcome.result) {
-      case "plan_activated":
+      case "purchase_recorded":
         logger.info(
-          { ...safeFields, previousPlan: null, resultingPlan: outcome.resultingPlan },
-          "cakto-webhook: plan activated",
-        );
-        break;
-      case "plan_upgraded":
-        logger.info(
-          { ...safeFields, previousPlan: outcome.previousPlan, resultingPlan: outcome.resultingPlan },
-          "cakto-webhook: plan upgraded",
-        );
-        break;
-      case "plan_unchanged":
-        logger.info(
-          { ...safeFields, previousPlan: outcome.previousPlan, resultingPlan: outcome.resultingPlan },
-          "cakto-webhook: plan unchanged",
+          {
+            ...safeFields,
+            commercialType: outcome.commercialType,
+            previousPlan: outcome.previousPlan,
+            resultingPlan: outcome.resultingPlan,
+          },
+          "cakto-webhook: purchase recorded, entitlement recalculated",
         );
         break;
       case "duplicate_ignored":
         logger.info(safeFields, "cakto-webhook: duplicate ignored");
         break;
+      case "purchase_already_revoked":
+        logger.warn(
+          safeFields,
+          "cakto-webhook: approved for already-revoked purchase ignored (terminal status)",
+        );
+        break;
       case "unknown_product":
         logger.warn(safeFields, "cakto-webhook: unknown product");
-        break;
-      case "upgrade_without_base_plan":
-        logger.warn(safeFields, "cakto-webhook: upgrade without base plan");
         break;
     }
 

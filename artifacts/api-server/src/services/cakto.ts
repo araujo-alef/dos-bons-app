@@ -55,6 +55,10 @@ export interface CaktoEvent {
   status: string | null;
   /** body.data.paidAt. */
   paidAt: string | null;
+  /** body.data.refundedAt (quando enviado em eventos de refund). */
+  refundedAt: string | null;
+  /** body.data.chargedbackAt (quando enviado em eventos de chargeback). */
+  chargedbackAt: string | null;
 }
 
 /** Resultado da tentativa de parse do corpo recebido. */
@@ -108,6 +112,8 @@ export function parseCaktoEvent(body: unknown): ParseResult {
       offerName: pickString(obj, ["data", "offer", "name"]),
       status: pickString(obj, ["data", "status"]),
       paidAt: pickString(obj, ["data", "paidAt"]),
+      refundedAt: pickString(obj, ["data", "refundedAt"]),
+      chargedbackAt: pickString(obj, ["data", "chargedbackAt"]),
     },
   };
 }

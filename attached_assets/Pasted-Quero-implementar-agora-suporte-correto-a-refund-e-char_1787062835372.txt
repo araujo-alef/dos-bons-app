@@ -1,0 +1,551 @@
+Quero implementar agora suporte correto a refund e chargeback da Cakto.
+
+Hoje o sistema só processa purchase_approved e altera diretamente cakto_entitlements de forma monotônica.
+
+Quero evoluir isso para que o entitlement seja recalculado a partir das compras válidas, sem quebrar os fluxos atuais.
+
+IMPORTANTE:
+- preservar autenticação do webhook;
+- preservar idempotência;
+- preservar locks/concurrency;
+- preservar registration-eligibility;
+- preservar /api/me/plan;
+- preservar frontend;
+- não alterar checkout;
+- não alterar Firebase Auth;
+- não remover comportamento atual de purchase_approved;
+- manter os product IDs de produção já configurados.
+
+==================================================
+OBJETIVO
+==================================================
+
+Passar a tratar:
+
+- purchase_approved
+- refund
+- chargeback
+
+purchase_refused continua sem conceder acesso e pode continuar sem efeito no entitlement.
+
+A regra principal deve ser:
+
+o plano atual do usuário deve ser DERIVADO das compras válidas daquele e-mail.
+
+Não aplicar downgrade diretamente baseado apenas no evento recebido.
+
+==================================================
+REGRA COMERCIAL DOS 3 PRODUTOS
+==================================================
+
+Temos 3 produtos:
+
+ESSENTIAL
+→ representa acesso Essential
+
+DELUXE
+→ representa acesso Deluxe direto
+
+UPGRADE
+→ é um complemento do Essential
+→ sozinho NÃO representa uma compra Deluxe completa
+
+A regra correta é:
+
+- Deluxe pago → deluxe
+- Essential pago + Upgrade pago → deluxe
+- somente Essential pago → essential
+- somente Upgrade pago → essential
+- nenhuma compra válida → null
+
+Portanto, o Upgrade NÃO deve ser tratado como um grants_plan = deluxe independente.
+
+==================================================
+EXEMPLOS IMPORTANTES
+==================================================
+
+Essential aprovado
+→ essential
+
+Deluxe aprovado
+→ deluxe
+
+Upgrade aprovado sozinho
+→ essential
+
+Essential aprovado
++ Upgrade aprovado
+→ deluxe
+
+Essential aprovado
++ Upgrade aprovado
++ Refund do Essential
+→ essential
+
+Essential aprovado
++ Upgrade aprovado
++ Refund do Upgrade
+→ essential
+
+Deluxe aprovado
++ Chargeback do Deluxe
+→ null
+
+Essential aprovado
++ Deluxe aprovado
++ Chargeback do Deluxe
+→ essential
+
+Essential aprovado
++ Upgrade aprovado
++ Deluxe aprovado
++ Chargeback do Deluxe
+→ deluxe
+(porque Essential + Upgrade continuam válidos)
+
+==================================================
+MODELO DE COMPRAS
+==================================================
+
+Hoje cakto_processed_events funciona principalmente como idempotência.
+
+Quero criar uma estrutura persistente que represente cada compra Cakto e seu status atual.
+
+Pode:
+- evoluir cakto_processed_events;
+ou
+- criar uma nova tabela cakto_purchases;
+
+Escolha a opção mais limpa e segura considerando o schema atual.
+
+Cada compra deve guardar no mínimo:
+
+- transaction_id
+- email normalizado
+- product_id
+- commercial_type:
+  essential | deluxe | upgrade
+- status:
+  paid | refunded | chargeback
+- paid_at
+- refunded_at, se existir
+- chargedback_at, se existir
+- created_at
+- updated_at
+
+Não usar grants_plan fixo para Upgrade como deluxe.
+
+Se houver necessidade de metadata adicional para auditoria, pode armazenar:
+- ref_id
+- product_short_id
+- offer_id
+- checkout_id
+
+mas sem salvar dados pessoais desnecessários.
+
+==================================================
+PURCHASE_APPROVED
+==================================================
+
+Quando chegar purchase_approved:
+
+1. autenticar
+2. validar payload
+3. resolver product.id
+4. localizar a compra por data.id
+5. criar ou atualizar a compra como status = paid
+6. recalcular o entitlement do e-mail
+7. manter idempotência
+8. responder 200
+
+Não alterar diretamente plan de forma incremental sem olhar o conjunto de compras válidas.
+
+==================================================
+REFUND
+==================================================
+
+Quando chegar refund:
+
+1. autenticar normalmente
+2. identificar a transação original pelo identificador correto enviado pela Cakto
+3. localizar a compra persistida
+4. atualizar:
+   status = refunded
+5. salvar refunded_at, se disponível
+6. recalcular o entitlement daquele e-mail
+7. preservar histórico da compra
+
+Não excluir a compra.
+
+Se a transação original não for encontrada:
+- não inventar associação por preço, nome ou e-mail apenas;
+- logar código controlado;
+- responder de forma segura;
+- não alterar entitlement indevidamente.
+
+==================================================
+CHARGEBACK
+==================================================
+
+Mesma lógica do refund:
+
+1. localizar a compra original
+2. status = chargeback
+3. salvar chargedback_at, se disponível
+4. recalcular entitlement
+5. preservar histórico
+
+==================================================
+FUNÇÃO CENTRAL DE RECÁLCULO
+==================================================
+
+Criar uma função central, por exemplo:
+
+recalculateEntitlement(email)
+
+Ela deve consultar apenas compras com:
+
+status = paid
+
+A partir delas, calcular:
+
+const hasEssential = existe compra essential paga
+const hasDeluxe = existe compra deluxe paga
+const hasUpgrade = existe compra upgrade paga
+
+Regra:
+
+if (hasDeluxe) {
+  return "deluxe";
+}
+
+if (hasEssential && hasUpgrade) {
+  return "deluxe";
+}
+
+if (hasEssential || hasUpgrade) {
+  return "essential";
+}
+
+return null;
+
+Essa é a regra comercial oficial nesta etapa.
+
+==================================================
+IMPORTANTE SOBRE UPGRADE
+==================================================
+
+O Upgrade é dependente do Essential para formar Deluxe.
+
+Ou seja:
+
+Essential + Upgrade
+→ Deluxe
+
+Se qualquer um dos dois deixar de estar pago:
+→ cai para Essential
+
+Exemplos:
+
+Essential paid
+Upgrade paid
+Refund Essential
+→ essential
+
+Essential paid
+Upgrade paid
+Refund Upgrade
+→ essential
+
+Não retornar null nesses casos.
+
+Também não tratar Upgrade sozinho como Deluxe.
+
+==================================================
+DELUXE DIRETO
+==================================================
+
+Uma compra direta do produto Deluxe é independente.
+
+Deluxe paid
+→ deluxe
+
+Se essa compra for refund/chargeback:
+- recalcular com base nas outras compras válidas.
+
+Exemplo:
+
+Essential paid
+Deluxe paid
+Chargeback Deluxe
+→ essential
+
+Outro:
+
+Essential paid
+Upgrade paid
+Deluxe paid
+Chargeback Deluxe
+→ deluxe
+
+porque Essential + Upgrade ainda formam Deluxe.
+
+==================================================
+ENTITLEMENT
+==================================================
+
+cakto_entitlements continua sendo a fonte rápida de consulta usada por:
+
+GET /api/me/plan
+
+Mas seu valor agora deve ser consequência do ledger de compras.
+
+recalculateEntitlement(email)
+→ decide null | essential | deluxe
+→ atualiza cakto_entitlements
+
+Se resultado for null:
+- remover entitlement
+ou
+- representar ausência corretamente conforme schema atual
+
+Preservar:
+
+GET /api/me/plan
+→ plan: null
+
+para quem não tem acesso.
+
+==================================================
+IDEMPOTÊNCIA
+==================================================
+
+Preservar a idempotência atual.
+
+Mas ela precisa funcionar também para refund e chargeback.
+
+O mesmo evento recebido duas vezes:
+→ não deve gerar inconsistência
+→ não deve duplicar histórico
+→ não deve alterar timestamps ou estados de forma incorreta
+
+Avaliar se transaction_id sozinho é suficiente ou se precisamos distinguir:
+- purchase_approved
+- refund
+- chargeback
+
+por exemplo com chave composta:
+transaction_id + event
+
+ou outra estrutura adequada.
+
+Não quebrar a idempotência atual.
+
+==================================================
+CONCORRÊNCIA
+==================================================
+
+Preservar:
+
+- pg_advisory_xact_lock por e-mail
+- SELECT FOR UPDATE quando necessário
+- operações transacionais
+
+Os eventos podem chegar muito próximos.
+
+O resultado deve ser determinístico.
+
+Exemplo:
+
+purchase_approved
+e logo depois refund
+
+não pode deixar entitlement incorreto por condição de corrida.
+
+==================================================
+MIGRAÇÃO
+==================================================
+
+Hoje já existem:
+
+cakto_entitlements
+cakto_processed_events
+
+Não destruir dados existentes.
+
+Criar migration segura.
+
+Se for criada cakto_purchases:
+- manter processed_events se ainda fizer sentido para idempotência
+- migrar/backfill apenas o que for possível com segurança
+
+Os processed_events atuais possuem:
+- transaction_id
+- event
+- product_id
+- email
+- processed_at
+
+Essas compras antigas processadas como purchase_approved podem ser consideradas pagas no backfill somente se isso for seguro com base nos dados existentes.
+
+Não inventar refund/chargeback histórico que não existe.
+
+Explicar exatamente a estratégia usada.
+
+==================================================
+EVENTOS NÃO TRATADOS
+==================================================
+
+purchase_refused:
+→ não concede acesso
+→ pode continuar sendo logado e ignorado
+
+Outros eventos não relacionados:
+→ continuar respondendo 200 com processed:false, como hoje.
+
+==================================================
+LOGS
+==================================================
+
+Manter logs seguros.
+
+Pode logar:
+
+- event
+- transaction_id
+- product_id
+- commercial_type
+- email mascarado
+- status anterior da compra
+- status novo
+- plano anterior
+- plano recalculado
+
+Nunca logar:
+
+- secret
+- CPF
+- telefone
+- endereço
+- cartão
+- payload completo
+
+==================================================
+TESTES OBRIGATÓRIOS
+==================================================
+
+Validar no mínimo estes cenários:
+
+1.
+Essential paid
+→ essential
+
+2.
+Deluxe paid
+→ deluxe
+
+3.
+Upgrade paid sozinho
+→ essential
+
+4.
+Essential paid
+Upgrade paid
+→ deluxe
+
+5.
+Essential paid
+Upgrade paid
+Refund Essential
+→ essential
+
+6.
+Essential paid
+Upgrade paid
+Refund Upgrade
+→ essential
+
+7.
+Deluxe paid
+Chargeback Deluxe
+→ null
+
+8.
+Essential paid
+Deluxe paid
+Chargeback Deluxe
+→ essential
+
+9.
+Essential paid
+Upgrade paid
+Deluxe paid
+Chargeback Deluxe
+→ deluxe
+
+10.
+Essential paid
+Refund Essential
+→ null
+
+11.
+Upgrade paid
+Refund Upgrade
+→ null
+
+12.
+Mesmo refund recebido duas vezes
+→ resultado estável e sem duplicação
+
+13.
+Mesmo chargeback recebido duas vezes
+→ resultado estável e sem duplicação
+
+14.
+Produto desconhecido
+→ não altera entitlement
+
+15.
+purchase_refused
+→ não altera entitlement
+
+16.
+purchase_approved duplicado
+→ continua idempotente
+
+==================================================
+NÃO ALTERAR
+==================================================
+
+Não alterar:
+
+- frontend
+- PlanGate
+- AuthContext
+- Firebase Auth
+- registration-eligibility
+- checkout
+- product IDs de produção
+- webhook secret
+- /api/me/plan como contrato externo
+- lógica de login/cadastro
+- verificação de e-mail
+
+==================================================
+AO FINAL
+==================================================
+
+Me responda:
+
+1. quais arquivos/schema/migrations foram alterados;
+2. se criou cakto_purchases ou evoluiu cakto_processed_events;
+3. como purchase_approved passou a funcionar;
+4. como refund funciona;
+5. como chargeback funciona;
+6. como recalculateEntitlement decide null/essential/deluxe;
+7. como ficou a dependência Essential + Upgrade;
+8. como ficou a idempotência de refund/chargeback;
+9. como lidou com dados históricos existentes;
+10. resultado dos 16 testes obrigatórios;
+11. se existe algum passo manual necessário antes de publicar em produção;
+12. confirmação de que frontend, Auth e product IDs de produção não foram alterados.
