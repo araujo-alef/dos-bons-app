@@ -1,0 +1,92 @@
+Temos um erro real em produção no webhook Cakto.
+
+O purchase_approved chegou corretamente, autenticou, identificou o produto Essential, mas falhou com:
+
+relation "cakto_purchases" does not exist
+
+O stack mostra tentativa de INSERT em:
+
+cakto_purchases
+
+e o webhook retornou HTTP 500.
+
+Quero corrigir APENAS o problema de schema/banco.
+
+NÃO altere:
+- regra de planos
+- webhook secret
+- product IDs
+- parser da Cakto
+- frontend
+- Auth
+- Firebase
+- lógica de refund/chargeback
+- regra Essential + Upgrade
+- /api/me/plan
+
+Faça primeiro um diagnóstico:
+
+1. Identifique qual DATABASE_URL / conexão o deployment publicado está realmente usando.
+2. Confirme se cakto_purchases existe nesse banco.
+3. Confirme se cakto_entitlements e cakto_processed_events existem nesse mesmo banco.
+4. Verifique se o schema Drizzle de cakto_purchases está exportado corretamente.
+5. Verifique se a migration/schema push que cria cakto_purchases foi realmente aplicada ao banco usado pelo deployment.
+6. Não assuma que dev e produção usam o mesmo banco apenas por configuração anterior — valide pela conexão real.
+
+Depois corrija:
+
+7. Crie/aplique a tabela cakto_purchases no banco correto usando o mecanismo padrão do projeto (Drizzle migration/push).
+8. A migration deve ser aditiva e não destrutiva.
+9. Não apagar ou recriar tabelas existentes.
+10. Não perder dados.
+11. Depois da criação, valide a estrutura da tabela e as colunas esperadas:
+
+- transaction_id
+- email
+- product_id
+- commercial_type
+- status
+- paid_at
+- refunded_at
+- chargedback_at
+- ref_id
+- product_short_id
+- offer_id
+- created_at
+- updated_at
+
+12. Rode um SELECT simples para confirmar que a tabela existe.
+13. Não insira dados falsos permanentes.
+
+IMPORTANTE SOBRE A COMPRA QUE JÁ FALHOU:
+
+A compra real/teste já aprovada pela Cakto tem:
+
+transactionId:
+f535360a-34fd-43d1-ab76-dbaaa5e1ad87
+
+productId:
+d63acb45-924c-46d9-a2f2-197ef40f2571
+
+commercialType esperado:
+essential
+
+Como o webhook retornou 500, não assuma que a compra foi processada.
+
+Depois que a tabela existir:
+
+14. Verifique se essa transaction_id existe em cakto_purchases.
+15. Se não existir, NÃO crie manualmente sem me avisar.
+16. Me diga se o melhor caminho é:
+   - reenviar o webhook pela Cakto;
+   - ou usar o mecanismo oficial de retry/reenvio.
+
+Ao final, responda:
+
+1. qual banco o deployment usa;
+2. por que cakto_purchases não existia;
+3. como a tabela foi criada;
+4. confirmação de que as outras tabelas permanecem intactas;
+5. confirmação das colunas;
+6. se a transaction_id da compra falhada existe ou não;
+7. qual próximo passo exato para reprocessar essa compra.
