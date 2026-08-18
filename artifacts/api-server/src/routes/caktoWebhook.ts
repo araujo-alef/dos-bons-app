@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { logger } from "../lib/logger";
 import {
   parseCaktoEvent,
+  validatePurchaseApproved,
   verifyCaktoAuthenticity,
   maskEmail,
 } from "../services/cakto";
@@ -11,20 +12,23 @@ const router: IRouter = Router();
 /**
  * POST /api/webhooks/cakto
  *
- * Etapa 1 da integração Cakto: recebe o evento, valida o formato básico,
- * loga de forma segura e responde 200 imediatamente. Nenhum efeito
- * colateral (Firebase, planos, checkout) nesta etapa.
+ * Recebe eventos da Cakto seguindo o modelo oficial de payload:
+ * autentica via body.secret (quando CAKTO_WEBHOOK_SECRET está configurado),
+ * valida campos obrigatórios de purchase_approved e loga com segurança.
+ *
+ * Sem efeitos colaterais ainda (Firebase, accessLevel, purchases) — a chave
+ * futura de idempotência será data.id (transactionId) e o mapeamento de
+ * acesso usará data.product.id como identificador canônico.
  */
 router.post("/webhooks/cakto", (req, res) => {
-  const parsed = parseCaktoEvent(req.body);
+  // 1) Autenticação SEMPRE primeiro (fail-closed): um request sem credencial
+  // válida recebe 401 antes de qualquer validação de formato.
+  const rawBody: Record<string, unknown> =
+    req.body !== null && typeof req.body === "object" && !Array.isArray(req.body)
+      ? (req.body as Record<string, unknown>)
+      : {};
 
-  if (!parsed.ok) {
-    logger.warn({ error: parsed.error }, "cakto-webhook: invalid payload");
-    res.status(400).json({ ok: false, error: parsed.error });
-    return;
-  }
-
-  const auth = verifyCaktoAuthenticity(parsed.event.raw, req.headers);
+  const auth = verifyCaktoAuthenticity(rawBody, req.headers);
   if (!auth.ok) {
     logger.warn(
       { mode: auth.mode, reason: auth.reason },
@@ -34,19 +38,44 @@ router.post("/webhooks/cakto", (req, res) => {
     return;
   }
 
-  const { event, transactionId, product, customerEmail } = parsed.event;
+  // 2) Só depois de autenticado, valida o formato do evento.
+  const parsed = parseCaktoEvent(req.body);
+  if (!parsed.ok) {
+    logger.warn({ error: parsed.error }, "cakto-webhook: invalid payload");
+    res.status(400).json({ ok: false, error: parsed.error });
+    return;
+  }
 
-  // Log seguro: apenas os campos de interesse, e-mail mascarado, sem
-  // despejar o payload completo (pode conter CPF, telefone, etc).
+  const evt = parsed.event;
+
+  // Validação mínima obrigatória para compras aprovadas.
+  if (evt.event === "purchase_approved") {
+    const problems = validatePurchaseApproved(evt);
+    if (problems.length > 0) {
+      logger.warn(
+        { event: evt.event, transactionId: evt.transactionId, problems },
+        "cakto-webhook: purchase_approved failed validation",
+      );
+      res.status(422).json({ ok: false, error: "invalid purchase_approved payload", problems });
+      return;
+    }
+  }
+
+  // Log seguro: somente campos permitidos, e-mail mascarado.
+  // Nunca logar: secret, CPF, telefone, endereço, cartão, payload completo.
   logger.info(
     {
       source: "cakto",
-      event,
-      transactionId,
-      product,
-      customerEmail: maskEmail(customerEmail),
+      event: evt.event,
+      transactionId: evt.transactionId,
+      refId: evt.refId,
+      productId: evt.productId,
+      productShortId: evt.productShortId,
+      productName: evt.productName,
+      offerId: evt.offerId,
+      customerEmail: maskEmail(evt.customerEmail),
+      status: evt.status,
       authMode: auth.mode,
-      authReason: auth.reason,
       receivedAt: new Date().toISOString(),
     },
     "cakto-webhook: event received",

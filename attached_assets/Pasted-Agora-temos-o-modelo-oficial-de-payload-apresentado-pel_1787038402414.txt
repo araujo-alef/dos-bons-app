@@ -1,0 +1,166 @@
+Agora temos o modelo oficial de payload apresentado pela própria Cakto ao configurar o webhook.
+
+O payload de purchase_approved possui esta estrutura relevante:
+
+{
+  "secret": "...",
+  "event": "purchase_approved",
+  "data": {
+    "id": "...",
+    "refId": "...",
+    "customer": {
+      "name": "...",
+      "email": "..."
+    },
+    "offer": {
+      "id": "...",
+      "name": "..."
+    },
+    "product": {
+      "name": "...",
+      "id": "...",
+      "short_id": "...",
+      "type": "unique"
+    },
+    "status": "paid",
+    "paidAt": "..."
+  }
+}
+
+Quero atualizar nossa implementação para refletir esse contrato real.
+
+IMPORTANTE:
+ainda NÃO implementar Firebase Auth, Firestore, accessLevel ou criação de usuário nesta tarefa.
+
+1. AUTENTICAÇÃO
+
+A credencial oficial apresentada no payload está no campo raiz:
+
+body.secret
+
+Quando CAKTO_WEBHOOK_SECRET estiver configurado:
+
+- body.secret ausente → 401
+- body.secret diferente → 401
+- body.secret correto → continuar processamento
+
+Use comparação segura como já foi implementado.
+
+Não precisamos mais considerar x-cakto-secret como mecanismo principal.
+
+Pode manter suporte legado/fallback se não causar problemas, mas o contrato esperado deve ser body.secret.
+
+Nunca registrar o valor de body.secret.
+
+2. PARSER
+
+Atualizar o parser para considerar como caminhos oficiais:
+
+event:
+body.event
+
+order/transaction id:
+body.data.id
+
+reference id:
+body.data.refId
+
+customer:
+body.data.customer
+
+customer email:
+body.data.customer.email
+
+product id:
+body.data.product.id
+
+product short id:
+body.data.product.short_id
+
+product name:
+body.data.product.name
+
+offer id:
+body.data.offer.id
+
+offer name:
+body.data.offer.name
+
+status:
+body.data.status
+
+paid at:
+body.data.paidAt
+
+3. PURCHASE_APPROVED
+
+Para event === "purchase_approved", validar no mínimo:
+
+- data.id presente
+- data.customer.email presente
+- data.product.id presente
+- data.status === "paid"
+
+Se faltar dado obrigatório:
+→ responder erro apropriado
+→ não processar.
+
+4. PRODUTO
+
+Vamos usar data.product.id como identificador canônico para mapear acesso.
+
+Não usar:
+- nome do produto como chave principal;
+- preço;
+- nome da oferta;
+- checkout id.
+
+Esses campos podem ser registrados como metadata, mas não devem decidir o nível de acesso.
+
+5. IDEMPOTÊNCIA
+
+Ainda não implementar persistência, mas preparar a arquitetura considerando:
+
+data.id
+
+como identificador único do pedido/evento que futuramente será usado para impedir processamento duplicado.
+
+6. LOG
+
+Manter logs somente com:
+
+- event
+- data.id
+- data.refId
+- product.id
+- product.short_id
+- product.name
+- offer.id
+- customer.email mascarado
+- status
+- timestamp
+
+Nunca logar:
+- secret
+- CPF
+- telefone
+- endereço
+- dados do cartão
+- payload completo.
+
+7. NÃO IMPLEMENTAR AINDA
+
+Não mexer em:
+- Firebase Auth
+- Firebase Admin
+- Firestore
+- accessLevel
+- purchases
+- frontend
+- checkout
+
+Ao final, informe:
+- quais caminhos do payload passaram a ser considerados oficiais;
+- como ficou a validação do secret;
+- como purchase_approved é validado;
+- e se a estrutura está pronta para a próxima etapa de mapeamento dos 3 produtos.

@@ -2,25 +2,59 @@ import { timingSafeEqual } from "node:crypto";
 import { logger } from "../lib/logger";
 
 /**
- * Cakto webhook service — parsing, safe logging and (future) authenticity
- * validation for events sent by Cakto.
+ * Cakto webhook service — parsing, safe logging and authenticity validation
+ * for events sent by Cakto, seguindo o modelo oficial de payload apresentado
+ * no painel da Cakto:
  *
- * Etapa 1: apenas receber, validar formato básico e logar com segurança.
- * Nada de Firebase, entitlements ou checkout ainda.
+ * {
+ *   "secret": "...",
+ *   "event": "purchase_approved",
+ *   "data": {
+ *     "id": "...", "refId": "...",
+ *     "customer": { "name": "...", "email": "..." },
+ *     "offer": { "id": "...", "name": "..." },
+ *     "product": { "id": "...", "short_id": "...", "name": "...", "type": "unique" },
+ *     "status": "paid",
+ *     "paidAt": "..."
+ *   }
+ * }
+ *
+ * Etapa atual: receber, autenticar, validar e logar com segurança.
+ * Sem Firebase, Firestore, accessLevel ou criação de usuário ainda.
  */
 
-/** Shape mínimo que aceitamos de um evento Cakto. Campos extras são ignorados. */
+/** Evento Cakto normalizado a partir dos caminhos oficiais do payload. */
 export interface CaktoEvent {
-  /** Tipo/nome do evento (ex.: "purchase_approved"). */
+  /** Tipo do evento — body.event (ex.: "purchase_approved"). */
   event: string;
-  /** Payload bruto (já parseado de JSON) — mantido para inspeção futura. */
+  /** Payload bruto (já parseado de JSON) — mantido para inspeção; nunca logar inteiro. */
   raw: Record<string, unknown>;
-  /** Identificador do pedido/transação, se presente. */
+  /**
+   * Identificador único do pedido/evento — body.data.id.
+   * Será a chave de idempotência quando houver persistência.
+   */
   transactionId: string | null;
-  /** Produto/oferta, se presente. */
-  product: string | null;
-  /** E-mail do comprador, se presente. */
+  /** Referência do pedido — body.data.refId. */
+  refId: string | null;
+  /** E-mail do comprador — body.data.customer.email. */
   customerEmail: string | null;
+  /**
+   * Identificador CANÔNICO do produto — body.data.product.id.
+   * É este campo que decidirá o mapeamento de acesso, nunca nome/oferta/preço.
+   */
+  productId: string | null;
+  /** body.data.product.short_id (metadata). */
+  productShortId: string | null;
+  /** body.data.product.name (metadata; não usar como chave de acesso). */
+  productName: string | null;
+  /** body.data.offer.id (metadata). */
+  offerId: string | null;
+  /** body.data.offer.name (metadata). */
+  offerName: string | null;
+  /** body.data.status (ex.: "paid"). */
+  status: string | null;
+  /** body.data.paidAt. */
+  paidAt: string | null;
 }
 
 /** Resultado da tentativa de parse do corpo recebido. */
@@ -41,22 +75,12 @@ function pick(obj: Record<string, unknown>, path: string[]): unknown {
   return cur;
 }
 
-/** Primeiro valor string não-vazio dentre vários caminhos possíveis. */
-function firstString(
-  obj: Record<string, unknown>,
-  paths: string[][],
-): string | null {
-  for (const p of paths) {
-    const s = asString(pick(obj, p));
-    if (s) return s;
-  }
-  return null;
+function pickString(obj: Record<string, unknown>, path: string[]): string | null {
+  return asString(pick(obj, path));
 }
 
 /**
- * Faz o parse defensivo do corpo do webhook. A Cakto envia JSON; como o
- * formato exato pode variar por tipo de evento, procuramos os campos de
- * interesse em caminhos comuns sem depender de um schema rígido.
+ * Parse do corpo do webhook seguindo os caminhos OFICIAIS do payload Cakto.
  */
 export function parseCaktoEvent(body: unknown): ParseResult {
   if (body === null || typeof body !== "object" || Array.isArray(body)) {
@@ -64,40 +88,43 @@ export function parseCaktoEvent(body: unknown): ParseResult {
   }
   const obj = body as Record<string, unknown>;
 
-  const event = firstString(obj, [["event"], ["type"], ["event_type"]]);
+  const event = pickString(obj, ["event"]);
   if (!event) {
     return { ok: false, error: "Missing event type field" };
   }
 
-  const transactionId = firstString(obj, [
-    ["data", "id"],
-    ["data", "transaction_id"],
-    ["data", "order_id"],
-    ["transaction_id"],
-    ["order_id"],
-    ["id"],
-  ]);
-
-  const product = firstString(obj, [
-    ["data", "product", "name"],
-    ["data", "product", "id"],
-    ["data", "offer", "name"],
-    ["data", "offer", "id"],
-    ["product", "name"],
-    ["product"],
-  ]);
-
-  const customerEmail = firstString(obj, [
-    ["data", "customer", "email"],
-    ["data", "buyer", "email"],
-    ["customer", "email"],
-    ["email"],
-  ]);
-
   return {
     ok: true,
-    event: { event, raw: obj, transactionId, product, customerEmail },
+    event: {
+      event,
+      raw: obj,
+      transactionId: pickString(obj, ["data", "id"]),
+      refId: pickString(obj, ["data", "refId"]),
+      customerEmail: pickString(obj, ["data", "customer", "email"]),
+      productId: pickString(obj, ["data", "product", "id"]),
+      productShortId: pickString(obj, ["data", "product", "short_id"]),
+      productName: pickString(obj, ["data", "product", "name"]),
+      offerId: pickString(obj, ["data", "offer", "id"]),
+      offerName: pickString(obj, ["data", "offer", "name"]),
+      status: pickString(obj, ["data", "status"]),
+      paidAt: pickString(obj, ["data", "paidAt"]),
+    },
   };
+}
+
+/**
+ * Validação mínima obrigatória para purchase_approved:
+ * data.id, data.customer.email, data.product.id presentes e data.status === "paid".
+ * Retorna a lista de problemas (vazia = válido).
+ */
+export function validatePurchaseApproved(event: CaktoEvent): string[] {
+  // Códigos fixos — nunca interpolar valores vindos do payload.
+  const problems: string[] = [];
+  if (!event.transactionId) problems.push("missing_data_id");
+  if (!event.customerEmail) problems.push("missing_customer_email");
+  if (!event.productId) problems.push("missing_product_id");
+  if (event.status !== "paid") problems.push("status_not_paid");
+  return problems;
 }
 
 /** Mascara e-mail para log: "bernardo@gmail.com" → "be***@gmail.com". */
@@ -111,24 +138,25 @@ export function maskEmail(email: string | null): string | null {
 }
 
 /**
- * Extrai a credencial enviada pela Cakto no request.
+ * Extrai a credencial enviada pela Cakto.
  *
- * ATENÇÃO: o mecanismo oficial da Cakto (body? header? outro?) ainda NÃO foi
- * confirmado. Esta função é o ÚNICO ponto a ajustar depois de capturarmos um
- * webhook real da Cakto em modo de teste. Por ora, aceitamos os candidatos
- * mais prováveis (campo `secret` no body ou header `x-cakto-secret`) — se a
- * Cakto usar outro mecanismo, requests legítimos serão rejeitados no modo
- * seguro até ajustarmos aqui.
+ * Contrato oficial (confirmado no painel da Cakto): a credencial vem no campo
+ * raiz `body.secret`. Mantemos o header `x-cakto-secret` apenas como fallback
+ * legado — o body tem precedência.
+ *
+ * NUNCA logar o valor retornado por esta função.
  */
 export function extractCaktoCredential(
   body: Record<string, unknown>,
   headers: Record<string, string | string[] | undefined>,
 ): string | null {
+  const bodyCandidate = asString(body["secret"]);
+  if (bodyCandidate) return bodyCandidate;
+
   const headerCandidate = headers["x-cakto-secret"];
-  if (typeof headerCandidate === "string" && headerCandidate.length > 0) {
-    return headerCandidate;
-  }
-  return asString(body["secret"]);
+  return typeof headerCandidate === "string" && headerCandidate.length > 0
+    ? headerCandidate
+    : null;
 }
 
 /** Comparação em tempo constante para evitar timing attacks. */
@@ -147,8 +175,8 @@ function safeEqual(a: string, b: string): boolean {
  *   apenas para capturar/testar o payload real da Cakto.
  *
  * MODO SEGURO (CAKTO_WEBHOOK_SECRET configurado):
- *   fail-closed — só passa com credencial presente E idêntica ao secret.
- *   Ausência de credencial = inválido. Divergência = inválido.
+ *   fail-closed — só passa com `body.secret` presente E idêntico ao secret.
+ *   Ausência = 401. Divergência = 401.
  */
 export function verifyCaktoAuthenticity(
   body: Record<string, unknown>,
