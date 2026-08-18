@@ -9,7 +9,6 @@ import {
   type User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
   sendPasswordResetEmail,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -140,10 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string): Promise<void> {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    // O plano só é reconhecido pelo backend com e-mail verificado —
-    // envia a verificação imediatamente após o cadastro.
-    sendEmailVerification(cred.user).catch(() => {});
+    await createUserWithEmailAndPassword(auth, email, password);
   }
 
   async function signOut(): Promise<void> {

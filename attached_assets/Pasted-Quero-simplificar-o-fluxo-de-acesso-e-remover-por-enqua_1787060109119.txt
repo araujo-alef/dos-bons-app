@@ -1,0 +1,425 @@
+Quero simplificar o fluxo de acesso e remover, por enquanto, a exigência de verificação de e-mail.
+
+O app será disponibilizado inicialmente para acessos restritos, então neste momento não quero adicionar o atrito de exigir que o usuário confirme o e-mail antes de liberar o plano.
+
+O fluxo desejado passa a ser:
+
+```text
+Cliente compra na Cakto
+↓
+Webhook registra o entitlement pelo e-mail
+↓
+Cliente acessa /cadastro
+↓
+Informa o mesmo e-mail usado na compra
+↓
+Backend confirma que existe entitlement para esse e-mail
+↓
+Usuário cria a conta Firebase com sua própria senha
+↓
+Conta criada
+↓
+Sistema vincula imediatamente o entitlement pelo e-mail
+↓
+Plano Essential ou Deluxe fica disponível imediatamente
+↓
+Usuário entra no app
+```
+
+## 1. Remover a exigência de `emailVerified`
+
+Atualmente o backend só retorna o plano quando:
+
+```ts
+emailVerified === true
+```
+
+Remova essa exigência.
+
+O plano deve ser reconhecido imediatamente após autenticação, desde que:
+
+* o Firebase ID token seja válido
+* o usuário autenticado possua um e-mail
+* exista um registro correspondente em `cakto_entitlements`
+
+Não condicione mais o acesso a:
+
+```ts
+user.email_verified
+```
+
+ou qualquer equivalente.
+
+---
+
+## 2. `/api/me/plan`
+
+Atualize:
+
+```text
+GET /api/me/plan
+```
+
+para que um usuário autenticado possa receber seu plano independentemente de o e-mail estar verificado.
+
+Exemplo:
+
+```json
+{
+  "authenticated": true,
+  "plan": "essential"
+}
+```
+
+ou:
+
+```json
+{
+  "authenticated": true,
+  "plan": "deluxe"
+}
+```
+
+Se quiser manter `emailVerified` na resposta como informação adicional, tudo bem, mas esse campo NÃO deve interferir na liberação do plano.
+
+Por exemplo, isto é aceitável:
+
+```json
+{
+  "authenticated": true,
+  "plan": "deluxe",
+  "emailVerified": false
+}
+```
+
+Nesse caso o usuário deve continuar tendo acesso ao Deluxe normalmente.
+
+---
+
+## 3. Cadastro
+
+Preserve a validação atual antes da criação da conta:
+
+```text
+POST /api/auth/registration-eligibility
+```
+
+O usuário só deve conseguir se cadastrar pela interface se existir um entitlement para o e-mail informado.
+
+Continue utilizando:
+
+```ts
+email.trim().toLowerCase()
+```
+
+para localizar o entitlement.
+
+Após a resposta:
+
+```json
+{
+  "eligible": true
+}
+```
+
+o Firebase pode criar a conta normalmente.
+
+Assim que a conta for criada e autenticada, o plano correspondente deve ser reconhecido imediatamente.
+
+---
+
+## 4. Remover envio obrigatório de verificação
+
+Atualmente o cadastro dispara automaticamente o e-mail de verificação do Firebase.
+
+Remova esse envio automático dessa etapa, caso tenha sido implementado exclusivamente para liberar o plano.
+
+Não quero que o usuário:
+
+* precise abrir o e-mail
+* clicar em link de confirmação
+* voltar para o app
+* clicar em "já verifiquei"
+* reenviar verificação
+
+para conseguir usar o produto.
+
+Se houver alguma funcionalidade de verificação de e-mail independente que não interfira na UX, não é necessário remover configurações globais do Firebase; apenas retire essa exigência do fluxo atual de cadastro/acesso.
+
+---
+
+## 5. Remover UI relacionada à verificação
+
+Se tiver sido adicionada alguma interface como:
+
+```text
+Verifique seu e-mail para liberar seu acesso
+```
+
+ou:
+
+```text
+Já verifiquei meu e-mail
+Reenviar e-mail
+```
+
+remova essa etapa da experiência.
+
+Após criar a conta com sucesso, o usuário deve seguir diretamente para o fluxo normal do app.
+
+---
+
+## 6. Fonte de verdade continua sendo o entitlement
+
+Não altere a regra principal de segurança:
+
+```text
+Firebase Authentication
++
+cakto_entitlements
+```
+
+O fato de existir uma conta Firebase NÃO significa que o usuário possui acesso.
+
+O plano só deve existir quando houver um registro correspondente em:
+
+```text
+cakto_entitlements
+```
+
+Portanto, uma conta criada diretamente pela API pública do Firebase sem possuir compra continuará tendo:
+
+```text
+plan = null
+```
+
+e posteriormente poderá ser bloqueada pela lógica de acesso do app.
+
+---
+
+## 7. Vínculo por e-mail
+
+Continue vinculando o usuário autenticado ao entitlement usando o e-mail do próprio Firebase ID token.
+
+Fluxo:
+
+```text
+Firebase ID token válido
+↓
+e-mail do token
+↓
+trim().toLowerCase()
+↓
+cakto_entitlements
+↓
+essential | deluxe | null
+```
+
+O frontend nunca deve enviar arbitrariamente um e-mail para `/api/me/plan` e escolher de qual cliente deseja consultar o plano.
+
+O backend deve extrair o e-mail do token Firebase autenticado.
+
+---
+
+## 8. Segurança que deve permanecer
+
+Preserve integralmente:
+
+* validação criptográfica do Firebase ID token
+* autenticação do webhook Cakto
+* `CAKTO_WEBHOOK_SECRET`
+* product IDs por env
+* idempotência
+* lock/concurrency
+* proteção contra downgrade
+* regras Essential / Deluxe / Upgrade
+* `registration-eligibility`
+* normalização dos e-mails
+* entitlement como fonte de verdade
+
+Não enfraqueça nenhum desses pontos.
+
+A única alteração desta tarefa é:
+
+```text
+email verificado
+```
+
+deixar de ser requisito para reconhecimento/liberação do plano.
+
+---
+
+## 9. Fluxos esperados
+
+### Compra Essential
+
+```text
+Compra Essential
+↓
+entitlement essential
+↓
+cadastro com mesmo e-mail
+↓
+conta Firebase criada
+↓
+login
+↓
+/api/me/plan
+↓
+essential imediatamente
+```
+
+### Compra Deluxe
+
+```text
+Compra Deluxe
+↓
+entitlement deluxe
+↓
+cadastro
+↓
+login
+↓
+deluxe imediatamente
+```
+
+### Upgrade
+
+```text
+usuário essential existente
+↓
+compra upgrade
+↓
+webhook altera entitlement para deluxe
+↓
+refreshPlan()
+↓
+deluxe
+```
+
+Não exigir nova autenticação ou verificação de e-mail.
+
+### Conta sem compra
+
+```text
+conta Firebase sem entitlement
+↓
+/api/me/plan
+↓
+plan = null
+```
+
+Não conceder Essential nem Deluxe.
+
+---
+
+## 10. Usuário que já possui conta
+
+Preserve o comportamento atual:
+
+se uma pessoa já possui conta Firebase e posteriormente compra com o mesmo e-mail:
+
+```text
+conta existente
+↓
+webhook recebe compra
+↓
+entitlement criado/atualizado
+↓
+/api/me/plan
+↓
+plano reconhecido
+```
+
+Não deve exigir novo cadastro.
+
+Não deve exigir confirmação de e-mail.
+
+---
+
+## 11. Não implementar ainda
+
+Não implemente nesta tarefa:
+
+* bloqueio visual dos conteúdos Essential/Deluxe
+* refund
+* chargeback
+* cancelamento
+* Firebase Blocking Functions
+* criação automática de usuário na compra
+* senha default
+* mudança da arquitetura de autenticação
+
+Essas etapas serão tratadas separadamente.
+
+---
+
+## 12. Testes obrigatórios
+
+Teste pelo menos:
+
+### Cenário 1
+
+```text
+entitlement essential
++
+conta com emailVerified = false
+→ /api/me/plan retorna essential
+```
+
+### Cenário 2
+
+```text
+entitlement deluxe
++
+emailVerified = false
+→ retorna deluxe
+```
+
+### Cenário 3
+
+```text
+conta sem entitlement
+→ retorna plan = null
+```
+
+### Cenário 4
+
+```text
+novo comprador
+→ registration-eligibility true
+→ cria conta
+→ plano aparece imediatamente
+```
+
+### Cenário 5
+
+```text
+essential existente
+→ compra upgrade
+→ refreshPlan()
+→ deluxe
+```
+
+### Cenário 6
+
+Confirme que o fluxo de cadastro não envia nem exige mais verificação de e-mail antes de entrar no app.
+
+---
+
+## 13. Ao finalizar
+
+Me informe:
+
+1. quais arquivos foram alterados
+2. onde a verificação de `emailVerified` foi removida
+3. se `/api/me/plan` agora retorna o plano mesmo com e-mail não verificado
+4. se o envio automático de e-mail de verificação foi removido
+5. se alguma tela/estado de verificação foi removido
+6. se `registration-eligibility` continua funcionando
+7. se uma conta sem entitlement continua recebendo `plan = null`
+8. quais testes foram executados
+9. se houve alguma alteração de schema
+10. se preciso apenas republicar ou existe algum outro passo manual
+
+Não faça alterações fora do escopo.

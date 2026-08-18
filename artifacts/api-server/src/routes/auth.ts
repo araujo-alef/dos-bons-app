@@ -67,17 +67,13 @@ router.get("/me/plan", async (req, res) => {
     return;
   }
 
-  // Anti-spoofing: o plano só é reconhecido para e-mail VERIFICADO.
-  // Sem isso, qualquer pessoa que soubesse o e-mail de um comprador poderia
-  // criar uma conta Firebase com esse e-mail e herdar o plano dele.
-  if (!emailVerified) {
-    res.json({ authenticated: true, plan: null, emailVerified: false });
-    return;
-  }
+  // Nota: por decisão de produto (acesso restrito inicial), o e-mail NÃO
+  // precisa estar verificado para o plano ser reconhecido. O campo
+  // emailVerified é retornado apenas como informação adicional.
 
   try {
     const plan = await getPlanByEmail(email);
-    res.json({ authenticated: true, plan, emailVerified: true });
+    res.json({ authenticated: true, plan, emailVerified });
   } catch (err) {
     logger.error({ err }, "auth: plan lookup failed");
     res.status(500).json({ authenticated: false, error: "plan lookup failed" });
