@@ -1,4 +1,4 @@
-modules = ["web", "bash", "postgresql-16", "nodejs-24", "python-base-3.13"]
+modules = ["web", "bash", "nodejs-24", "python-base-3.13", "postgresql-16"]
 
 [deployment]
 router = "application"
@@ -21,3 +21,10 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+CAKTO_PRODUCT_DELUXE_ID = "1101d226-bf9c-44ad-a91e-d5513518194b"
+CAKTO_PRODUCT_ESSENTIAL_ID = "d63acb45-924c-46d9-a2f2-197ef40f2571"
+CAKTO_PRODUCT_UPGRADE_ID = "8f38a862-24ea-44fe-afb9-ec7a97c41f02"

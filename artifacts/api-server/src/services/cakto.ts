@@ -184,6 +184,13 @@ export function verifyCaktoAuthenticity(
 ): { ok: boolean; mode: "test" | "secure"; reason: string } {
   const secret = process.env["CAKTO_WEBHOOK_SECRET"];
   if (!secret) {
+    // Em produção NUNCA rodar sem secret: fail-closed.
+    if (process.env["NODE_ENV"] === "production") {
+      logger.error(
+        "cakto-webhook: CAKTO_WEBHOOK_SECRET not configured in production — rejecting all webhooks (fail-closed)",
+      );
+      return { ok: false, mode: "secure", reason: "secret-not-configured" };
+    }
     logger.warn(
       "cakto-webhook: AUTH VALIDATION DISABLED (CAKTO_WEBHOOK_SECRET not set) — test mode only, do not use in production",
     );

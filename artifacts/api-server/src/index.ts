@@ -1,5 +1,8 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { validateCaktoProductEnvs } from "./services/caktoPlans";
+
+validateCaktoProductEnvs();
 
 const rawPort = process.env["PORT"];
 

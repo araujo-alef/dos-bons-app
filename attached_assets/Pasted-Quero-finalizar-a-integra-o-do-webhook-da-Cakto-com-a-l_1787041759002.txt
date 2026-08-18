@@ -1,0 +1,451 @@
+Quero finalizar a integração do webhook da Cakto com a lógica dos planos do sistema.
+
+O webhook já está recebendo corretamente os eventos em produção, validando a secret e retornando 200. Agora faça os ajustes abaixo com cuidado, preservando a arquitetura atual do projeto.
+
+## 1. Remover logs temporários de autenticação
+
+Remova os logs temporários que foram adicionados apenas para diagnosticar o `401 credential-mismatch`.
+
+Remova qualquer log que exiba ou revele:
+
+* `receivedSecret`
+* `expectedSecret`
+* `bodyHasSecret`
+* `queryApiKey`
+* qualquer valor completo relacionado à `CAKTO_WEBHOOK_SECRET`
+
+Não altere a lógica de autenticação atual, pois ela já está funcionando corretamente.
+
+Pode manter os logs estruturados e seguros já existentes, especialmente o log:
+
+```text
+cakto-webhook: event received
+```
+
+É desejável continuar registrando informações úteis e não sensíveis, como:
+
+* `event`
+* `transactionId`
+* `refId`
+* `productId`
+* `productShortId`
+* `productName`
+* `customerEmail` mascarado
+* `status`
+* plano anterior
+* plano resultante
+* resultado do processamento
+
+---
+
+## 2. Os IDs dos produtos NÃO devem ficar hardcoded
+
+Não coloque os IDs dos produtos diretamente no código.
+
+Eles devem ficar em variáveis de ambiente para facilitar manutenção futura caso algum produto seja recriado ou tenha o ID alterado.
+
+Crie/use estas variáveis:
+
+```env
+CAKTO_PRODUCT_ESSENTIAL_ID=d63acb45-924c-46d9-a2f2-197ef40f2571
+
+CAKTO_PRODUCT_DELUXE_ID=1101d226-bf9c-44ad-a91e-d5513518194b
+
+CAKTO_PRODUCT_UPGRADE_ID=8f38a862-24ea-44fe-afb9-ec7a97c41f02
+```
+
+A aplicação deve ler esses valores usando o mecanismo de configuração já existente no projeto, por exemplo:
+
+```ts
+process.env.CAKTO_PRODUCT_ESSENTIAL_ID
+process.env.CAKTO_PRODUCT_DELUXE_ID
+process.env.CAKTO_PRODUCT_UPGRADE_ID
+```
+
+ou equivalente conforme a arquitetura atual.
+
+Não duplique esses IDs em outros arquivos.
+
+A `CAKTO_WEBHOOK_SECRET` deve continuar separada dessas configurações.
+
+---
+
+## 3. Validar as envs
+
+Garanta que as três envs de produto estejam configuradas.
+
+Se alguma estiver ausente, a aplicação deve gerar um erro claro de configuração ou warning adequado conforme o padrão atual do projeto.
+
+Nunca imprima os valores completos dessas variáveis em logs.
+
+Se o projeto possuir configuração separada entre desenvolvimento e produção, deixe claro para mim quais envs precisam ser cadastradas também no ambiente de produção/deployment.
+
+---
+
+## 4. Identificação do produto comprado
+
+O produto deve ser identificado pelo campo:
+
+```ts
+req.body.data.product.id
+```
+
+Não use `product.name`, `product.short_id`, nome da oferta ou qualquer texto como fonte de verdade para definir o plano.
+
+O mapeamento deve ser:
+
+```text
+CAKTO_PRODUCT_ESSENTIAL_ID
+→ essential
+
+CAKTO_PRODUCT_DELUXE_ID
+→ deluxe
+
+CAKTO_PRODUCT_UPGRADE_ID
+→ upgrade de essential para deluxe
+```
+
+O produto `upgrade` NÃO é um plano independente.
+
+Nunca deve existir:
+
+```text
+plan = upgrade
+```
+
+---
+
+## 5. Processar somente compra aprovada
+
+A alteração de plano/acesso só deve acontecer quando o webhook representar uma compra realmente aprovada.
+
+O evento validado atualmente é:
+
+```text
+purchase_approved
+```
+
+Não conceda acesso apenas por:
+
+* geração de PIX
+* pagamento pendente
+* checkout iniciado
+* cartão recusado
+* tentativa de pagamento
+* boleto gerado
+* qualquer outro evento sem confirmação do pagamento
+
+Se já existir uma validação para isso, preserve e reutilize.
+
+---
+
+## 6. Regra do plano Essential
+
+Quando chegar um `purchase_approved` cujo:
+
+```ts
+req.body.data.product.id
+```
+
+for igual a:
+
+```env
+CAKTO_PRODUCT_ESSENTIAL_ID
+```
+
+o resultado esperado é:
+
+```text
+plan = essential
+```
+
+Regras:
+
+```text
+sem plano → essential
+essential → essential
+deluxe → deluxe
+```
+
+Nunca faça downgrade de `deluxe` para `essential`.
+
+Se um usuário Deluxe receber posteriormente um webhook do produto Essential, preserve o Deluxe.
+
+---
+
+## 7. Regra do plano Deluxe
+
+Quando chegar um `purchase_approved` cujo `productId` seja:
+
+```env
+CAKTO_PRODUCT_DELUXE_ID
+```
+
+o usuário deve ficar com:
+
+```text
+plan = deluxe
+```
+
+Regras:
+
+```text
+sem plano → deluxe
+essential → deluxe
+deluxe → deluxe
+```
+
+A compra do Deluxe sempre pode elevar o acesso, mas nunca reduzir.
+
+---
+
+## 8. Regra do produto Upgrade
+
+Quando chegar um `purchase_approved` cujo `productId` seja:
+
+```env
+CAKTO_PRODUCT_UPGRADE_ID
+```
+
+esse produto representa exclusivamente:
+
+```text
+essential → deluxe
+```
+
+Regras:
+
+```text
+essential → deluxe
+deluxe → deluxe
+```
+
+Nunca grave:
+
+```text
+plan = upgrade
+```
+
+Se o usuário não tiver plano base identificado no momento em que chegar a compra de upgrade:
+
+* não invente silenciosamente um estado inconsistente
+* não grave `upgrade` como plano
+* não faça downgrade
+* registre um warning estruturado indicando `upgrade without base plan`
+* preserve a consistência do usuário
+
+Antes de escolher o comportamento final desse caso, revise a estrutura atual do projeto e reutilize qualquer regra existente de entitlement/acesso.
+
+Se não houver regra existente, mantenha o usuário sem alteração e registre o caso para diagnóstico.
+
+---
+
+## 9. Identificação do usuário
+
+Reutilize a lógica existente do projeto para localizar o usuário correspondente à compra.
+
+Se atualmente a relação for feita pelo e-mail da Cakto, utilize:
+
+```ts
+req.body.data.customer.email
+```
+
+Normalize antes de consultar:
+
+```ts
+email.trim().toLowerCase()
+```
+
+Não crie usuários duplicados.
+
+Não altere o modelo de usuário sem necessidade.
+
+Se já existir serviço/repositório para localizar usuário por e-mail, reutilize-o.
+
+---
+
+## 10. Hierarquia de planos
+
+Considere explicitamente esta hierarquia:
+
+```text
+sem plano < essential < deluxe
+```
+
+O sistema nunca deve reduzir o nível de acesso por causa de um webhook posterior, duplicado ou fora de ordem.
+
+A lógica deve ser monotônica:
+
+```text
+o plano só pode permanecer igual ou subir
+```
+
+Exceto se já existir uma regra separada e explícita no sistema para cancelamento/reembolso, que não deve ser alterada neste momento.
+
+---
+
+## 11. Idempotência
+
+Garanta que o mesmo webhook não consiga processar a mesma compra repetidamente caso a Cakto reenvie o evento.
+
+Use preferencialmente o ID único da compra:
+
+```ts
+req.body.data.id
+```
+
+ou a estratégia de idempotência já existente no projeto.
+
+O processamento deve ser seguro em casos de retry.
+
+Exemplo de comportamento esperado:
+
+```text
+primeiro recebimento → processa normalmente
+mesma transaction novamente → ignora de forma segura
+```
+
+Registre algo como:
+
+```text
+cakto-webhook: duplicate ignored
+```
+
+sem retornar erro desnecessário para a Cakto.
+
+---
+
+## 12. Produto desconhecido
+
+Se chegar um `purchase_approved` autenticado com um `productId` que não corresponda a:
+
+```text
+CAKTO_PRODUCT_ESSENTIAL_ID
+CAKTO_PRODUCT_DELUXE_ID
+CAKTO_PRODUCT_UPGRADE_ID
+```
+
+então:
+
+* não altere plano
+* não libere acesso
+* registre warning estruturado
+* inclua o `productId` recebido
+* não trate como erro de autenticação
+* responda ao webhook de forma adequada para evitar retries desnecessários
+
+Log sugerido:
+
+```text
+cakto-webhook: unknown product
+```
+
+---
+
+## 13. Logs definitivos
+
+Mantenha logs úteis para diagnóstico em produção, sem secrets e sem dados pessoais desnecessários.
+
+Exemplos:
+
+```text
+cakto-webhook: event received
+
+cakto-webhook: plan activated
+
+cakto-webhook: plan upgraded
+
+cakto-webhook: plan unchanged
+
+cakto-webhook: duplicate ignored
+
+cakto-webhook: unknown product
+
+cakto-webhook: upgrade without base plan
+```
+
+Quando fizer sentido, inclua:
+
+```text
+transactionId
+productId
+previousPlan
+resultingPlan
+event
+```
+
+Não registre:
+
+```text
+CAKTO_WEBHOOK_SECRET
+receivedSecret
+expectedSecret
+```
+
+---
+
+## 14. Preservar a arquitetura atual
+
+Antes de implementar, revise a estrutura existente e reutilize o que já houver para:
+
+* tipos de plano
+* enum de plano
+* usuários
+* permissões
+* entitlements
+* serviços
+* repositories
+* banco de dados
+* idempotência
+* configuração de env
+* logging
+
+Não crie uma segunda implementação paralela se já existir uma estrutura adequada.
+
+Não faça refactors não relacionados a esta tarefa.
+
+Não altere outras integrações.
+
+---
+
+## 15. Não alterar autenticação já validada
+
+A autenticação do webhook da Cakto já foi validada em produção com sucesso.
+
+Atualmente foi confirmado que:
+
+```text
+receivedSecret = expectedSecret
+authMode = secure
+statusCode = 200
+```
+
+Portanto:
+
+* não redesenhe a autenticação
+* não altere o formato da secret
+* não volte a usar `api_key` em query string
+* preserve a validação atual usando a secret enviada pela Cakto
+
+---
+
+## 16. Ao finalizar
+
+Me entregue um resumo objetivo informando:
+
+1. quais arquivos foram alterados
+2. onde ficou a leitura das três envs de produto
+3. quais envs preciso cadastrar manualmente no Replit/deployment de produção
+4. como ficou o mapeamento de `productId`
+5. qual campo/modelo representa o plano do usuário atualmente
+6. como ficou a regra de Essential
+7. como ficou a regra de Deluxe
+8. como ficou a regra de Upgrade
+9. o que acontece se chegar Upgrade para alguém sem Essential
+10. como foi implementada ou preservada a idempotência
+11. como produtos desconhecidos são tratados
+12. quais logs temporários/sensíveis foram removidos
+13. quais logs seguros permaneceram
+14. se existe algum passo manual que eu ainda precise executar antes de testar em produção
+
+Não implemente nenhuma regra de cancelamento, chargeback ou reembolso nova nesta etapa, a menos que ela já exista e precise apenas ser preservada.
