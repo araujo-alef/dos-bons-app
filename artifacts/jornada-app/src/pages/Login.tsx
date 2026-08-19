@@ -32,7 +32,7 @@ export default function Login() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#050505] px-6">
-      <div className="w-full max-w-sm flex flex-col gap-8">
+      <div className="w-full max-w-sm flex flex-col gap-5">
 
         {/* Logo + tagline (bloco único) */}
         <Link href="/" className="no-underline flex flex-col items-center gap-1">
@@ -47,6 +47,7 @@ export default function Login() {
               fontSize:      '28px',
               fontWeight:    400,
               letterSpacing: '0.01em',
+              lineHeight:    '1.15',
               color:         '#F2F2F2',
               margin:        0,
               textAlign:     'center',
