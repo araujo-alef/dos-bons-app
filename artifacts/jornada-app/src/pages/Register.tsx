@@ -69,17 +69,13 @@ export default function Register() {
     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#050505] px-6">
       <div className="w-full max-w-sm flex flex-col gap-8">
 
-        {/* Logo image */}
-        <div className="flex justify-center">
+        {/* Logo + tagline (bloco único) */}
+        <Link href="/" className="no-underline flex flex-col items-center gap-3">
           <img
             src={logoApp}
             alt="Cachorro dos Bons"
             className="w-32 h-32 rounded-full object-cover"
           />
-        </div>
-
-        {/* Logo */}
-        <Link href="/" className="no-underline text-center">
           <p
             style={{
               fontFamily:    "'Barlow Condensed', sans-serif",
@@ -88,6 +84,7 @@ export default function Register() {
               letterSpacing: '0.01em',
               color:         '#F2F2F2',
               margin:        0,
+              textAlign:     'center',
             }}
           >
             Nem todo cachorro nasceu<br />
@@ -160,6 +157,21 @@ export default function Register() {
             Entrar
           </Link>
         </p>
+
+        {/* Suporte */}
+        <div className="flex flex-col items-center gap-2 pt-2 border-t border-white/5">
+          <p className="text-xs text-white/25 text-center">
+            Está com problemas para acessar?
+          </p>
+          <a
+            href="https://chat.whatsapp.com/DprW7TWCFapBrjOazfbP3O"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-white/40 hover:text-white/70 transition underline underline-offset-2"
+          >
+            Entrar no grupo de suporte
+          </a>
+        </div>
 
       </div>
     </div>
