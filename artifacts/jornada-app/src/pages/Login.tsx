@@ -35,7 +35,7 @@ export default function Login() {
       <div className="w-full max-w-sm flex flex-col gap-8">
 
         {/* Logo + tagline (bloco único) */}
-        <Link href="/" className="no-underline flex flex-col items-center gap-3">
+        <Link href="/" className="no-underline flex flex-col items-center gap-1">
           <img
             src={logoApp}
             alt="Cachorro dos Bons"
