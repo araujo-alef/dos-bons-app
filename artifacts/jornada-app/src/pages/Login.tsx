@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth }    from '@/context/AuthContext';
 import { toAuthError } from '@/lib/authErrors';
+import logoApp from '@/assets/logo-app.jpeg';
 
 export default function Login() {
   const { signIn, user } = useAuth();
@@ -32,6 +33,15 @@ export default function Login() {
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#050505] px-6">
       <div className="w-full max-w-sm flex flex-col gap-8">
+
+        {/* Logo image */}
+        <div className="flex justify-center">
+          <img
+            src={logoApp}
+            alt="Cachorro dos Bons"
+            className="w-24 h-24 rounded-full object-cover border-2 border-white/10 shadow-lg shadow-black/60"
+          />
+        </div>
 
         {/* Logo */}
         <Link href="/" className="no-underline text-center">
