@@ -39,7 +39,7 @@ export default function Login() {
           <img
             src={logoApp}
             alt="Cachorro dos Bons"
-            className="w-24 h-24 rounded-full object-cover"
+            className="w-32 h-32 rounded-full object-cover"
           />
         </div>
 
