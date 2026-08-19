@@ -74,7 +74,7 @@ export default function Register() {
           <img
             src={logoApp}
             alt="Cachorro dos Bons"
-            className="w-24 h-24 rounded-full object-cover border-2 border-white/10 shadow-lg shadow-black/60"
+            className="w-24 h-24 rounded-full object-cover"
           />
         </div>
 
