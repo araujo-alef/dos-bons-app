@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const idToken = await firebaseUser.getIdToken();
       const resp = await fetch(`${import.meta.env.BASE_URL}api/me/plan`, {
         headers: { Authorization: `Bearer ${idToken}` },
+        cache: 'no-store',
       });
       if (!resp.ok) {
         // Falha técnica (5xx etc.) — não é "sem plano"; permite retry.

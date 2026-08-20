@@ -43,6 +43,11 @@ router.post("/auth/registration-eligibility", async (req, res) => {
  * nunca informa o próprio plano.
  */
 router.get("/me/plan", async (req, res) => {
+  // Esta resposta depende do token Authorization e nunca deve ser reutilizada
+  // por cache do navegador ou de um proxy entre usuários/sessões.
+  res.set("Cache-Control", "private, no-store");
+  res.set("Vary", "Authorization");
+
   const authHeader = req.headers.authorization ?? "";
   const idToken = authHeader.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length)
